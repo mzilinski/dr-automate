@@ -4,11 +4,21 @@ __pycache__/
 .venv/
 .env
 site-packages/
-out/
-reisedaten.json
 *.pdf
 !forms/DR-Antrag_035_001Stand4-2025pdf.pdf
 
 # Local configuration files
-system_prompt.md.local
-config.local.json
+system_prompt.local.md
+
+# Test & Coverage
+.coverage
+htmlcov/
+coverage.xml
+.pytest_cache/
+
+# IDE
+.vscode/
+.idea/
+
+# Security reports
+bandit-report.json

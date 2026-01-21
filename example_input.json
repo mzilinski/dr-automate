@@ -1,0 +1,65 @@
+{
+  "_meta": {
+    "description": "Reisekostenantrag NRKVO - Beispieldaten",
+    "version": "EXAMPLE"
+  },
+  "antragsteller": {
+    "name": "Max Mustermann",
+    "abteilung": "IT-Abteilung",
+    "telefon": "0591 12345-678",
+    "adresse_privat": "Musterstraße 1, 49808 Lingen",
+    "mitreisender_name": ""
+  },
+  "reise_details": {
+    "zielort": "26486 Wangerooge, Zedeliusstraße 1 (Tagungszentrum)",
+    "reiseweg": "Lingen -> Harlesiel -> Wangerooge -> Harlesiel -> Lingen",
+    "zweck": "Fortbildung: Digitale Transformation in der öffentlichen Verwaltung",
+    
+    "start_datum": "15.05.2026",
+    "start_zeit": "06:30",
+    
+    "ende_datum": "17.05.2026",
+    "ende_zeit": "19:00",
+    
+    "dienstgeschaeft_beginn_datum": "15.05.2026",
+    "dienstgeschaeft_beginn_zeit": "10:00",
+    "dienstgeschaeft_ende_datum": "17.05.2026",
+    "dienstgeschaeft_ende_zeit": "14:00"
+  },
+  "zusatz_infos": {
+    "bemerkungen_feld": "Fähre Harlesiel -> Wangerooge: 08:30 Uhr (Ankunft 09:15)\nFähre Wangerooge -> Harlesiel: 15:30 Uhr (Ankunft 16:15)\nÜbernachtung: Hotel Hanken, Wangerooge (2 Nächte)"
+  },
+  "befoerderung": {
+    "hinreise": {
+      "typ": "PKW",
+      "paragraph_5_nrkvo": "III"
+    },
+    "rueckreise": {
+      "typ": "PKW",
+      "paragraph_5_nrkvo": "III"
+    },
+    "sonderfall_begruendung_textfeld": "Schlechte ÖPNV-Anbindung zum Fähranleger Harlesiel, Materialtransport (Präsentationstechnik)"
+  },
+  "konfiguration_checkboxen": {
+    "bahncard_business_vorhanden": false,
+    "bahncard_privat_vorhanden": false,
+    "bahncard_beschaffung_beantragt": false,
+    
+    "grosskundenrabatt_genutzt": false,
+    "grosskundenrabatt_begruendung_wenn_nein": "Nutzung PKW aufgrund schlechter ÖPNV-Anbindung",
+    
+    "weitere_ermaessigungen_vorhanden": false,
+    "dienstgeschaeft_2km_umkreis": false,
+    "anspruch_trennungsgeld": false,
+    
+    "weitere_anmerkungen_checkbox_aktivieren": true
+  },
+  "verzicht_erklaerung": {
+    "verzicht_tagegeld": false,
+    "verzicht_uebernachtungsgeld": false,
+    "verzicht_fahrtkosten": false
+  },
+  "unterschrift": {
+    "datum_seite_2": "21.01.2026"
+  }
+}
