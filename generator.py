@@ -228,9 +228,12 @@ def fill_pdf(json_input, input_pdf_path, output_dir):
 
         # 3. Anwenden
         all_fields = {**fields_to_fill, **checkbox_fields}
-        writer.update_page_form_field_values(
-            writer.pages[0], all_fields, auto_regenerate=False
-        )
+        
+        # Iteriere über alle Seiten, um sicherzustellen, dass Felder auf Seite 2 (z.B. Obj39, Bemerkungen) auch gefüllt werden
+        for page in writer.pages:
+            writer.update_page_form_field_values(
+                page, all_fields, auto_regenerate=False
+            )
 
         set_need_appearances(writer)
 
