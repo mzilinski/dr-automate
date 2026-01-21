@@ -2,6 +2,12 @@
 
 Dieses Tool automatisiert das Ausfüllen von Dienstreiseanträgen (Formular NRKVO 035_001) mithilfe von KI-gestützter Datenextraktion. Es bietet eine einfache Web-Oberfläche, um unstrukturierte Reisedaten (z. B. aus E-Mails) über ein LLM in ein fertiges PDF-Formular zu verwandeln.
 
+## Screenshots
+
+![Hauptansicht der Anwendung](https://github.com/user-attachments/assets/e32ce9a4-05a9-408f-82f3-f2ec062555e2)
+
+*Die Webanwendung zeigt zwei Hauptbereiche: Im oberen Bereich können Sie den System-Prompt für Ihr LLM kopieren, im unteren Bereich fügen Sie das generierte JSON ein und erstellen damit das PDF-Formular.*
+
 ## Funktionen
 
 *   **KI-Integration**: Nutzt einen optimierten System-Prompt (`system_prompt.md`), um Reisedaten mit einem LLM (z. B. ChatGPT, Claude) in ein strukturiertes JSON-Format zu konvertieren.
@@ -70,6 +76,10 @@ Das Tool ist vollständig containerisiert und kann leicht deployed werden.
 3.  **Schritt 3:** Das LLM generiert ein **JSON-Objekt**. Kopiere dieses JSON.
 4.  **Schritt 4:** Füge das JSON in das Textfeld der Webanwendung ein und klicke auf "Antrag Generieren".
 5.  **Fertig:** Der ausgefüllte PDF-Antrag wird automatisch heruntergeladen.
+
+![Benutzeroberfläche](https://github.com/user-attachments/assets/890aa181-434f-4562-987b-28aae3adc3da)
+
+*Die intuitive Benutzeroberfläche führt Sie durch den zweistufigen Prozess: Prompt kopieren und JSON einfügen.*
 
 ## Projektstruktur
 
