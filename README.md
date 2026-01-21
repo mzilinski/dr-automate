@@ -38,6 +38,14 @@ Dieses Tool automatisiert das Ausfüllen von Dienstreiseanträgen (Formular NRKV
 4.  **Öffnen:**
     Die Anwendung ist nun unter [http://localhost:5001](http://localhost:5001) erreichbar.
 
+## Konfiguration (Persönliche Daten)
+
+Damit du nicht jedes Mal deine persönlichen Daten in den Prompt im Web-Interface eintragen musst, kannst du eine lokale Konfigurationsdatei anlegen:
+
+1.  Kopiere die Datei `system_prompt.md` zu `system_prompt.md.local`.
+2.  Bearbeite `system_prompt.md.local` und fülle die Platzhalter (z. B. `[DEIN NAME]`, `[DEINE ABTEILUNG]`) mit deinen echten Daten.
+3.  Die Anwendung bevorzugt automatisch die `.local`-Datei, falls vorhanden. Diese Datei wird von Git ignoriert und landet nicht im Repository.
+
 ## Nutzung mit Docker
 
 Das Tool ist vollständig containerisiert und kann leicht deployed werden.
