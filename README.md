@@ -71,3 +71,7 @@ Das Tool ist vollständig containerisiert und kann leicht deployed werden.
 *   `forms/`: Enthält die leere PDF-Vorlage (`DR-Antrag_035_001Stand4-2025pdf.pdf`).
 *   `templates/`: HTML-Templates für die Web-GUI.
 *   `Dockerfile`: Konfiguration für den Docker-Container.
+
+## Lizenz
+
+Dieses Projekt ist unter der [MIT-Lizenz](LICENSE) lizenziert.
