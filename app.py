@@ -9,8 +9,6 @@ import generator
 app = Flask(__name__)
 
 # Constants
-# Prefer local personalized prompt if it exists, otherwise fallback to generic
-PROMPT_FILE = "system_prompt.md.local" if os.path.exists("system_prompt.md.local") else "system_prompt.md"
 PDF_TEMPLATE_PATH = os.path.join("forms", "DR-Antrag_035_001Stand4-2025pdf.pdf")
 
 # Ensure forms directory exists if valid path provided
@@ -19,9 +17,11 @@ if not os.path.exists(PDF_TEMPLATE_PATH):
 
 @app.route('/', methods=['GET'])
 def index():
+    # Prefer local personalized prompt if it exists, otherwise fallback to generic
+    prompt_file = "system_prompt.md.local" if os.path.exists("system_prompt.md.local") else "system_prompt.md"
     prompt_content = ""
     try:
-        with open(PROMPT_FILE, "r", encoding="utf-8") as f:
+        with open(prompt_file, "r", encoding="utf-8") as f:
             prompt_content = f.read()
     except Exception as e:
         prompt_content = f"Error loading prompt file: {e}"

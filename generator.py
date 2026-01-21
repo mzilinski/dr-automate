@@ -240,7 +240,8 @@ def fill_pdf(json_input, input_pdf_path, output_dir):
         # 4. Unterschrift / Datum auf Seite 2
         # NEU: Generiere aktuelles Datum automatisch
         heute_str = datetime.now().strftime("%d.%m.%Y")
-        unterschrift_text = f"StR M. Zilinski, {heute_str}"
+        name = data.get("antragsteller", {}).get("name", "")
+        unterschrift_text = f"{name}, {heute_str}"
 
         overlay = create_signature_overlay(unterschrift_text)
         writer.pages[1].merge_page(overlay.pages[0], over=True)
