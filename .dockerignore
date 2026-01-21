@@ -1,0 +1,8 @@
+.venv/
+__pycache__/
+*.pdf
+!forms/DR-Antrag_035_001Stand4-2025pdf.pdf
+out/
+.git/
+.DS_Store
+reisedaten.json

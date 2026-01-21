@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+.DS_Store
+.venv/
+.env
+site-packages/
+out/
+reisedaten.json
+*.pdf
+!forms/DR-Antrag_035_001Stand4-2025pdf.pdf
+
+# Local configuration files
+system_prompt.md.local
+config.local.json

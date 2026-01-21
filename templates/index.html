@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dienstreise-Antrag Assistent</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { padding-top: 20px; background-color: #f8f9fa; }
+        .step-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .step-title { border-bottom: 2px solid #0d6efd; padding-bottom: 10px; margin-bottom: 20px; color: #0d6efd; }
+        textarea { font-family: monospace; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4">Dienstreise-Antrag Assistent</h1>
+        
+        <!-- Step 1: Prompt -->
+        <div class="step-container">
+            <h3 class="step-title">1. Prompt & KI</h3>
+            <p>Kopiere diesen Prompt und deine Ausschreibung/E-Mail in dein LLM (z.B. ChatGPT):</p>
+            <div class="mb-3">
+                <textarea class="form-control" id="promptText" rows="10" readonly>{{ prompt_content }}</textarea>
+            </div>
+            <button class="btn btn-primary" onclick="copyPrompt()">
+                📋 Prompt kopieren
+            </button>
+            <span class="text-danger ms-3 fw-bold">⚠️ Vergiss nicht, die Ausschreibung dazu zu kopieren!</span>
+        </div>
+
+        <!-- Step 2: JSON & Generate -->
+        <div class="step-container">
+            <h3 class="step-title">2. Daten & Erstellen</h3>
+            <form action="/generate" method="POST" target="_blank" id="genForm">
+                <div class="mb-3">
+                    <label for="jsonData" class="form-label">Füge das JSON-Ergebnis vom LLM hier ein:</label>
+                    <textarea class="form-control" name="json_data" id="jsonData" rows="15" placeholder='{ ... "antragsteller": ... }' required></textarea>
+                </div>
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-success btn-lg">
+                        🚀 Antrag Generieren (PDF)
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="formatJSON()">
+                        ✨ JSON formatieren
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function copyPrompt() {
+            var copyText = document.getElementById("promptText");
+            copyText.select();
+            copyText.setSelectionRange(0, 99999); 
+            navigator.clipboard.writeText(copyText.value).then(() => {
+                alert("Prompt wurde kopiert!");
+            });
+        }
+
+        function formatJSON() {
+            const area = document.getElementById("jsonData");
+            try {
+                const obj = JSON.parse(area.value);
+                area.value = JSON.stringify(obj, null, 2);
+            } catch (e) {
+                alert("Ungültiges JSON: " + e);
+            }
+        }
+    </script>
+</body>
+</html>
