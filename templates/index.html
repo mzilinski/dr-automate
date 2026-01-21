@@ -6,15 +6,103 @@
     <title>Dienstreise-Antrag Assistent</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { padding-top: 20px; background-color: #f8f9fa; }
-        .step-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        :root {
+            --bg-color: #f8f9fa;
+            --card-bg: white;
+            --text-color: #212529;
+            --border-color: #dee2e6;
+        }
+        
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #1a1a2e;
+                --card-bg: #16213e;
+                --text-color: #e8e8e8;
+                --border-color: #0f3460;
+            }
+        }
+        
+        body { 
+            padding-top: 20px; 
+            background-color: var(--bg-color); 
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .step-container { 
+            background: var(--card-bg); 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+            margin-bottom: 20px; 
+        }
         .step-title { border-bottom: 2px solid #0d6efd; padding-bottom: 10px; margin-bottom: 20px; color: #0d6efd; }
-        textarea { font-family: monospace; font-size: 0.9em; }
+        textarea { 
+            font-family: monospace; 
+            font-size: 0.9em; 
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border-color: var(--border-color);
+        }
+        .form-control:focus {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+        }
+        
+        /* Loading Spinner */
+        .spinner-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+        .spinner-overlay.active { display: flex; }
+        .spinner-content {
+            background: var(--card-bg);
+            padding: 30px 50px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        /* Alert styling */
+        .alert-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9998;
+            max-width: 400px;
+        }
+        
+        /* JSON validation */
+        .json-valid { border-color: #198754 !important; }
+        .json-invalid { border-color: #dc3545 !important; }
+        .validation-hint {
+            font-size: 0.85em;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
+    <!-- Alert Container -->
+    <div class="alert-container" id="alertContainer"></div>
+    
+    <!-- Loading Spinner -->
+    <div class="spinner-overlay" id="loadingSpinner">
+        <div class="spinner-content">
+            <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Lädt...</span>
+            </div>
+            <p class="mb-0">PDF wird generiert...</p>
+        </div>
+    </div>
+
     <div class="container">
-        <h1 class="text-center mb-4">Dienstreise-Antrag Assistent</h1>
+        <h1 class="text-center mb-4">🧳 Dienstreise-Antrag Assistent</h1>
         
         <!-- Step 1: Prompt -->
         <div class="step-container">
@@ -32,42 +120,181 @@
         <!-- Step 2: JSON & Generate -->
         <div class="step-container">
             <h3 class="step-title">2. Daten & Erstellen</h3>
-            <form action="/generate" method="POST" target="_blank" id="genForm">
+            <form id="genForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="mb-3">
                     <label for="jsonData" class="form-label">Füge das JSON-Ergebnis vom LLM hier ein:</label>
                     <textarea class="form-control" name="json_data" id="jsonData" rows="15" placeholder='{ ... "antragsteller": ... }' required></textarea>
+                    <div class="validation-hint" id="validationHint"></div>
                 </div>
                 <div class="d-grid gap-2">
-                    <button type="submit" class="btn btn-success btn-lg">
+                    <button type="submit" class="btn btn-success btn-lg" id="submitBtn">
                         🚀 Antrag Generieren (PDF)
                     </button>
                     <button type="button" class="btn btn-secondary" onclick="formatJSON()">
                         ✨ JSON formatieren
                     </button>
+                    <button type="button" class="btn btn-outline-info btn-sm" onclick="loadExample()">
+                        📄 Beispiel-JSON laden
+                    </button>
                 </div>
             </form>
         </div>
+        
+        <footer class="text-center text-muted mb-4">
+            <small>v0.1.0 | <a href="/health" target="_blank">Status</a></small>
+        </footer>
     </div>
 
     <script>
+        const REQUIRED_KEYS = ['antragsteller', 'reise_details', 'befoerderung', 'konfiguration_checkboxen'];
+        
+        // Alert anzeigen
+        function showAlert(message, type = 'danger') {
+            const container = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type} alert-dismissible fade show`;
+            alert.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            container.appendChild(alert);
+            setTimeout(() => alert.remove(), 10000);
+        }
+        
+        // Prompt kopieren
         function copyPrompt() {
-            var copyText = document.getElementById("promptText");
-            copyText.select();
-            copyText.setSelectionRange(0, 99999); 
+            const copyText = document.getElementById("promptText");
             navigator.clipboard.writeText(copyText.value).then(() => {
-                alert("Prompt wurde kopiert!");
+                showAlert("✅ Prompt wurde kopiert!", "success");
+            }).catch(() => {
+                copyText.select();
+                document.execCommand('copy');
+                showAlert("✅ Prompt wurde kopiert!", "success");
             });
         }
 
+        // JSON formatieren
         function formatJSON() {
             const area = document.getElementById("jsonData");
             try {
                 const obj = JSON.parse(area.value);
                 area.value = JSON.stringify(obj, null, 2);
+                validateJSON();
             } catch (e) {
-                alert("Ungültiges JSON: " + e);
+                showAlert("❌ Ungültiges JSON: " + e.message, "danger");
             }
         }
+        
+        // JSON validieren (Live)
+        function validateJSON() {
+            const area = document.getElementById("jsonData");
+            const hint = document.getElementById("validationHint");
+            const submitBtn = document.getElementById("submitBtn");
+            
+            if (!area.value.trim()) {
+                area.classList.remove('json-valid', 'json-invalid');
+                hint.innerHTML = '';
+                return false;
+            }
+            
+            try {
+                const obj = JSON.parse(area.value);
+                const missingKeys = REQUIRED_KEYS.filter(key => !(key in obj));
+                
+                if (missingKeys.length > 0) {
+                    area.classList.remove('json-valid');
+                    area.classList.add('json-invalid');
+                    hint.innerHTML = `<span class="text-danger">⚠️ Fehlende Felder: ${missingKeys.join(', ')}</span>`;
+                    return false;
+                }
+                
+                area.classList.remove('json-invalid');
+                area.classList.add('json-valid');
+                hint.innerHTML = '<span class="text-success">✅ JSON ist valide</span>';
+                return true;
+            } catch (e) {
+                area.classList.remove('json-valid');
+                area.classList.add('json-invalid');
+                hint.innerHTML = `<span class="text-danger">❌ JSON-Syntaxfehler: ${e.message}</span>`;
+                return false;
+            }
+        }
+        
+        // Beispiel-JSON laden
+        async function loadExample() {
+            try {
+                const response = await fetch('/example');
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('jsonData').value = JSON.stringify(data, null, 2);
+                    validateJSON();
+                    showAlert("📄 Beispiel-JSON geladen", "info");
+                } else {
+                    showAlert("Beispiel-JSON nicht verfügbar", "warning");
+                }
+            } catch (e) {
+                showAlert("Fehler beim Laden des Beispiels", "danger");
+            }
+        }
+        
+        // Formular absenden (AJAX)
+        document.getElementById('genForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!validateJSON()) {
+                showAlert("❌ Bitte korrigiere das JSON vor dem Absenden", "danger");
+                return;
+            }
+            
+            const spinner = document.getElementById('loadingSpinner');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            spinner.classList.add('active');
+            submitBtn.disabled = true;
+            
+            try {
+                const formData = new FormData(this);
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    // PDF herunterladen
+                    const blob = await response.blob();
+                    const contentDisposition = response.headers.get('Content-Disposition');
+                    let filename = 'DR-Antrag.pdf';
+                    if (contentDisposition) {
+                        const match = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+                        if (match) filename = match[1].replace(/['"]/g, '');
+                    }
+                    
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    a.remove();
+                    
+                    showAlert(`✅ PDF "${filename}" wurde erstellt!`, "success");
+                } else {
+                    const error = await response.json();
+                    showAlert(`❌ Fehler: ${error.error || 'Unbekannter Fehler'}`, "danger");
+                }
+            } catch (e) {
+                showAlert(`❌ Netzwerkfehler: ${e.message}`, "danger");
+            } finally {
+                spinner.classList.remove('active');
+                submitBtn.disabled = false;
+            }
+        });
+        
+        // Live-Validierung
+        document.getElementById('jsonData').addEventListener('input', validateJSON);
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

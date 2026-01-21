@@ -1,14 +1,34 @@
 [project]
 name = "dr-automate"
-version = "0.1.0"
-description = "Add your description here"
+version = "0.2.0"
+description = "Automatisierte Generierung von Dienstreise-Anträgen als PDF"
 readme = "README.md"
 license = { text = "MIT" }
-requires-python = ">=3.14"
+requires-python = ">=3.12"
 dependencies = [
     "flask>=3.1.2",
+    "flask-wtf>=1.2.1",
+    "flask-limiter>=3.5.0",
     "gunicorn>=23.0.0",
     "pillow>=12.1.0",
+    "pydantic>=2.6.0",
     "pypdf>=6.6.0",
     "reportlab>=4.4.9",
 ]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+    "ruff>=0.3.0",
+    "bandit>=1.7.0",
+]
+
+[dependency-groups]
+dev = [
+    "bandit>=1.9.3",
+    "pytest>=9.0.2",
+    "pytest-cov>=7.0.0",
+    "ruff>=0.14.13",
+]
+

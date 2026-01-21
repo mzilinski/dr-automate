@@ -2,15 +2,26 @@ import json
 import os
 import io
 import re
-from datetime import datetime  # Neu: Für das aktuelle Datum
+import logging
+from datetime import datetime
 from pypdf import PdfReader, PdfWriter
 from pypdf.generic import NameObject, BooleanObject
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 
+# --- LOGGING ---
+logger = logging.getLogger(__name__)
+
 # --- KONFIGURATION ---
-JSON_FILE = "reisedaten.json"
-INPUT_PDF = os.path.join("forms", "DR-Antrag_035_001Stand4-2025pdf.pdf")
+# Unterschrift-Position (X, Y auf Seite 2)
+SIGNATURE_POSITION_X = 70
+SIGNATURE_POSITION_Y = 465
+SIGNATURE_FONT = "Helvetica"
+SIGNATURE_FONT_SIZE = 10
+
+# Datumsformate
+DATE_INPUT_FORMAT = "%d.%m.%Y"
+DATE_OUTPUT_FORMAT = "%Y%m%d"
 
 # --- MAPPING TEXTFELDER ---
 FIELD_MAPPING = {
@@ -58,13 +69,20 @@ def load_json_data(filepath):
     with open(filepath, 'r', encoding='utf-8') as f:
         return json.load(f)
 
-def create_signature_overlay(text_str):
+def create_signature_overlay(text_str: str) -> PdfReader:
+    """Erstellt ein PDF-Overlay mit dem Unterschriftstext.
+    
+    Args:
+        text_str: Der Text für die Unterschrift (Name, Datum)
+        
+    Returns:
+        PdfReader mit dem Overlay
+    """
     packet = io.BytesIO()
     can = canvas.Canvas(packet, pagesize=A4)
 
-    # Position gemäß Ihrer Vorgabe: X=70, Y=465
-    can.setFont("Helvetica", 10)
-    can.drawString(70, 465, text_str)
+    can.setFont(SIGNATURE_FONT, SIGNATURE_FONT_SIZE)
+    can.drawString(SIGNATURE_POSITION_X, SIGNATURE_POSITION_Y, text_str)
 
     can.save()
     packet.seek(0)
@@ -144,15 +162,25 @@ def set_need_appearances(writer):
     except Exception as e:
         print(f"Warnung bei NeedAppearances: {e}")
 
-def generate_output_filename(data):
-    """Generiert den Dateinamen basierend auf den JSON-Daten."""
+def generate_output_filename(data: dict) -> str:
+    """Generiert den Dateinamen basierend auf den JSON-Daten.
+    
+    Format: YYYYMMDD_DR-Antrag_Stadt_Thema.pdf
+    
+    Args:
+        data: Die JSON-Daten mit Reiseinformationen
+        
+    Returns:
+        Bereinigter Dateiname für das PDF
+    """
     # 1. Datum für Prefix (YYYYMMDD)
     start_datum_str = data.get("reise_details", {}).get("start_datum", "")
     try:
-        date_obj = datetime.strptime(start_datum_str, "%d.%m.%Y")
-        date_prefix = date_obj.strftime("%Y%m%d")
+        date_obj = datetime.strptime(start_datum_str, DATE_INPUT_FORMAT)
+        date_prefix = date_obj.strftime(DATE_OUTPUT_FORMAT)
     except ValueError:
-        date_prefix = datetime.now().strftime("%Y%m%d")
+        logger.warning(f"Ungültiges Datum '{start_datum_str}', verwende aktuelles Datum")
+        date_prefix = datetime.now().strftime(DATE_OUTPUT_FORMAT)
 
     # 2. Suffix aus Zielort (Stadt)
     zielort = data.get("reise_details", {}).get("zielort", "Reise")
@@ -189,15 +217,36 @@ def generate_output_filename(data):
     # Bereinigen für Dateinamen
     clean_suffix = re.sub(r"[^A-Za-z0-9äöüÄÖÜß_]", "_", raw_suffix)
     clean_suffix = re.sub(r"_+", "_", clean_suffix).strip("_")
+    
+    # Fallback wenn Suffix leer ist
+    if not clean_suffix:
+        clean_suffix = "Antrag"
 
     return f"{date_prefix}_DR-Antrag_{clean_suffix}.pdf"
 
-def fill_pdf(json_input, input_pdf_path, output_dir):
+def fill_pdf(json_input: dict | str, input_pdf_path: str, output_dir: str) -> str:
+    """Füllt das PDF-Formular mit den übergebenen Daten.
+    
+    Args:
+        json_input: Entweder ein dict mit Daten oder Pfad zu einer JSON-Datei
+        input_pdf_path: Pfad zum PDF-Template
+        output_dir: Ausgabeverzeichnis für das generierte PDF
+        
+    Returns:
+        Pfad zur generierten PDF-Datei
+        
+    Raises:
+        FileNotFoundError: Wenn das Template nicht gefunden wird
+        ValueError: Bei ungültigen JSON-Daten
+    """
     try:
         if isinstance(json_input, str):
             data = load_json_data(json_input)
         else:
             data = json_input
+        
+        # Stelle sicher, dass Ausgabeverzeichnis existiert
+        os.makedirs(output_dir, exist_ok=True)
             
         output_filename = generate_output_filename(data)
         output_pdf_path = os.path.join(output_dir, output_filename)
@@ -238,8 +287,7 @@ def fill_pdf(json_input, input_pdf_path, output_dir):
         set_need_appearances(writer)
 
         # 4. Unterschrift / Datum auf Seite 2
-        # NEU: Generiere aktuelles Datum automatisch
-        heute_str = datetime.now().strftime("%d.%m.%Y")
+        heute_str = datetime.now().strftime(DATE_INPUT_FORMAT)
         name = data.get("antragsteller", {}).get("name", "")
         unterschrift_text = f"{name}, {heute_str}"
 
@@ -249,21 +297,14 @@ def fill_pdf(json_input, input_pdf_path, output_dir):
         with open(output_pdf_path, "wb") as f:
             writer.write(f)
 
-        print(f"✅ PDF erstellt: {output_pdf_path}")
-        print(f"  -> Unterschrift gesetzt: '{unterschrift_text}' an Position 70, 465")
+        logger.info(f"PDF erstellt: {output_pdf_path}")
+        logger.debug(f"Unterschrift: '{unterschrift_text}' an Position ({SIGNATURE_POSITION_X}, {SIGNATURE_POSITION_Y})")
 
         return output_pdf_path
 
+    except FileNotFoundError as e:
+        logger.error(f"Template nicht gefunden: {input_pdf_path}")
+        raise
     except Exception as e:
-        print(f"❌ Fehler: {e}")
-        raise e
-
-if __name__ == "__main__":
-    if not os.path.exists(INPUT_PDF):
-        print(f"Fehler: Datei {INPUT_PDF} nicht gefunden.")
-    else:
-        try:
-            output_path = fill_pdf(JSON_FILE, INPUT_PDF, "out")
-        except Exception as e:
-            # Fehler wurde bereits in fill_pdf gedruckt, aber wir fangen ihn hier auch
-            pass
+        logger.exception(f"Fehler bei PDF-Generierung: {e}")
+        raise

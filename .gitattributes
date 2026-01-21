@@ -1,0 +1,8 @@
+# Alle Dateien mit Unix-Zeilenumbrüchen (LF)
+* text=auto eol=lf
+
+# Explizit binäre Dateien
+*.pdf binary
+*.png binary
+*.jpg binary
+*.ico binary
