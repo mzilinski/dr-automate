@@ -2,7 +2,7 @@
 
 Dieses Tool automatisiert das Ausfüllen von Dienstreiseanträgen (Formular NRKVO 035_001) mithilfe von KI-gestützter Datenextraktion. Es bietet eine einfache Web-Oberfläche, um unstrukturierte Reisedaten (z. B. aus E-Mails) über ein LLM in ein fertiges PDF-Formular zu verwandeln.
 
-[![CI/CD](https://github.com/YOUR_USERNAME/dr-automate/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/dr-automate/actions/workflows/ci.yml)
+[![CI/CD](https://github.com/mzilinski/dr-automate/actions/workflows/ci.yml/badge.svg)](https://github.com/mzilinski/dr-automate/actions/workflows/ci.yml)
 
 ## Funktionen
 
