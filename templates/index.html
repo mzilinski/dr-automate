@@ -707,6 +707,17 @@
     const REQUIRED_KEYS  = ['antragsteller', 'reise_details', 'befoerderung', 'konfiguration_checkboxen'];
     const PROFILE_KEY    = 'dr_profile';
     const promptTemplate = document.getElementById('promptText').value;
+    let   fullPromptForCopy = promptTemplate;
+
+    function makeDisplayPrompt(full) {
+      return full
+        // "Diese Daten sind immer..." → "…"
+        .replace(/\nDiese Daten sind[^\n]*\n/, '\n…\n')
+        // Mitreisender-Hint in Klammern entfernen
+        .replace(/\s*\(nur einsetzen,[^)]*\)/, '')
+        // "…" nach letztem Bullet (vor ## 2.)
+        .replace(/(- Mitreisender:[^\n]*\n)(\n## 2\.)/, '$1…\n$2');
+    }
 
     // ── Modal ────────────────────────────────────────────────────────
     function openModal(id) {
@@ -750,7 +761,8 @@
       prompt = prompt.replace(/\[DEINE TELEFONNUMMER\]/g, p.telefon);
       prompt = prompt.replace(/\[DEINE PRIVATADRESSE\]/g, p.adresse);
       prompt = prompt.replace(/\[OPTIONALER NAME\]/g,     p.mitreisender || '(keiner)');
-      document.getElementById('promptText').value = prompt;
+      fullPromptForCopy = prompt;
+      document.getElementById('promptText').value = makeDisplayPrompt(prompt);
 
       const parts    = p.name.trim().split(/\s+/);
       const initials = (parts[0]?.[0] || '') + (parts[parts.length - 1]?.[0] || '');
@@ -796,7 +808,7 @@
     // ── Prompt kopieren ──────────────────────────────────────────────
     function copyPrompt() {
       const btn = document.getElementById('copyBtn');
-      let text = document.getElementById('promptText').value;
+      let text = fullPromptForCopy;
       const sonderwuensche = document.getElementById('sonderwuensche').value.trim();
       if (sonderwuensche) {
         text += '\n\n## Hinweise & Sonderwünsche\n' + sonderwuensche;
