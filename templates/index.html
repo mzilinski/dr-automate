@@ -713,7 +713,7 @@
       const dataLines = full.split('\n')
         .filter(l => /^- (Name|Abteilung|Telefon|Privatadresse|Mitreisender):/.test(l))
         .map(l => l.replace(/\s*\(nur einsetzen,[^)]*\)/, '').trimEnd());
-      return '…\n' + dataLines.join('\n') + '\n…';
+      return dataLines.join('\n');
     }
 
     // ── Modal ────────────────────────────────────────────────────────
