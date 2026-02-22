@@ -1,300 +1,855 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dienstreise-Antrag Assistent</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        :root {
-            --bg-color: #f8f9fa;
-            --card-bg: white;
-            --text-color: #212529;
-            --border-color: #dee2e6;
-        }
-        
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg-color: #1a1a2e;
-                --card-bg: #16213e;
-                --text-color: #e8e8e8;
-                --border-color: #0f3460;
-            }
-        }
-        
-        body { 
-            padding-top: 20px; 
-            background-color: var(--bg-color); 
-            color: var(--text-color);
-            transition: background-color 0.3s, color 0.3s;
-        }
-        .step-container { 
-            background: var(--card-bg); 
-            padding: 20px; 
-            border-radius: 8px; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
-            margin-bottom: 20px; 
-        }
-        .step-title { border-bottom: 2px solid #0d6efd; padding-bottom: 10px; margin-bottom: 20px; color: #0d6efd; }
-        textarea { 
-            font-family: monospace; 
-            font-size: 0.9em; 
-            background-color: var(--card-bg);
-            color: var(--text-color);
-            border-color: var(--border-color);
-        }
-        .form-control:focus {
-            background-color: var(--card-bg);
-            color: var(--text-color);
-        }
-        
-        /* Loading Spinner */
-        .spinner-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 9999;
-            justify-content: center;
-            align-items: center;
-        }
-        .spinner-overlay.active { display: flex; }
-        .spinner-content {
-            background: var(--card-bg);
-            padding: 30px 50px;
-            border-radius: 10px;
-            text-align: center;
-        }
-        
-        /* Alert styling */
-        .alert-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9998;
-            max-width: 400px;
-        }
-        
-        /* JSON validation */
-        .json-valid { border-color: #198754 !important; }
-        .json-invalid { border-color: #dc3545 !important; }
-        .validation-hint {
-            font-size: 0.85em;
-            margin-top: 5px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dienstreise-Antrag Assistent</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,400&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* ── TOKENS ─────────────────────────────────────────────────────── */
+    :root {
+      --bg:             #eee9de;
+      --dot:            #cfc5b2;
+      --surface:        #faf7f2;
+      --surface-hi:     #ffffff;
+      --border:         #ddd3c0;
+      --text:           #1d1a13;
+      --muted:          #7c6f58;
+      --accent:         #b87208;
+      --accent-glow:    rgba(184,114,8,.2);
+      --accent-fg:      #fff;
+      --accent-subtle:  #fef5e2;
+      --step-ghost:     rgba(184,114,8,.055);
+      --mono-bg:        #f4efe5;
+      --ok:             #2e7a34;
+      --ok-subtle:      #eaf4eb;
+      --err:            #b83232;
+      --err-subtle:     #fdeaea;
+      --warn-subtle:    #fffbe6;
+      --info-subtle:    #edf4ff;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg:             #0e1219;
+        --dot:            #182030;
+        --surface:        #161d28;
+        --surface-hi:     #1e2838;
+        --border:         #242f40;
+        --text:           #ede8dc;
+        --muted:          #7e91a8;
+        --accent:         #d9920e;
+        --accent-glow:    rgba(217,146,14,.24);
+        --accent-fg:      #0e1219;
+        --accent-subtle:  #2a2010;
+        --step-ghost:     rgba(217,146,14,.07);
+        --mono-bg:        #131a24;
+        --ok:             #5cb868;
+        --ok-subtle:      #182418;
+        --err:            #e05252;
+        --err-subtle:     #2e1818;
+        --warn-subtle:    #2a2410;
+        --info-subtle:    #141c2e;
+      }
+    }
+
+    /* ── RESET ──────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── BASE ───────────────────────────────────────────────────────── */
+    body {
+      background-color: var(--bg);
+      background-image: radial-gradient(circle, var(--dot) 1.2px, transparent 1.2px);
+      background-size: 22px 22px;
+      background-attachment: fixed;
+      color: var(--text);
+      font-family: 'Figtree', system-ui, sans-serif;
+      line-height: 1.6;
+      min-height: 100dvh;
+    }
+
+    .app {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 3rem;
+    }
+
+    /* ── HEADER ─────────────────────────────────────────────────────── */
+    .app-header {
+      text-align: center;
+      margin-bottom: 1.75rem;
+      animation: fadeDown .4s ease both;
+    }
+    .app-eyebrow {
+      font-size: .72rem;
+      font-weight: 600;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: .5rem;
+    }
+    .app-title {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: 2rem;
+      font-weight: 300;
+      font-optical-sizing: auto;
+      line-height: 1.15;
+      color: var(--text);
+    }
+    .app-title em { font-style: italic; }
+
+    /* ── PROFILE BANNER ─────────────────────────────────────────────── */
+    .profile-banner {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: .75rem 1rem .75rem .85rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      animation: fadeDown .4s .05s ease both;
+    }
+    .profile-left {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      min-width: 0;
+    }
+    .avatar {
+      width: 2.1rem;
+      height: 2.1rem;
+      border-radius: 50%;
+      background: var(--accent);
+      color: var(--accent-fg);
+      font-family: 'Fraunces', serif;
+      font-size: .68rem;
+      font-weight: 600;
+      letter-spacing: .04em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background .2s;
+    }
+    .avatar.empty {
+      background: var(--border);
+      color: var(--muted);
+      font-size: .9rem;
+    }
+    .profile-label {
+      font-size: .88rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .profile-label.missing { color: var(--err); font-weight: 500; }
+
+    /* ── STEP CONTAINER ─────────────────────────────────────────────── */
+    .step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.75rem 1.75rem 1.5rem;
+      margin-bottom: 1.25rem;
+      position: relative;
+      overflow: hidden;
+      animation: fadeUp .4s ease both;
+    }
+    .step:nth-child(3) { animation-delay: .1s; }
+    .step:nth-child(4) { animation-delay: .18s; }
+
+    .step::before {
+      content: attr(data-step);
+      position: absolute;
+      top: -.22em;
+      right: -.05em;
+      font-family: 'Fraunces', serif;
+      font-size: 9rem;
+      font-weight: 600;
+      line-height: 1;
+      color: var(--step-ghost);
+      pointer-events: none;
+      user-select: none;
+      letter-spacing: -.03em;
+    }
+
+    .step-inner { position: relative; z-index: 1; }
+
+    .step-title {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: 1.15rem;
+      font-weight: 400;
+      font-optical-sizing: auto;
+      color: var(--text);
+      margin-bottom: 1rem;
+      padding-bottom: .65rem;
+      border-bottom: 1.5px solid var(--accent);
+      display: flex;
+      align-items: baseline;
+      gap: .6rem;
+    }
+    .step-title-num {
+      font-size: .72rem;
+      font-weight: 600;
+      letter-spacing: .1em;
+      color: var(--accent);
+      text-transform: uppercase;
+    }
+
+    .step-lead {
+      font-size: .9rem;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+
+    /* ── FORM CONTROLS ──────────────────────────────────────────────── */
+    label.field-label {
+      display: block;
+      font-size: .74rem;
+      font-weight: 600;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: .4rem;
+    }
+
+    textarea, input[type="text"] {
+      width: 100%;
+      background: var(--mono-bg);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .82rem;
+      line-height: 1.65;
+      padding: .75rem .9rem;
+      outline: none;
+      resize: vertical;
+      transition: border-color .18s, box-shadow .18s;
+    }
+    textarea:focus, input[type="text"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+    textarea[readonly] {
+      cursor: default;
+      color: var(--muted);
+    }
+    textarea[readonly]:focus { box-shadow: none; border-color: var(--border); }
+
+    textarea.is-valid   { border-color: var(--ok); }
+    textarea.is-invalid { border-color: var(--err); }
+
+    .field-hint {
+      font-size: .78rem;
+      margin-top: .4rem;
+      color: var(--muted);
+    }
+    .field-hint.ok  { color: var(--ok); }
+    .field-hint.err { color: var(--err); }
+
+    /* ── BUTTONS ────────────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      padding: .6rem 1.1rem;
+      border: 1.5px solid transparent;
+      border-radius: 8px;
+      font-family: 'Figtree', sans-serif;
+      font-size: .88rem;
+      font-weight: 600;
+      line-height: 1;
+      cursor: pointer;
+      transition: transform .13s, box-shadow .13s, filter .13s, background .15s, color .15s;
+      white-space: nowrap;
+    }
+    .btn:hover  { transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+    .btn-primary {
+      background: var(--accent);
+      color: var(--accent-fg);
+    }
+    .btn-primary:hover { box-shadow: 0 5px 18px var(--accent-glow); filter: brightness(1.07); }
+
+    .btn-primary-lg {
+      padding: .78rem 1.4rem;
+      font-size: .95rem;
+      width: 100%;
+      justify-content: center;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border-color: var(--border);
+    }
+    .btn-ghost:hover { background: var(--surface-hi); color: var(--text); }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+    .btn-outline:hover { background: var(--accent-subtle); }
+
+    .btn-sm {
+      padding: .42rem .8rem;
+      font-size: .8rem;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-direction: column;
+      gap: .6rem;
+    }
+    .btn-secondary-row {
+      display: flex;
+      gap: .6rem;
+      flex-wrap: wrap;
+    }
+
+    /* ── COPY BUTTON STATE ──────────────────────────────────────────── */
+    .btn-copy.copied {
+      background: var(--ok);
+      color: #fff;
+    }
+    .btn-copy.copied:hover { filter: none; box-shadow: none; }
+
+    .copy-warning {
+      font-size: .8rem;
+      color: var(--err);
+      font-weight: 600;
+      margin-top: .6rem;
+    }
+
+    /* ── ALERTS ─────────────────────────────────────────────────────── */
+    .alert-stack {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+      max-width: 340px;
+      width: calc(100% - 2rem);
+      pointer-events: none;
+    }
+    .alert {
+      pointer-events: auto;
+      padding: .75rem 1rem;
+      border-radius: 10px;
+      border: 1px solid;
+      font-size: .85rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: .75rem;
+      animation: slideInRight .22s ease both;
+    }
+    .alert-close {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+      padding: 0;
+      flex-shrink: 0;
+      opacity: .6;
+    }
+    .alert-close:hover { opacity: 1; }
+
+    .alert-success { background: var(--ok-subtle);   border-color: var(--ok);  color: var(--ok); }
+    .alert-danger  { background: var(--err-subtle);  border-color: var(--err); color: var(--err); }
+    .alert-warning { background: var(--warn-subtle); border-color: #b8860b;    color: #7a5800; }
+    .alert-info    { background: var(--info-subtle); border-color: #4a8adb;    color: #2a5a9a; }
+    @media (prefers-color-scheme: dark) {
+      .alert-warning { color: #d4a830; border-color: #7a5800; }
+      .alert-info    { color: #7ab0f0; border-color: #2a4a7a; }
+    }
+
+    /* ── SPINNER ────────────────────────────────────────────────────── */
+    .spinner-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.55);
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+      z-index: 3000;
+      align-items: center;
+      justify-content: center;
+    }
+    .spinner-overlay.active { display: flex; }
+    .spinner-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 2rem 3rem;
+      text-align: center;
+    }
+    .spinner {
+      width: 2.5rem;
+      height: 2.5rem;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .75s linear infinite;
+      margin: 0 auto 1rem;
+    }
+    .spinner-label {
+      font-size: .9rem;
+      color: var(--muted);
+    }
+
+    /* ── MODAL ──────────────────────────────────────────────────────── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.55);
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+      z-index: 1000;
+      display: grid;
+      place-items: center;
+      padding: 1rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .22s ease;
+    }
+    .modal-overlay.is-open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 480px;
+      max-height: 92dvh;
+      overflow-y: auto;
+      transform: translateY(16px) scale(.97);
+      opacity: 0;
+      transition: transform .26s cubic-bezier(.22,1,.36,1), opacity .22s ease;
+    }
+    .modal-overlay.is-open .modal-box {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+    }
+    .modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 1.5rem .9rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-head h2 {
+      font-family: 'Fraunces', serif;
+      font-size: 1.12rem;
+      font-weight: 400;
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      padding: .25rem;
+      border-radius: 5px;
+      line-height: 1;
+      display: flex;
+      transition: color .15s;
+    }
+    .modal-close:hover { color: var(--text); }
+    .modal-body { padding: 1.5rem; }
+    .modal-note {
+      font-size: .8rem;
+      color: var(--muted);
+      background: var(--accent-subtle);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: .65rem .85rem;
+      margin-bottom: 1.25rem;
+      line-height: 1.5;
+    }
+    .modal-foot {
+      display: flex;
+      justify-content: flex-end;
+      gap: .65rem;
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--border);
+    }
+
+    /* Wizard form fields */
+    .wiz-field { margin-bottom: 1rem; }
+    .wiz-field:last-child { margin-bottom: 0; }
+    .wiz-label {
+      display: block;
+      font-size: .74rem;
+      font-weight: 600;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: .38rem;
+    }
+    .wiz-label span { color: var(--err); }
+    .wiz-label em {
+      font-style: normal;
+      font-weight: 400;
+      color: var(--muted);
+      letter-spacing: 0;
+      text-transform: none;
+      font-size: .8rem;
+    }
+    .wiz-hint {
+      font-size: .76rem;
+      color: var(--muted);
+      margin-top: .3rem;
+    }
+
+    /* ── FOOTER ─────────────────────────────────────────────────────── */
+    .app-footer {
+      text-align: center;
+      font-size: .78rem;
+      color: var(--muted);
+      margin-top: .5rem;
+    }
+    .app-footer a { color: var(--muted); text-decoration: underline; text-underline-offset: 2px; }
+    .app-footer a:hover { color: var(--text); }
+    .sep { margin: 0 .4rem; opacity: .5; }
+
+    /* ── ANIMATIONS ─────────────────────────────────────────────────── */
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideInRight {
+      from { opacity: 0; transform: translateX(16px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
 </head>
 <body>
-    <!-- Alert Container -->
-    <div class="alert-container" id="alertContainer"></div>
-    
-    <!-- Loading Spinner -->
-    <div class="spinner-overlay" id="loadingSpinner">
-        <div class="spinner-content">
-            <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
-                <span class="visually-hidden">Lädt...</span>
-            </div>
-            <p class="mb-0">PDF wird generiert...</p>
+
+  <!-- ── ALERTS ─────────────────────────────────────────────────────── -->
+  <div class="alert-stack" id="alertStack"></div>
+
+  <!-- ── SPINNER ────────────────────────────────────────────────────── -->
+  <div class="spinner-overlay" id="loadingSpinner">
+    <div class="spinner-box">
+      <div class="spinner"></div>
+      <p class="spinner-label">PDF wird generiert…</p>
+    </div>
+  </div>
+
+  <!-- ── WIZARD MODAL ───────────────────────────────────────────────── -->
+  <div class="modal-overlay" id="wizardOverlay" role="dialog" aria-modal="true" aria-labelledby="wizardTitle">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h2 id="wizardTitle">Profil einrichten</h2>
+        <button class="modal-close" onclick="closeModal('wizardOverlay')" aria-label="Schließen">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="4" y1="4" x2="14" y2="14"/><line x1="14" y1="4" x2="4" y2="14"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-note">
+          Diese Daten werden im <strong>lokalen Browser-Speicher</strong> gespeichert –
+          ausschließlich auf deinem Gerät, nie an den Server übermittelt.
+          Sie ersetzen automatisch die Platzhalter im KI-Prompt.
+        </p>
+
+        <div class="wiz-field">
+          <label class="wiz-label" for="wiz_name">Vor- und Nachname <span>*</span></label>
+          <input type="text" id="wiz_name" placeholder="Max Mustermann">
         </div>
+        <div class="wiz-field">
+          <label class="wiz-label" for="wiz_abteilung">Schule / Abteilung / Funktion <span>*</span></label>
+          <input type="text" id="wiz_abteilung" placeholder="BBS Lingen – IT">
+        </div>
+        <div class="wiz-field">
+          <label class="wiz-label" for="wiz_telefon">Dienstliche Telefonnummer <span>*</span></label>
+          <input type="text" id="wiz_telefon" placeholder="0591 12345-678">
+        </div>
+        <div class="wiz-field">
+          <label class="wiz-label" for="wiz_adresse">Privatadresse <span>*</span></label>
+          <input type="text" id="wiz_adresse" placeholder="Musterstraße 1, 49808 Lingen">
+          <p class="wiz-hint">Start- und Endpunkt aller Dienstreisen laut Formular</p>
+        </div>
+        <div class="wiz-field">
+          <label class="wiz-label" for="wiz_mitreisender">Mitreisender <em>(optional)</em></label>
+          <input type="text" id="wiz_mitreisender" placeholder="Erika Musterfrau">
+          <p class="wiz-hint">Wird automatisch eingesetzt, wenn der Name in der Ausschreibung erwähnt wird</p>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost btn-sm" onclick="closeModal('wizardOverlay')">Später</button>
+        <button class="btn btn-primary btn-sm" onclick="saveWizard()">Speichern &amp; Prompt aktualisieren</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── APP ────────────────────────────────────────────────────────── -->
+  <div class="app">
+
+    <header class="app-header">
+      <p class="app-eyebrow">DR&thinsp;·&thinsp;Automate</p>
+      <h1 class="app-title">Dienstreise-<em>Antrag</em> Assistent</h1>
+    </header>
+
+    <!-- Profil-Banner -->
+    <div class="profile-banner">
+      <div class="profile-left">
+        <div class="avatar empty" id="profileAvatar">?</div>
+        <span class="profile-label missing" id="profileStatus">Kein Profil konfiguriert – Platzhalter im Prompt sind noch leer.</span>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="openWizard()">Profil&nbsp;bearbeiten</button>
     </div>
 
-    <div class="container">
-        <h1 class="text-center mb-4">🧳 Dienstreise-Antrag Assistent</h1>
-        
-        <!-- Step 1: Prompt -->
-        <div class="step-container">
-            <h3 class="step-title">1. Prompt & KI</h3>
-            <p>Kopiere diesen Prompt und deine Ausschreibung/E-Mail in dein LLM (z.B. ChatGPT):</p>
-            <div class="mb-3">
-                <textarea class="form-control" id="promptText" rows="10" readonly>{{ prompt_content }}</textarea>
-            </div>
-            <button class="btn btn-primary" onclick="copyPrompt()">
-                📋 Prompt kopieren
+    <!-- Step 01: Prompt & KI -->
+    <div class="step" data-step="01">
+      <div class="step-inner">
+        <h2 class="step-title">
+          <span class="step-title-num">01</span>
+          Prompt &amp; KI
+        </h2>
+        <p class="step-lead">Kopiere diesen Prompt zusammen mit deiner Ausschreibung in ein LLM (z.&nbsp;B. ChatGPT):</p>
+        <textarea id="promptText" rows="10" readonly>{{ prompt_content }}</textarea>
+        <div style="margin-top:.85rem;">
+          <button class="btn btn-primary btn-copy" id="copyBtn" onclick="copyPrompt()">Prompt kopieren</button>
+          <p class="copy-warning">Vergiss nicht, die Ausschreibung dazu zu kopieren!</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 02: Daten & Erstellen -->
+    <div class="step" data-step="02">
+      <div class="step-inner">
+        <h2 class="step-title">
+          <span class="step-title-num">02</span>
+          Daten &amp; Erstellen
+        </h2>
+        <form id="genForm">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <label class="field-label" for="jsonData">JSON-Ergebnis vom LLM einfügen</label>
+          <textarea name="json_data" id="jsonData" rows="15" placeholder='{ "antragsteller": … }'></textarea>
+          <div class="field-hint" id="validationHint"></div>
+          <div class="btn-row" style="margin-top:.85rem;">
+            <button type="submit" class="btn btn-primary btn-primary-lg" id="submitBtn">
+              Antrag generieren (PDF)
             </button>
-            <span class="text-danger ms-3 fw-bold">⚠️ Vergiss nicht, die Ausschreibung dazu zu kopieren!</span>
-        </div>
-
-        <!-- Step 2: JSON & Generate -->
-        <div class="step-container">
-            <h3 class="step-title">2. Daten & Erstellen</h3>
-            <form id="genForm">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <div class="mb-3">
-                    <label for="jsonData" class="form-label">Füge das JSON-Ergebnis vom LLM hier ein:</label>
-                    <textarea class="form-control" name="json_data" id="jsonData" rows="15" placeholder='{ ... "antragsteller": ... }' required></textarea>
-                    <div class="validation-hint" id="validationHint"></div>
-                </div>
-                <div class="d-grid gap-2">
-                    <button type="submit" class="btn btn-success btn-lg" id="submitBtn">
-                        🚀 Antrag Generieren (PDF)
-                    </button>
-                    <button type="button" class="btn btn-secondary" onclick="formatJSON()">
-                        ✨ JSON formatieren
-                    </button>
-                    <button type="button" class="btn btn-outline-info btn-sm" onclick="loadExample()">
-                        📄 Beispiel-JSON laden
-                    </button>
-                </div>
-            </form>
-        </div>
-        
-        <footer class="text-center text-muted mb-4">
-            <small>v0.1.0 | <a href="/health" target="_blank">Status</a></small>
-        </footer>
+            <div class="btn-secondary-row">
+              <button type="button" class="btn btn-ghost" onclick="formatJSON()">JSON formatieren</button>
+              <button type="button" class="btn btn-outline btn-sm" onclick="loadExample()">Beispiel laden</button>
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
 
-    <script>
-        const REQUIRED_KEYS = ['antragsteller', 'reise_details', 'befoerderung', 'konfiguration_checkboxen'];
-        
-        // Alert anzeigen
-        function showAlert(message, type = 'danger') {
-            const container = document.getElementById('alertContainer');
-            const alert = document.createElement('div');
-            alert.className = `alert alert-${type} alert-dismissible fade show`;
-            alert.innerHTML = `
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            `;
-            container.appendChild(alert);
-            setTimeout(() => alert.remove(), 10000);
-        }
-        
-        // Prompt kopieren
-        function copyPrompt() {
-            const copyText = document.getElementById("promptText");
-            navigator.clipboard.writeText(copyText.value).then(() => {
-                showAlert("✅ Prompt wurde kopiert!", "success");
-            }).catch(() => {
-                copyText.select();
-                document.execCommand('copy');
-                showAlert("✅ Prompt wurde kopiert!", "success");
-            });
-        }
+    <footer class="app-footer">
+      <small>v0.1.0<span class="sep">·</span><a href="/health" target="_blank">Status</a><span class="sep">·</span><a href="/logout">Abmelden</a></small>
+    </footer>
 
-        // JSON formatieren
-        function formatJSON() {
-            const area = document.getElementById("jsonData");
-            try {
-                const obj = JSON.parse(area.value);
-                area.value = JSON.stringify(obj, null, 2);
-                validateJSON();
-            } catch (e) {
-                showAlert("❌ Ungültiges JSON: " + e.message, "danger");
-            }
+  </div><!-- /.app -->
+
+  <script>
+    const REQUIRED_KEYS  = ['antragsteller', 'reise_details', 'befoerderung', 'konfiguration_checkboxen'];
+    const PROFILE_KEY    = 'dr_profile';
+    const promptTemplate = document.getElementById('promptText').value;
+
+    // ── Modal ────────────────────────────────────────────────────────
+    function openModal(id) {
+      document.getElementById(id).classList.add('is-open');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('is-open');
+      document.body.style.overflow = '';
+    }
+    document.querySelectorAll('.modal-overlay').forEach(el =>
+      el.addEventListener('click', e => { if (e.target === el) closeModal(el.id); })
+    );
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape')
+        document.querySelectorAll('.modal-overlay.is-open').forEach(el => closeModal(el.id));
+    });
+
+    // ── Alerts ───────────────────────────────────────────────────────
+    function showAlert(msg, type = 'danger') {
+      const stack = document.getElementById('alertStack');
+      const el = document.createElement('div');
+      el.className = `alert alert-${type}`;
+      el.innerHTML = `<span>${msg}</span><button class="alert-close" onclick="this.closest('.alert').remove()">✕</button>`;
+      stack.appendChild(el);
+      setTimeout(() => el.remove(), 7000);
+    }
+
+    // ── localStorage ─────────────────────────────────────────────────
+    function getProfile() {
+      try { const r = localStorage.getItem(PROFILE_KEY); return r ? JSON.parse(r) : null; }
+      catch { return null; }
+    }
+    function saveProfile(p) { localStorage.setItem(PROFILE_KEY, JSON.stringify(p)); }
+
+    // ── Profil anwenden ──────────────────────────────────────────────
+    function applyProfile(p) {
+      let prompt = promptTemplate;
+      prompt = prompt.replace(/\[DEIN NAME\]/g,           p.name);
+      prompt = prompt.replace(/\[DEINE ABTEILUNG\]/g,     p.abteilung);
+      prompt = prompt.replace(/\[DEINE TELEFONNUMMER\]/g, p.telefon);
+      prompt = prompt.replace(/\[DEINE PRIVATADRESSE\]/g, p.adresse);
+      prompt = prompt.replace(/\[OPTIONALER NAME\]/g,     p.mitreisender || '(keiner)');
+      document.getElementById('promptText').value = prompt;
+
+      const parts    = p.name.trim().split(/\s+/);
+      const initials = (parts[0]?.[0] || '') + (parts[parts.length - 1]?.[0] || '');
+      const avatar   = document.getElementById('profileAvatar');
+      avatar.textContent = initials.toUpperCase();
+      avatar.classList.remove('empty');
+
+      const status = document.getElementById('profileStatus');
+      status.textContent = `${p.name} · ${p.abteilung}`;
+      status.classList.remove('missing');
+    }
+
+    // ── Wizard ───────────────────────────────────────────────────────
+    function openWizard() {
+      const p = getProfile();
+      if (p) {
+        document.getElementById('wiz_name').value        = p.name        || '';
+        document.getElementById('wiz_abteilung').value   = p.abteilung   || '';
+        document.getElementById('wiz_telefon').value     = p.telefon     || '';
+        document.getElementById('wiz_adresse').value     = p.adresse     || '';
+        document.getElementById('wiz_mitreisender').value = p.mitreisender || '';
+      }
+      openModal('wizardOverlay');
+    }
+
+    function saveWizard() {
+      const name         = document.getElementById('wiz_name').value.trim();
+      const abteilung    = document.getElementById('wiz_abteilung').value.trim();
+      const telefon      = document.getElementById('wiz_telefon').value.trim();
+      const adresse      = document.getElementById('wiz_adresse').value.trim();
+      const mitreisender = document.getElementById('wiz_mitreisender').value.trim();
+      if (!name || !abteilung || !telefon || !adresse) {
+        showAlert('Bitte alle Pflichtfelder (*) ausfüllen.', 'warning');
+        return;
+      }
+      const profile = { name, abteilung, telefon, adresse, mitreisender };
+      saveProfile(profile);
+      applyProfile(profile);
+      closeModal('wizardOverlay');
+      showAlert('Profil gespeichert – Prompt wurde aktualisiert.', 'success');
+    }
+
+    // ── Prompt kopieren ──────────────────────────────────────────────
+    function copyPrompt() {
+      const btn = document.getElementById('copyBtn');
+      navigator.clipboard.writeText(document.getElementById('promptText').value)
+        .catch(() => { const t = document.getElementById('promptText'); t.select(); document.execCommand('copy'); });
+      btn.textContent = 'Kopiert ✓';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Prompt kopieren'; btn.classList.remove('copied'); }, 2000);
+    }
+
+    // ── JSON ─────────────────────────────────────────────────────────
+    function formatJSON() {
+      const area = document.getElementById('jsonData');
+      try {
+        area.value = JSON.stringify(JSON.parse(area.value), null, 2);
+        validateJSON();
+      } catch(e) { showAlert('Ungültiges JSON: ' + e.message); }
+    }
+
+    function validateJSON() {
+      const area = document.getElementById('jsonData');
+      const hint = document.getElementById('validationHint');
+      if (!area.value.trim()) {
+        area.classList.remove('is-valid', 'is-invalid');
+        hint.innerHTML = '';
+        return false;
+      }
+      try {
+        const obj  = JSON.parse(area.value);
+        const miss = REQUIRED_KEYS.filter(k => !(k in obj));
+        if (miss.length) {
+          area.classList.replace('is-valid', 'is-invalid') || area.classList.add('is-invalid');
+          hint.innerHTML = `<span class="err">Fehlende Felder: ${miss.join(', ')}</span>`;
+          return false;
         }
-        
-        // JSON validieren (Live)
-        function validateJSON() {
-            const area = document.getElementById("jsonData");
-            const hint = document.getElementById("validationHint");
-            const submitBtn = document.getElementById("submitBtn");
-            
-            if (!area.value.trim()) {
-                area.classList.remove('json-valid', 'json-invalid');
-                hint.innerHTML = '';
-                return false;
-            }
-            
-            try {
-                const obj = JSON.parse(area.value);
-                const missingKeys = REQUIRED_KEYS.filter(key => !(key in obj));
-                
-                if (missingKeys.length > 0) {
-                    area.classList.remove('json-valid');
-                    area.classList.add('json-invalid');
-                    hint.innerHTML = `<span class="text-danger">⚠️ Fehlende Felder: ${missingKeys.join(', ')}</span>`;
-                    return false;
-                }
-                
-                area.classList.remove('json-invalid');
-                area.classList.add('json-valid');
-                hint.innerHTML = '<span class="text-success">✅ JSON ist valide</span>';
-                return true;
-            } catch (e) {
-                area.classList.remove('json-valid');
-                area.classList.add('json-invalid');
-                hint.innerHTML = `<span class="text-danger">❌ JSON-Syntaxfehler: ${e.message}</span>`;
-                return false;
-            }
+        area.classList.remove('is-invalid'); area.classList.add('is-valid');
+        hint.innerHTML = '<span class="ok">JSON ist valide</span>';
+        return true;
+      } catch(e) {
+        area.classList.remove('is-valid'); area.classList.add('is-invalid');
+        hint.innerHTML = `<span class="err">Syntaxfehler: ${e.message}</span>`;
+        return false;
+      }
+    }
+
+    async function loadExample() {
+      try {
+        const r = await fetch('/example');
+        if (r.ok) {
+          document.getElementById('jsonData').value = JSON.stringify(await r.json(), null, 2);
+          validateJSON();
+          showAlert('Beispiel-JSON geladen', 'info');
+        } else { showAlert('Beispiel nicht verfügbar', 'warning'); }
+      } catch(e) { showAlert('Fehler: ' + e.message); }
+    }
+
+    // ── Formular absenden ────────────────────────────────────────────
+    document.getElementById('genForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      if (!validateJSON()) { showAlert('Bitte korrigiere das JSON vor dem Absenden'); return; }
+
+      const spinner   = document.getElementById('loadingSpinner');
+      const submitBtn = document.getElementById('submitBtn');
+      spinner.classList.add('active');
+      submitBtn.disabled = true;
+
+      try {
+        const res = await fetch('/generate', { method: 'POST', body: new FormData(this) });
+        if (res.ok) {
+          const blob = await res.blob();
+          const cd   = res.headers.get('Content-Disposition') || '';
+          const m    = cd.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+          const name = m ? m[1].replace(/['"]/g, '') : 'DR-Antrag.pdf';
+          const url  = URL.createObjectURL(blob);
+          const a    = Object.assign(document.createElement('a'), { href: url, download: name });
+          document.body.appendChild(a); a.click(); URL.revokeObjectURL(url); a.remove();
+          showAlert(`PDF „${name}" wurde erstellt!`, 'success');
+        } else {
+          const err = await res.json();
+          showAlert('Fehler: ' + (err.error || 'Unbekannter Fehler'));
         }
-        
-        // Beispiel-JSON laden
-        async function loadExample() {
-            try {
-                const response = await fetch('/example');
-                if (response.ok) {
-                    const data = await response.json();
-                    document.getElementById('jsonData').value = JSON.stringify(data, null, 2);
-                    validateJSON();
-                    showAlert("📄 Beispiel-JSON geladen", "info");
-                } else {
-                    showAlert("Beispiel-JSON nicht verfügbar", "warning");
-                }
-            } catch (e) {
-                showAlert("Fehler beim Laden des Beispiels", "danger");
-            }
-        }
-        
-        // Formular absenden (AJAX)
-        document.getElementById('genForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            if (!validateJSON()) {
-                showAlert("❌ Bitte korrigiere das JSON vor dem Absenden", "danger");
-                return;
-            }
-            
-            const spinner = document.getElementById('loadingSpinner');
-            const submitBtn = document.getElementById('submitBtn');
-            
-            spinner.classList.add('active');
-            submitBtn.disabled = true;
-            
-            try {
-                const formData = new FormData(this);
-                const response = await fetch('/generate', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                if (response.ok) {
-                    // PDF herunterladen
-                    const blob = await response.blob();
-                    const contentDisposition = response.headers.get('Content-Disposition');
-                    let filename = 'DR-Antrag.pdf';
-                    if (contentDisposition) {
-                        const match = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-                        if (match) filename = match[1].replace(/['"]/g, '');
-                    }
-                    
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = filename;
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                    a.remove();
-                    
-                    showAlert(`✅ PDF "${filename}" wurde erstellt!`, "success");
-                } else {
-                    const error = await response.json();
-                    showAlert(`❌ Fehler: ${error.error || 'Unbekannter Fehler'}`, "danger");
-                }
-            } catch (e) {
-                showAlert(`❌ Netzwerkfehler: ${e.message}`, "danger");
-            } finally {
-                spinner.classList.remove('active');
-                submitBtn.disabled = false;
-            }
-        });
-        
-        // Live-Validierung
-        document.getElementById('jsonData').addEventListener('input', validateJSON);
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+      } catch(e) { showAlert('Netzwerkfehler: ' + e.message); }
+      finally { spinner.classList.remove('active'); submitBtn.disabled = false; }
+    });
+
+    document.getElementById('jsonData').addEventListener('input', validateJSON);
+
+    // ── Init ─────────────────────────────────────────────────────────
+    window.addEventListener('DOMContentLoaded', () => {
+      const p = getProfile();
+      if (p) { applyProfile(p); }
+      else    { setTimeout(() => openWizard(), 400); }
+    });
+  </script>
 </body>
 </html>

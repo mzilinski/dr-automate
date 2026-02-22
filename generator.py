@@ -267,6 +267,10 @@ def fill_pdf(json_input: dict | str, input_pdf_path: str, output_dir: str) -> st
                 if value is None: break
 
             if isinstance(value, (str, int)):
+                if isinstance(value, str):
+                    # PDF-Formularfelder nutzen \r als Zeilenumbruch (PDF-Spec ISO 32000).
+                    # LLMs geben manchmal literal \\n (zwei Zeichen) aus → ebenfalls ersetzen.
+                    value = value.replace('\r\n', '\r').replace('\\n', '\r').replace('\n', '\r')
                 if isinstance(pdf_id, list):
                     for pid in pdf_id: fields_to_fill[pid] = value
                 else:
