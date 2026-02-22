@@ -20,9 +20,10 @@ Analysiere den Eingabetext und erstelle daraus ein JSON-Objekt:
 
 ## 3. Logik-Regeln
 
-**PKW & § 5 NRKVO:**
-- § 5 II (Kleine Wegstrecke): Standardfall bei PKW-Nutzung.
-- § 5 III (Große Wegstrecke): NUR bei triftigem Grund (Mitnahme von Kollegen, Materialtransport, schlechte ÖPNV-Anbindung, kein Dienstwagen verfügbar).
+**§ 5 NRKVO (`paragraph_5_nrkvo`):**
+- Dieses Feld ist **immer** zu befüllen, unabhängig vom Transportmittel. Erlaubte Werte: `"II"` oder `"III"`.
+- Standard für alle Transportmittel (BAHN, BUS, DIENSTWAGEN): `"II"`.
+- PKW `"III"` (Große Wegstrecke): NUR bei triftigem Grund (Mitnahme von Kollegen, Materialtransport, schlechte ÖPNV-Anbindung, kein Dienstwagen verfügbar).
 - Wenn „III" gewählt wird: `sonderfall_begruendung_textfeld` ist Pflicht.
 
 **Flugreisen:**

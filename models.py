@@ -69,6 +69,14 @@ class Befoerderungsart(BaseModel):
     typ: str = Field(..., pattern=r'^(PKW|BAHN|BUS|DIENSTWAGEN|FLUG)$')
     paragraph_5_nrkvo: str = Field(default="II", pattern=r'^(II|III)$')
 
+    @field_validator('paragraph_5_nrkvo', mode='before')
+    @classmethod
+    def coerce_paragraph(cls, v: str) -> str:
+        """Leere oder fehlende Werte → 'II' als Standard."""
+        if not v or str(v).strip() == "":
+            return "II"
+        return v
+
 
 class Befoerderung(BaseModel):
     """Beförderungsmittel für die Reise."""
