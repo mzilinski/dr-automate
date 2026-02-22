@@ -680,7 +680,18 @@
             <div class="btn-secondary-row">
               <button type="button" class="btn btn-ghost" onclick="formatJSON()">JSON formatieren</button>
               <button type="button" class="btn btn-outline btn-sm" onclick="loadExample()">Beispiel laden</button>
+              <button type="button" class="btn btn-ghost btn-sm" onclick="neuerAntrag()" id="neuerAntragBtn" style="margin-left:auto;">
+                ↩ Neuer Antrag
+              </button>
             </div>
+          </div>
+
+          <!-- Erfolgs-Banner nach PDF-Download -->
+          <div id="successBanner" style="display:none; margin-top:1.25rem; padding:1rem 1.25rem; background:var(--ok-subtle); border:1.5px solid var(--ok); border-radius:12px; display:none; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
+            <span style="color:var(--ok); font-weight:600;">✓ PDF erfolgreich erstellt!</span>
+            <button type="button" class="btn btn-primary" onclick="neuerAntrag()" style="background:var(--ok);">
+              ↩ Neuen Antrag erstellen
+            </button>
           </div>
         </form>
       </div>
@@ -835,6 +846,16 @@
       }
     }
 
+    function neuerAntrag() {
+      const area = document.getElementById('jsonData');
+      area.value = '';
+      area.classList.remove('is-valid', 'is-invalid');
+      document.getElementById('validationHint').innerHTML = '';
+      document.getElementById('sonderwuensche').value = '';
+      document.getElementById('successBanner').style.display = 'none';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
     async function loadExample() {
       try {
         const r = await fetch('/example');
@@ -866,6 +887,7 @@
           const url  = URL.createObjectURL(blob);
           const a    = Object.assign(document.createElement('a'), { href: url, download: name });
           document.body.appendChild(a); a.click(); URL.revokeObjectURL(url); a.remove();
+          document.getElementById('successBanner').style.display = 'flex';
           showAlert(`PDF „${name}" wurde erstellt!`, 'success');
         } else {
           const err = await res.json();
