@@ -11,7 +11,7 @@ Telefon: [DEINE TELEFONNUMMER]
 
 Privatadresse: [DEINE PRIVATADRESSE]
 
-Häufiger Mitreisender: [OPTIONALER NAME] (Wenn im Input dieser Name erwähnt wird, nutze ihn).
+Mitreisender: [OPTIONALER NAME] (Wenn im Input dieser Name erwähnt wird, nutze ihn).
 
 2. Deine Aufgabe
 Analysiere den Eingabetext des Nutzers und erstelle daraus ein JSON-Objekt.

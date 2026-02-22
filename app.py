@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_file, jsonify, after_this_request
+from flask import Flask, render_template, request, send_file, jsonify, after_this_request, session, redirect, url_for
 from flask_wtf import CSRFProtect
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -17,6 +17,7 @@ PORT = int(os.environ.get("PORT", 5001))
 HOST = os.environ.get("HOST", "0.0.0.0")
 SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key-change-in-production")
 RATE_LIMIT = os.environ.get("RATE_LIMIT", "10")
+PASSPHRASE = os.environ.get("DR_PASSPHRASE", "")  # Leer = kein Schutz
 
 # --- LOGGING ---
 logging.basicConfig(
@@ -44,6 +45,56 @@ limiter = Limiter(
 if not os.path.exists(PDF_TEMPLATE_PATH):
     logger.warning(f"Template file not found at {PDF_TEMPLATE_PATH}")
 
+
+def _legal_urls():
+    return dict(
+        impressum_url=os.environ.get("IMPRESSUM_URL", "#"),
+        datenschutz_url=os.environ.get("DATENSCHUTZ_URL", "#"),
+    )
+
+
+# --- AUTH ---
+_OPEN_ENDPOINTS = {"health_check", "login", "logout", "static"}
+
+@app.before_request
+def require_auth():
+    if not PASSPHRASE:
+        return  # Kein Passwort konfiguriert → offen
+    if request.endpoint in _OPEN_ENDPOINTS:
+        return
+    if not session.get("authenticated"):
+        return redirect(url_for("login"))
+
+
+@app.route("/login", methods=["GET", "POST"])
+@limiter.limit("10 per minute", methods=["POST"])
+def login():
+    if session.get("authenticated"):
+        return redirect(url_for("index"))
+    # Auto-Login via URL-Token (z.B. aus Landing-Page-Link)
+    url_token = request.args.get("token", "")
+    if url_token and url_token == PASSPHRASE:
+        session["authenticated"] = True
+        logger.info(f"Auto-Login via URL-Token von {request.remote_addr}")
+        return redirect(url_for("index"))
+
+    error = False
+    if request.method == "POST":
+        if request.form.get("passphrase", "") == PASSPHRASE:
+            session["authenticated"] = True
+            logger.info(f"Erfolgreicher Login von {request.remote_addr}")
+            return redirect(url_for("index"))
+        error = True
+        logger.warning(f"Fehlgeschlagener Login-Versuch von {request.remote_addr}")
+    return render_template("login.html", error=error, **_legal_urls())
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
+
+
 @app.route('/', methods=['GET'])
 def index():
     # Prefer local personalized prompt if it exists, otherwise fallback to generic
@@ -55,7 +106,7 @@ def index():
     except Exception as e:
         prompt_content = f"Error loading prompt file: {e}"
         
-    return render_template('index.html', prompt_content=prompt_content)
+    return render_template('index.html', prompt_content=prompt_content, **_legal_urls())
 
 
 @app.route('/example', methods=['GET'])

@@ -8,10 +8,12 @@ Dieses Tool automatisiert das Ausfüllen von Dienstreiseanträgen (Formular NRKV
 
 *   **KI-Integration**: Nutzt einen optimierten System-Prompt (`system_prompt.md`), um Reisedaten mit einem LLM (z. B. ChatGPT, Claude) in ein strukturiertes JSON-Format zu konvertieren.
 *   **Intelligente Verbindungssuche**: Der Prompt weist das LLM an, bei Bedarf Bahn-, Flug- und Fährverbindungen zu recherchieren.
-*   **PDF-Generierung**: Füllt das offizielle PDF-Formular automatisch aus, inkl. Checkbox-Logik (z. B. PKW-Nutzung, BahnCard).
-*   **Web-Interface**: Benutzerfreundliche Oberfläche mit Dark Mode, Live-JSON-Validierung und Ladeanimation.
+*   **PDF-Generierung**: Füllt das offizielle PDF-Formular automatisch aus, inkl. Checkbox-Logik (z. B. PKW-Nutzung, BahnCard) und korrekten Zeilenumbrüchen in Freitextfeldern.
+*   **Web-Interface**: Benutzerfreundliche Oberfläche mit Dark/Light Mode, Live-JSON-Validierung und Ladeanimation (kein Bootstrap, eigene CSS-Komponenten).
+*   **Profil-Assistent**: Einmaliges Erfassen persönlicher Daten (Name, Abteilung, Telefon, Adresse, Mitreisender) direkt im Browser. Daten werden in `localStorage` gespeichert und automatisch in den KI-Prompt eingefügt – ohne Serverübertragung.
+*   **Zugriffsschutz**: Passwort-gesicherter Zugang via Flask-Session (`DR_PASSPHRASE`). Unterstützt Auto-Login über URL-Token (`/login?token=...`).
 *   **Smart Naming**: Generiert aussagekräftige Dateinamen (z. B. `20260510_DR-Antrag_Wangerooge_Fortbildung.pdf`).
-*   **Sicherheit**: CSRF-Schutz, Rate Limiting, strikte JSON-Validierung mit Pydantic.
+*   **Sicherheit**: CSRF-Schutz, Rate Limiting (Nginx + Flask-Limiter), strikte JSON-Validierung mit Pydantic.
 
 ## Voraussetzungen
 
@@ -31,6 +33,9 @@ Die Anwendung kann über folgende Umgebungsvariablen konfiguriert werden:
 | `PDF_TEMPLATE_PATH` | Pfad zur PDF-Vorlage | `forms/DR-Antrag_035_001Stand4-2025pdf.pdf` |
 | `SECRET_KEY` | Secret für CSRF/Sessions | `dev-secret-key...` |
 | `RATE_LIMIT` | Max. Requests/Minute für `/generate` | `10` |
+| `DR_PASSPHRASE` | Passwort für den Zugriffsschutz (leer = offen) | `` |
+| `IMPRESSUM_URL` | URL zur Impressumsseite | `#` |
+| `DATENSCHUTZ_URL` | URL zur Datenschutzerklärung | `#` |
 
 Eine Beispiel-Konfiguration findest du in [.env.example](.env.example).
 
@@ -62,7 +67,13 @@ Eine Beispiel-Konfiguration findest du in [.env.example](.env.example).
 
 ## Konfiguration (Persönliche Daten)
 
-Damit du nicht jedes Mal deine persönlichen Daten in den Prompt im Web-Interface eintragen musst, kannst du eine lokale Konfigurationsdatei anlegen:
+### Option A: Profil-Assistent im Browser (empfohlen)
+
+Beim ersten Besuch öffnet sich automatisch ein Profil-Assistent. Die eingegebenen Daten (Name, Schule/Abteilung/Funktion, Telefon, Adresse, Mitreisender) werden ausschließlich im `localStorage` des Browsers gespeichert – sie werden nie an den Server übertragen. Der System-Prompt wird beim Kopieren automatisch mit diesen Daten befüllt.
+
+### Option B: Lokale System-Prompt-Datei
+
+Für server-seitige Vorausfüllung (z. B. wenn mehrere Personen den selben Browser nutzen):
 
 1.  Kopiere die Datei `system_prompt.md` zu `system_prompt.local.md`.
 2.  Bearbeite `system_prompt.local.md` und fülle die Platzhalter (z. B. `[DEIN NAME]`, `[DEINE ABTEILUNG]`) mit deinen echten Daten.
@@ -115,7 +126,9 @@ dr-automate/
 ├── example_input.json     # Beispiel-JSON für Tests
 ├── .env.example           # Umgebungsvariablen-Vorlage
 ├── forms/                 # PDF-Vorlagen
-├── templates/             # HTML-Templates (mit Dark Mode)
+├── templates/             # HTML-Templates (Dark/Light Mode, kein Bootstrap)
+│   ├── index.html         # Haupt-Interface (Profil-Assistent, JSON-Editor, PDF-Download)
+│   └── login.html         # Login-Seite (nur wenn DR_PASSPHRASE gesetzt)
 ├── tests/                 # Unit-Tests
 │   └── test_app.py
 ├── .github/workflows/     # CI/CD Pipeline
@@ -130,10 +143,12 @@ dr-automate/
 
 | Endpunkt | Methode | Beschreibung |
 |----------|---------|-------------|
-| `/` | GET | Web-Interface |
+| `/` | GET | Web-Interface (erfordert Auth wenn `DR_PASSPHRASE` gesetzt) |
+| `/login` | GET, POST | Login-Seite; Auto-Login via `?token=<passphrase>` |
+| `/logout` | GET | Session beenden, zurück zur Login-Seite |
 | `/generate` | POST | PDF generieren (Rate Limited: 10/min) |
 | `/example` | GET | Beispiel-JSON für Frontend |
-| `/health` | GET | Health-Check für Monitoring |
+| `/health` | GET | Health-Check für Monitoring (kein Auth) |
 
 ## Entwicklung
 
