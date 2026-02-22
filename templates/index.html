@@ -632,6 +632,15 @@
           <strong>Die KI antwortet dann automatisch mit einem JSON</strong> – das kommt in Schritt&nbsp;02.
         </p>
         <textarea id="promptText" rows="10" readonly>{{ prompt_content }}</textarea>
+
+        <div style="margin-top:1.25rem; border-top: 1.5px dashed var(--border); padding-top:1.1rem;">
+          <label class="field-label" for="sonderwuensche">
+            Hinweise &amp; Sonderwünsche
+            <span style="font-weight:400; text-transform:none; letter-spacing:0; font-size:.8rem; color:var(--muted);"> – optional, werden beim Kopieren automatisch angehängt</span>
+          </label>
+          <textarea id="sonderwuensche" rows="3" placeholder="z.B. „PKW statt Bahn, da Materialtransport" oder „Rückreise erst am Folgetag""></textarea>
+        </div>
+
         <div style="margin-top:.85rem;">
           <button class="btn btn-primary btn-copy" id="copyBtn" onclick="copyPrompt()">Prompt kopieren</button>
           <p class="copy-warning">Vergiss nicht, die Ausschreibung dazu zu kopieren!</p>
@@ -776,8 +785,16 @@
     // ── Prompt kopieren ──────────────────────────────────────────────
     function copyPrompt() {
       const btn = document.getElementById('copyBtn');
-      navigator.clipboard.writeText(document.getElementById('promptText').value)
-        .catch(() => { const t = document.getElementById('promptText'); t.select(); document.execCommand('copy'); });
+      let text = document.getElementById('promptText').value;
+      const sonderwuensche = document.getElementById('sonderwuensche').value.trim();
+      if (sonderwuensche) {
+        text += '\n\n## Hinweise & Sonderwünsche\n' + sonderwuensche;
+      }
+      navigator.clipboard.writeText(text)
+        .catch(() => {
+          const t = document.getElementById('promptText');
+          t.value = text; t.select(); document.execCommand('copy'); t.value = document.getElementById('promptText').defaultValue;
+        });
       btn.textContent = 'Kopiert ✓';
       btn.classList.add('copied');
       setTimeout(() => { btn.textContent = 'Prompt kopieren'; btn.classList.remove('copied'); }, 2000);
