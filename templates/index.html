@@ -627,7 +627,10 @@
           <span class="step-title-num">01</span>
           Prompt &amp; KI
         </h2>
-        <p class="step-lead">Kopiere diesen Prompt zusammen mit deiner Ausschreibung in ein LLM (z.&nbsp;B. ChatGPT):</p>
+        <p class="step-lead">
+          Kopiere diesen Prompt zusammen mit der Ausschreibung in ein KI-Modell (z.&nbsp;B. ChatGPT oder Claude).<br>
+          <strong>Die KI antwortet dann automatisch mit einem JSON</strong> – das kommt in Schritt&nbsp;02.
+        </p>
         <textarea id="promptText" rows="10" readonly>{{ prompt_content }}</textarea>
         <div style="margin-top:.85rem;">
           <button class="btn btn-primary btn-copy" id="copyBtn" onclick="copyPrompt()">Prompt kopieren</button>
@@ -636,17 +639,30 @@
       </div>
     </div>
 
+    <!-- Verbindungspfeil -->
+    <div style="text-align:center; color:var(--muted); font-size:.85rem; margin: -.4rem 0; line-height:1;">
+      <svg width="20" height="28" viewBox="0 0 20 28" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto;">
+        <line x1="10" y1="0" x2="10" y2="20" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <polyline points="4,16 10,24 16,16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+      </svg>
+      KI-Antwort (JSON) hier einfügen
+    </div>
+
     <!-- Step 02: Daten & Erstellen -->
     <div class="step" data-step="02">
       <div class="step-inner">
         <h2 class="step-title">
           <span class="step-title-num">02</span>
-          Daten &amp; Erstellen
+          KI-Antwort einfügen &amp; PDF erstellen
         </h2>
+        <p class="step-lead">
+          Kopiere die <strong>komplette Antwort der KI</strong> aus Schritt&nbsp;01 in das Feld unten.
+          Du musst hier <em>nichts</em> selbst ausfüllen – die KI hat das schon erledigt.
+        </p>
         <form id="genForm">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <label class="field-label" for="jsonData">JSON-Ergebnis vom LLM einfügen</label>
-          <textarea name="json_data" id="jsonData" rows="15" placeholder='{ "antragsteller": … }'></textarea>
+          <label class="field-label" for="jsonData">KI-Antwort (JSON) einfügen</label>
+          <textarea name="json_data" id="jsonData" rows="15" placeholder='Hier die komplette Antwort der KI (ChatGPT / Claude) einfügen …'></textarea>
           <div class="field-hint" id="validationHint"></div>
           <div class="btn-row" style="margin-top:.85rem;">
             <button type="submit" class="btn btn-primary btn-primary-lg" id="submitBtn">
