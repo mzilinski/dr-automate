@@ -710,13 +710,10 @@
     let   fullPromptForCopy = promptTemplate;
 
     function makeDisplayPrompt(full) {
-      return full
-        // "Diese Daten sind immer..." → "…"
-        .replace(/\nDiese Daten sind[^\n]*\n/, '\n…\n')
-        // Mitreisender-Hint in Klammern entfernen
-        .replace(/\s*\(nur einsetzen,[^)]*\)/, '')
-        // "…" nach letztem Bullet (vor ## 2.)
-        .replace(/(- Mitreisender:[^\n]*\n)(\n## 2\.)/, '$1…\n$2');
+      const dataLines = full.split('\n')
+        .filter(l => /^- (Name|Abteilung|Telefon|Privatadresse|Mitreisender):/.test(l))
+        .map(l => l.replace(/\s*\(nur einsetzen,[^)]*\)/, '').trimEnd());
+      return '…\n' + dataLines.join('\n') + '\n…';
     }
 
     // ── Modal ────────────────────────────────────────────────────────
