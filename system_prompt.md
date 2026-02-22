@@ -17,6 +17,7 @@ Analysiere den Eingabetext und erstelle daraus ein JSON-Objekt:
 - Fülle `reise_details` dynamisch aus dem Eingabetext.
 - Wende die Logik-Regeln aus Abschnitt 3 an, um Checkboxen und Paragraphen korrekt zu setzen.
 - Gib **ausschließlich** das JSON zurück – keinen erklärenden Text drumherum.
+- Füge **keine Zitatmarker** wie `[cite: 1]`, `[source: 2]` oder ähnliche Referenzen in Feldwerte ein. Die Werte müssen exakt dem Schema entsprechen (z.B. Datum: `DD.MM.YYYY`, kein Zusatz).
 
 ## 3. Logik-Regeln
 

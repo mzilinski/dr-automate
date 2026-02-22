@@ -95,23 +95,36 @@ def apply_checkbox_logic(data_json):
     verzicht = data_json.get("verzicht_erklaerung", {})
 
     # 1. BEFÖRDERUNG
+    # Formular-Spalten (x-Position): 114=Bahn/Bus, 156=Dienstwagen, 213=PKW§II, 336=PKW§III, 430=Mitfahrt
     hin_typ = trans["hinreise"]["typ"].upper()
     hin_para = trans["hinreise"].get("paragraph_5_nrkvo", "II")
 
-    if "PKW" in hin_typ:
+    if hin_typ in ("BAHN", "BUS"):
+        cb["OBJ5"] = "/Yes"
+    elif hin_typ == "DIENSTWAGEN":
+        cb["OBJ36"] = "/Yes"
+    elif hin_typ == "PKW":
         if hin_para == "III":
             cb["OBJ43"] = "/Yes"
         else:
             cb["OBJ42"] = "/Yes"
+    elif hin_typ == "FLUG":
+        cb["OBJ43"] = "/Yes"  # Flug gilt als Sonderfall → §5 III
 
     rueck_typ = trans["rueckreise"]["typ"].upper()
     rueck_para = trans["rueckreise"].get("paragraph_5_nrkvo", "II")
 
-    if "PKW" in rueck_typ:
+    if rueck_typ in ("BAHN", "BUS"):
+        cb["OBJ46"] = "/Yes"
+    elif rueck_typ == "DIENSTWAGEN":
+        cb["OBJ47"] = "/Yes"
+    elif rueck_typ == "PKW":
         if rueck_para == "III":
             cb["OBJ14"] = "/Yes"
         else:
             cb["OBJ48"] = "/Yes"
+    elif rueck_typ == "FLUG":
+        cb["OBJ14"] = "/Yes"  # Flug gilt als Sonderfall → §5 III
 
     # 2. CHECKBOXEN
     if not config["bahncard_business_vorhanden"]: cb["BCB_Nein"] = "/Yes"
