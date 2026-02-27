@@ -586,9 +586,13 @@
           <input type="text" id="wiz_telefon" placeholder="0591 12345-678">
         </div>
         <div class="wiz-field">
-          <label class="wiz-label" for="wiz_adresse">Privatadresse <span>*</span></label>
-          <input type="text" id="wiz_adresse" placeholder="Musterstraße 1, 49808 Lingen">
-          <p class="wiz-hint">Start- und Endpunkt aller Dienstreisen laut Formular</p>
+          <label class="wiz-label" for="wiz_strasse">Straße &amp; Hausnummer <span>*</span></label>
+          <input type="text" id="wiz_strasse" placeholder="Musterstraße 1">
+        </div>
+        <div class="wiz-field">
+          <label class="wiz-label" for="wiz_plz_ort">PLZ &amp; Ort <span>*</span></label>
+          <input type="text" id="wiz_plz_ort" placeholder="49808 Lingen">
+          <p class="wiz-hint">Start- und Endpunkt aller Dienstreisen laut Formular. <strong>Wichtig:</strong> Bitte PLZ und Ort nicht vergessen!</p>
         </div>
         <div class="wiz-field">
           <label class="wiz-label" for="wiz_mitreisender">Mitreisender <em>(optional)</em></label>
@@ -792,11 +796,25 @@
     function openWizard() {
       const p = getProfile();
       if (p) {
-        document.getElementById('wiz_name').value        = p.name        || '';
-        document.getElementById('wiz_abteilung').value   = p.abteilung   || '';
-        document.getElementById('wiz_telefon').value     = p.telefon     || '';
-        document.getElementById('wiz_adresse').value     = p.adresse     || '';
+        document.getElementById('wiz_name').value         = p.name         || '';
+        document.getElementById('wiz_abteilung').value    = p.abteilung    || '';
+        document.getElementById('wiz_telefon').value      = p.telefon      || '';
         document.getElementById('wiz_mitreisender').value = p.mitreisender || '';
+
+        // Handle splitting for backward compatibility
+        if (p.strasse && p.plz_ort) {
+          document.getElementById('wiz_strasse').value = p.strasse;
+          document.getElementById('wiz_plz_ort').value = p.plz_ort;
+        } else if (p.adresse) {
+          const parts = p.adresse.split(',');
+          if (parts.length > 1) {
+            document.getElementById('wiz_strasse').value = parts[0].trim();
+            document.getElementById('wiz_plz_ort').value = parts.slice(1).join(',').trim();
+          } else {
+            document.getElementById('wiz_strasse').value = p.adresse.trim();
+            document.getElementById('wiz_plz_ort').value = '';
+          }
+        }
       }
       openModal('wizardOverlay');
     }
@@ -805,13 +823,17 @@
       const name         = document.getElementById('wiz_name').value.trim();
       const abteilung    = document.getElementById('wiz_abteilung').value.trim();
       const telefon      = document.getElementById('wiz_telefon').value.trim();
-      const adresse      = document.getElementById('wiz_adresse').value.trim();
+      const strasse      = document.getElementById('wiz_strasse').value.trim();
+      const plz_ort      = document.getElementById('wiz_plz_ort').value.trim();
       const mitreisender = document.getElementById('wiz_mitreisender').value.trim();
-      if (!name || !abteilung || !telefon || !adresse) {
+
+      if (!name || !abteilung || !telefon || !strasse || !plz_ort) {
         showAlert('Bitte alle Pflichtfelder (*) ausfüllen.', 'warning');
         return;
       }
-      const profile = { name, abteilung, telefon, adresse, mitreisender };
+
+      const adresse = `${strasse}, ${plz_ort}`;
+      const profile = { name, abteilung, telefon, adresse, strasse, plz_ort, mitreisender };
       saveProfile(profile);
       applyProfile(profile);
       closeModal('wizardOverlay');
