@@ -7,6 +7,7 @@ import json
 import shutil
 import tempfile
 import logging
+import re
 import generator
 from models import validate_reiseantrag
 
@@ -44,6 +45,24 @@ limiter = Limiter(
 # Prüfe ob Template existiert
 if not os.path.exists(PDF_TEMPLATE_PATH):
     logger.warning(f"Template file not found at {PDF_TEMPLATE_PATH}")
+
+
+_CITATION_RE = re.compile(r'\s*\[cite:[^\]]+\]', re.IGNORECASE)
+_CITATION_RAW_RE = re.compile(r'\[cite_start\]|\[cite_end\]|\s*\[cite:[^\]]+\]', re.IGNORECASE)
+
+def _strip_citations_raw(text: str) -> str:
+    """Entfernt KI-Zitatmarker aus rohem JSON-Text vor dem Parsen."""
+    return _CITATION_RAW_RE.sub('', text)
+
+def _strip_citations(obj):
+    """Entfernt KI-Zitatmarker wie [cite: 1, 2] rekursiv aus allen String-Werten."""
+    if isinstance(obj, dict):
+        return {k: _strip_citations(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_strip_citations(i) for i in obj]
+    if isinstance(obj, str):
+        return _CITATION_RE.sub('', obj).strip()
+    return obj
 
 
 def _legal_urls():
@@ -132,9 +151,15 @@ def generate():
             logger.warning("Request ohne JSON-Daten erhalten")
             return jsonify({"error": "No JSON data provided"}), 400
         
+        # KI-Zitatmarker aus Rohtext entfernen (z.B. [cite_start], [cite: 1] von Gemini/NotebookLM)
+        json_text = _strip_citations_raw(json_text)
+
         # JSON parsen
         data = json.loads(json_text)
-        
+
+        # KI-Zitatmarker aus String-Werten entfernen (Restbereinigung)
+        data = _strip_citations(data)
+
         # Strikte Validierung mit Pydantic
         is_valid, result = validate_reiseantrag(data)
         if not is_valid:

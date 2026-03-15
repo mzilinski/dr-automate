@@ -586,9 +586,13 @@
           <input type="text" id="wiz_telefon" placeholder="0591 12345-678">
         </div>
         <div class="wiz-field">
-          <label class="wiz-label" for="wiz_adresse">Privatadresse <span>*</span></label>
-          <input type="text" id="wiz_adresse" placeholder="Musterstraße 1, 49808 Lingen">
-          <p class="wiz-hint">Start- und Endpunkt aller Dienstreisen laut Formular</p>
+          <label class="wiz-label" for="wiz_strasse">Straße &amp; Hausnummer <span>*</span></label>
+          <input type="text" id="wiz_strasse" placeholder="Musterstraße 1">
+        </div>
+        <div class="wiz-field">
+          <label class="wiz-label" for="wiz_plz_ort">PLZ &amp; Ort <span>*</span></label>
+          <input type="text" id="wiz_plz_ort" placeholder="49808 Lingen">
+          <p class="wiz-hint">Start- und Endpunkt aller Dienstreisen laut Formular. <strong>Wichtig:</strong> Bitte PLZ und Ort nicht vergessen!</p>
         </div>
         <div class="wiz-field">
           <label class="wiz-label" for="wiz_mitreisender">Mitreisender <em>(optional)</em></label>
@@ -631,7 +635,21 @@
           Kopiere diesen Prompt zusammen mit der Ausschreibung in ein KI-Modell (z.&nbsp;B. ChatGPT oder Claude).<br>
           <strong>Die KI antwortet dann automatisch mit einem JSON</strong> – das kommt in Schritt&nbsp;02.
         </p>
+        <div style="display:flex; justify-content:flex-end; margin-bottom:.4rem;">
+          <button type="button" class="btn btn-ghost btn-sm" id="togglePromptBtn" onclick="toggleFullPrompt()">
+            Vollständigen Prompt anzeigen
+          </button>
+        </div>
         <textarea id="promptText" rows="10" readonly>{{ prompt_content }}</textarea>
+
+        <div style="margin-top:1.25rem; border-top: 1.5px dashed var(--border); padding-top:1.1rem;">
+          <label class="field-label" for="sonderwuensche">
+            Hinweise &amp; Sonderwünsche
+            <span style="font-weight:400; text-transform:none; letter-spacing:0; font-size:.8rem; color:var(--muted);"> – optional, werden beim Kopieren automatisch angehängt</span>
+          </label>
+          <textarea id="sonderwuensche" rows="3" placeholder="z.B. „PKW statt Bahn, da Materialtransport" oder „Rückreise erst am Folgetag""></textarea>
+        </div>
+
         <div style="margin-top:.85rem;">
           <button class="btn btn-primary btn-copy" id="copyBtn" onclick="copyPrompt()">Prompt kopieren</button>
           <p class="copy-warning">Vergiss nicht, die Ausschreibung dazu zu kopieren!</p>
@@ -640,7 +658,7 @@
     </div>
 
     <!-- Verbindungspfeil -->
-    <div style="text-align:center; color:var(--muted); font-size:.85rem; margin: -.4rem 0; line-height:1;">
+    <div style="text-align:center; color:var(--muted); font-size:.85rem; margin: -.4rem 0; line-height:1; position:relative; z-index:1; padding-bottom:.35rem;">
       <svg width="20" height="28" viewBox="0 0 20 28" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto;">
         <line x1="10" y1="0" x2="10" y2="20" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3"/>
         <polyline points="4,16 10,24 16,16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
@@ -671,7 +689,18 @@
             <div class="btn-secondary-row">
               <button type="button" class="btn btn-ghost" onclick="formatJSON()">JSON formatieren</button>
               <button type="button" class="btn btn-outline btn-sm" onclick="loadExample()">Beispiel laden</button>
+              <button type="button" class="btn btn-ghost btn-sm" onclick="neuerAntrag()" id="neuerAntragBtn" style="margin-left:auto;">
+                ↩ Neuer Antrag
+              </button>
             </div>
+          </div>
+
+          <!-- Erfolgs-Banner nach PDF-Download -->
+          <div id="successBanner" style="display:none; margin-top:1.25rem; padding:1rem 1.25rem; background:var(--ok-subtle); border:1.5px solid var(--ok); border-radius:12px; display:none; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
+            <span style="color:var(--ok); font-weight:600;">✓ PDF erfolgreich erstellt!</span>
+            <button type="button" class="btn btn-primary" onclick="neuerAntrag()" style="background:var(--ok);">
+              ↩ Neuen Antrag erstellen
+            </button>
           </div>
         </form>
       </div>
@@ -687,6 +716,25 @@
     const REQUIRED_KEYS  = ['antragsteller', 'reise_details', 'befoerderung', 'konfiguration_checkboxen'];
     const PROFILE_KEY    = 'dr_profile';
     const promptTemplate = document.getElementById('promptText').value;
+    let   fullPromptForCopy = promptTemplate;
+
+    let showingFullPrompt = false;
+
+    function toggleFullPrompt() {
+      const area = document.getElementById('promptText');
+      const btn  = document.getElementById('togglePromptBtn');
+      showingFullPrompt = !showingFullPrompt;
+      area.value = showingFullPrompt ? fullPromptForCopy : makeDisplayPrompt(fullPromptForCopy);
+      area.rows  = showingFullPrompt ? 28 : 10;
+      btn.textContent = showingFullPrompt ? 'Kurzansicht' : 'Vollständigen Prompt anzeigen';
+    }
+
+    function makeDisplayPrompt(full) {
+      const dataLines = full.split('\n')
+        .filter(l => /^- (Name|Abteilung|Telefon|Privatadresse|Mitreisender):/.test(l))
+        .map(l => l.replace(/\s*\(nur einsetzen,[^)]*\)/, '').trimEnd());
+      return dataLines.join('\n');
+    }
 
     // ── Modal ────────────────────────────────────────────────────────
     function openModal(id) {
@@ -730,7 +778,8 @@
       prompt = prompt.replace(/\[DEINE TELEFONNUMMER\]/g, p.telefon);
       prompt = prompt.replace(/\[DEINE PRIVATADRESSE\]/g, p.adresse);
       prompt = prompt.replace(/\[OPTIONALER NAME\]/g,     p.mitreisender || '(keiner)');
-      document.getElementById('promptText').value = prompt;
+      fullPromptForCopy = prompt;
+      document.getElementById('promptText').value = makeDisplayPrompt(prompt);
 
       const parts    = p.name.trim().split(/\s+/);
       const initials = (parts[0]?.[0] || '') + (parts[parts.length - 1]?.[0] || '');
@@ -747,11 +796,25 @@
     function openWizard() {
       const p = getProfile();
       if (p) {
-        document.getElementById('wiz_name').value        = p.name        || '';
-        document.getElementById('wiz_abteilung').value   = p.abteilung   || '';
-        document.getElementById('wiz_telefon').value     = p.telefon     || '';
-        document.getElementById('wiz_adresse').value     = p.adresse     || '';
+        document.getElementById('wiz_name').value         = p.name         || '';
+        document.getElementById('wiz_abteilung').value    = p.abteilung    || '';
+        document.getElementById('wiz_telefon').value      = p.telefon      || '';
         document.getElementById('wiz_mitreisender').value = p.mitreisender || '';
+
+        // Handle splitting for backward compatibility
+        if (p.strasse && p.plz_ort) {
+          document.getElementById('wiz_strasse').value = p.strasse;
+          document.getElementById('wiz_plz_ort').value = p.plz_ort;
+        } else if (p.adresse) {
+          const parts = p.adresse.split(',');
+          if (parts.length > 1) {
+            document.getElementById('wiz_strasse').value = parts[0].trim();
+            document.getElementById('wiz_plz_ort').value = parts.slice(1).join(',').trim();
+          } else {
+            document.getElementById('wiz_strasse').value = p.adresse.trim();
+            document.getElementById('wiz_plz_ort').value = '';
+          }
+        }
       }
       openModal('wizardOverlay');
     }
@@ -760,13 +823,17 @@
       const name         = document.getElementById('wiz_name').value.trim();
       const abteilung    = document.getElementById('wiz_abteilung').value.trim();
       const telefon      = document.getElementById('wiz_telefon').value.trim();
-      const adresse      = document.getElementById('wiz_adresse').value.trim();
+      const strasse      = document.getElementById('wiz_strasse').value.trim();
+      const plz_ort      = document.getElementById('wiz_plz_ort').value.trim();
       const mitreisender = document.getElementById('wiz_mitreisender').value.trim();
-      if (!name || !abteilung || !telefon || !adresse) {
+
+      if (!name || !abteilung || !telefon || !strasse || !plz_ort) {
         showAlert('Bitte alle Pflichtfelder (*) ausfüllen.', 'warning');
         return;
       }
-      const profile = { name, abteilung, telefon, adresse, mitreisender };
+
+      const adresse = `${strasse}, ${plz_ort}`;
+      const profile = { name, abteilung, telefon, adresse, strasse, plz_ort, mitreisender };
       saveProfile(profile);
       applyProfile(profile);
       closeModal('wizardOverlay');
@@ -776,14 +843,36 @@
     // ── Prompt kopieren ──────────────────────────────────────────────
     function copyPrompt() {
       const btn = document.getElementById('copyBtn');
-      navigator.clipboard.writeText(document.getElementById('promptText').value)
-        .catch(() => { const t = document.getElementById('promptText'); t.select(); document.execCommand('copy'); });
+      let text = fullPromptForCopy;
+      const sonderwuensche = document.getElementById('sonderwuensche').value.trim();
+      if (sonderwuensche) {
+        text += '\n\n## Hinweise & Sonderwünsche\n' + sonderwuensche;
+      }
+      navigator.clipboard.writeText(text)
+        .catch(() => {
+          const t = document.getElementById('promptText');
+          t.value = text; t.select(); document.execCommand('copy'); t.value = document.getElementById('promptText').defaultValue;
+        });
       btn.textContent = 'Kopiert ✓';
       btn.classList.add('copied');
       setTimeout(() => { btn.textContent = 'Prompt kopieren'; btn.classList.remove('copied'); }, 2000);
     }
 
     // ── JSON ─────────────────────────────────────────────────────────
+    function sanitizeRawInput(text) {
+      // 1. KI-Zitatmarker ([cite_start], [cite: 1]) entfernen
+      text = text.replace(/\[cite_start\]|\[cite_end\]|\s*\[cite:[^\]]+\]/gi, '');
+      // 2. Markdown-Code-Fences entfernen (```json ... ``` oder ``` ... ```)
+      text = text.replace(/```(?:json)?\s*\n?([\s\S]*?)\n?```/g, '$1');
+      // 3. Ersten { bis letzten } extrahieren (Begleittext vor/nach dem JSON)
+      const start = text.indexOf('{');
+      const end   = text.lastIndexOf('}');
+      if (start !== -1 && end !== -1 && end > start) text = text.slice(start, end + 1);
+      // 4. Trailing commas vor } oder ] entfernen (z.B. {"a":1,})
+      text = text.replace(/,(\s*[}\]])/g, '$1');
+      return text.trim();
+    }
+
     function formatJSON() {
       const area = document.getElementById('jsonData');
       try {
@@ -808,6 +897,13 @@
           hint.innerHTML = `<span class="err">Fehlende Felder: ${miss.join(', ')}</span>`;
           return false;
         }
+        const rd = obj.reise_details || {};
+        const emptyRd = ['zielort', 'reiseweg', 'zweck', 'start_datum', 'start_zeit'].filter(k => !rd[k]);
+        if (emptyRd.length) {
+          area.classList.replace('is-valid', 'is-invalid') || area.classList.add('is-invalid');
+          hint.innerHTML = `<span class="err">Die KI hat keine Reisedaten geliefert – Ausschreibung nicht mitgeschickt? Leere Felder: ${emptyRd.join(', ')}</span>`;
+          return false;
+        }
         area.classList.remove('is-invalid'); area.classList.add('is-valid');
         hint.innerHTML = '<span class="ok">JSON ist valide</span>';
         return true;
@@ -816,6 +912,16 @@
         hint.innerHTML = `<span class="err">Syntaxfehler: ${e.message}</span>`;
         return false;
       }
+    }
+
+    function neuerAntrag() {
+      const area = document.getElementById('jsonData');
+      area.value = '';
+      area.classList.remove('is-valid', 'is-invalid');
+      document.getElementById('validationHint').innerHTML = '';
+      document.getElementById('sonderwuensche').value = '';
+      document.getElementById('successBanner').style.display = 'none';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     async function loadExample() {
@@ -849,6 +955,7 @@
           const url  = URL.createObjectURL(blob);
           const a    = Object.assign(document.createElement('a'), { href: url, download: name });
           document.body.appendChild(a); a.click(); URL.revokeObjectURL(url); a.remove();
+          document.getElementById('successBanner').style.display = 'flex';
           showAlert(`PDF „${name}" wurde erstellt!`, 'success');
         } else {
           const err = await res.json();
@@ -859,6 +966,16 @@
     });
 
     document.getElementById('jsonData').addEventListener('input', validateJSON);
+
+    document.getElementById('jsonData').addEventListener('paste', function(e) {
+      e.preventDefault();
+      const raw = (e.clipboardData || window.clipboardData).getData('text');
+      const cleaned = sanitizeRawInput(raw);
+      const changed = cleaned !== raw.trim();
+      this.value = cleaned;
+      validateJSON();
+      if (changed) showAlert('KI-Output automatisch bereinigt (Markdown, Begleittext, Zitatmarker).', 'info');
+    });
 
     // ── Init ─────────────────────────────────────────────────────────
     window.addEventListener('DOMContentLoaded', () => {

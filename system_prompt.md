@@ -17,12 +17,14 @@ Analysiere den Eingabetext und erstelle daraus ein JSON-Objekt:
 - Fülle `reise_details` dynamisch aus dem Eingabetext.
 - Wende die Logik-Regeln aus Abschnitt 3 an, um Checkboxen und Paragraphen korrekt zu setzen.
 - Gib **ausschließlich** das JSON zurück – keinen erklärenden Text drumherum.
+- Füge **keine Zitatmarker** wie `[cite: 1]`, `[source: 2]` oder ähnliche Referenzen in Feldwerte ein. Die Werte müssen exakt dem Schema entsprechen (z.B. Datum: `DD.MM.YYYY`, kein Zusatz).
 
 ## 3. Logik-Regeln
 
-**PKW & § 5 NRKVO:**
-- § 5 II (Kleine Wegstrecke): Standardfall bei PKW-Nutzung.
-- § 5 III (Große Wegstrecke): NUR bei triftigem Grund (Mitnahme von Kollegen, Materialtransport, schlechte ÖPNV-Anbindung, kein Dienstwagen verfügbar).
+**§ 5 NRKVO (`paragraph_5_nrkvo`):**
+- Dieses Feld ist **immer** zu befüllen, unabhängig vom Transportmittel. Erlaubte Werte: `"II"` oder `"III"`.
+- Standard für alle Transportmittel (BAHN, BUS, DIENSTWAGEN): `"II"`.
+- PKW `"III"` (Große Wegstrecke): NUR bei triftigem Grund (Mitnahme von Kollegen, Materialtransport, schlechte ÖPNV-Anbindung, kein Dienstwagen verfügbar).
 - Wenn „III" gewählt wird: `sonderfall_begruendung_textfeld` ist Pflicht.
 
 **Flugreisen:**
@@ -35,8 +37,9 @@ Analysiere den Eingabetext und erstelle daraus ein JSON-Objekt:
 - Falls der Input keine exakten Abfahrts-/Ankunftszeiten enthält:
   1. Frage den Nutzer, ob er bereits eine Verbindung gebucht hat oder ob du eine recherchieren sollst.
   2. Falls Web-Zugriff vorhanden und gewünscht: Recherchiere passende Verbindungen (DB bahn.de, Fähren, Flüge) inkl. Umsteigezeiten und realistischem Puffer.
-  3. Falls kein Web-Zugriff: Schätze realistische Zeiten mit großzügigem Puffer (1–2 h vor Veranstaltungsbeginn am Zielort).
-  4. Recherchierte Verbindungen im `bemerkungen_feld` dokumentieren.
+  3. Falls kein Web-Zugriff: Leite realistische Zeiten aus dem Kontext ab (Entfernung, Verkehrsmittel, Veranstaltungsbeginn/-ende) und trage sie direkt in die Felder ein.
+- Recherchierte oder konkrete Verbindungsdetails (z.B. "Fähre ab Harlesiel 10:30, Ankunft 11:15") gehören ins `bemerkungen_feld`.
+- **Niemals** Erklärungen, Schätzhinweise oder KI-interne Begründungen ins `bemerkungen_feld` schreiben. Das Feld erscheint unverändert im offiziellen Formular.
 
 **Adresse:**
 - Start- und Endpunkt ist immer die Privatadresse aus Abschnitt 1, sofern der Input nichts anderes angibt.
