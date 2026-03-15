@@ -8,8 +8,9 @@ Dieses Tool automatisiert das Ausfüllen von Dienstreiseanträgen (Formular NRKV
 
 *   **KI-Integration**: Nutzt einen optimierten System-Prompt (`system_prompt.md`), um Reisedaten mit einem LLM (z. B. ChatGPT, Claude) in ein strukturiertes JSON-Format zu konvertieren.
 *   **Intelligente Verbindungssuche**: Der Prompt weist das LLM an, bei Bedarf Bahn-, Flug- und Fährverbindungen zu recherchieren.
-*   **PDF-Generierung**: Füllt das offizielle PDF-Formular automatisch aus, inkl. Checkbox-Logik (z. B. PKW-Nutzung, BahnCard) und korrekten Zeilenumbrüchen in Freitextfeldern.
-*   **Web-Interface**: Benutzerfreundliche Oberfläche mit Dark/Light Mode, Live-JSON-Validierung und Ladeanimation (kein Bootstrap, eigene CSS-Komponenten).
+*   **PDF-Generierung**: Füllt das offizielle PDF-Formular automatisch aus, inkl. vollständiger Checkbox-Logik für alle Beförderungsarten (PKW §II/§III, Bahn/Bus, Dienstwagen, Flug) und korrekten Zeilenumbrüchen in Freitextfeldern.
+*   **Robuste KI-Output-Bereinigung**: Beim Einfügen werden Markdown-Code-Fences (` ```json ``` `), Begleittext vor/nach dem JSON, Trailing Commas und Zitatmarker (z. B. `[cite_start]`, `[cite: 1]` von NotebookLM/Gemini) automatisch entfernt – serverseitig und clientseitig.
+*   **Web-Interface**: Benutzerfreundliche Oberfläche mit Dark/Light Mode, Live-JSON-Validierung (inkl. Erkennung leerer Pflichtfelder) und Ladeanimation (kein Bootstrap, eigene CSS-Komponenten).
 *   **Profil-Assistent**: Einmaliges Erfassen persönlicher Daten (Name, Abteilung, Telefon, Adresse, Mitreisender) direkt im Browser. Daten werden in `localStorage` gespeichert und automatisch in den KI-Prompt eingefügt – ohne Serverübertragung.
 *   **Zugriffsschutz**: Passwort-gesicherter Zugang via Flask-Session (`DR_PASSPHRASE`). Unterstützt Auto-Login über URL-Token (`/login?token=...`).
 *   **Smart Naming**: Generiert aussagekräftige Dateinamen (z. B. `20260510_DR-Antrag_Wangerooge_Fortbildung.pdf`).
