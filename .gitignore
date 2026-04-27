@@ -22,3 +22,6 @@ coverage.xml
 
 # Security reports
 bandit-report.json
+
+# Local scratch / temporary work
+tmp/
