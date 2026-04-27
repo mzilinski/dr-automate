@@ -19,7 +19,7 @@ import pytest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app import app
-from generator import generate_output_filename
+from generator import apply_checkbox_logic, generate_output_filename
 from models import ReiseantragData, validate_reiseantrag
 
 # --- FIXTURES ---
@@ -233,6 +233,180 @@ class TestGenerator:
         filename = generate_output_filename(valid_json_data)
         assert filename.endswith(".pdf")
         assert "Antrag" in filename  # Fallback
+
+
+# --- TESTS: CHECKBOX-LOGIK ---
+# Diese Tests dokumentieren das erwartete Mapping JSON → PDF-Form-Field-IDs.
+# Bei Änderungen am NRKVO-Formular oder am Steuerrecht: hier zuerst anpassen,
+# dann die Logik in generator.py.
+
+
+def _make_data(hin_typ="PKW", hin_para="II", rueck_typ="PKW", rueck_para="II", config=None, verzicht=None):
+    """Baut ein minimales data_json für die Checkbox-Tests."""
+    default_config = {
+        "bahncard_business_vorhanden": False,
+        "bahncard_privat_vorhanden": False,
+        "bahncard_beschaffung_beantragt": False,
+        "grosskundenrabatt_genutzt": False,
+        "grosskundenrabatt_begruendung_wenn_nein": "",
+        "weitere_ermaessigungen_vorhanden": False,
+        "dienstgeschaeft_2km_umkreis": False,
+        "anspruch_trennungsgeld": False,
+        "weitere_anmerkungen_checkbox_aktivieren": False,
+    }
+    if config:
+        default_config.update(config)
+    return {
+        "befoerderung": {
+            "hinreise": {"typ": hin_typ, "paragraph_5_nrkvo": hin_para},
+            "rueckreise": {"typ": rueck_typ, "paragraph_5_nrkvo": rueck_para},
+        },
+        "konfiguration_checkboxen": default_config,
+        "verzicht_erklaerung": verzicht or {},
+    }
+
+
+class TestCheckboxBefoerderungHin:
+    """Beförderung Hinreise: Mapping Typ → PDF-Field-ID."""
+
+    @pytest.mark.parametrize(
+        ("typ", "para", "expected_id"),
+        [
+            ("BAHN", "II", "OBJ5"),
+            ("BUS", "II", "OBJ5"),  # BAHN und BUS teilen sich das Feld
+            ("DIENSTWAGEN", "II", "OBJ36"),
+            ("PKW", "II", "OBJ42"),
+            ("PKW", "III", "OBJ43"),
+            ("FLUG", "II", "OBJ43"),  # Flug → §5 III
+        ],
+    )
+    def test_hinreise_mapping(self, typ, para, expected_id):
+        cb = apply_checkbox_logic(_make_data(hin_typ=typ, hin_para=para))
+        assert cb.get(expected_id) == "/Yes"
+
+    def test_pkw_default_paragraph_is_II(self):
+        """Wenn paragraph_5_nrkvo fehlt, gilt §II als Default → OBJ42."""
+        data = _make_data(hin_typ="PKW")
+        del data["befoerderung"]["hinreise"]["paragraph_5_nrkvo"]
+        cb = apply_checkbox_logic(data)
+        assert cb.get("OBJ42") == "/Yes"
+        assert "OBJ43" not in cb
+
+
+class TestCheckboxBefoerderungRueck:
+    """Beförderung Rückreise: Mapping Typ → PDF-Field-ID (anderes Set als Hin)."""
+
+    @pytest.mark.parametrize(
+        ("typ", "para", "expected_id"),
+        [
+            ("BAHN", "II", "OBJ46"),
+            ("BUS", "II", "OBJ46"),
+            ("DIENSTWAGEN", "II", "OBJ47"),
+            ("PKW", "II", "OBJ48"),
+            ("PKW", "III", "OBJ14"),
+            ("FLUG", "II", "OBJ14"),
+        ],
+    )
+    def test_rueckreise_mapping(self, typ, para, expected_id):
+        cb = apply_checkbox_logic(_make_data(rueck_typ=typ, rueck_para=para))
+        assert cb.get(expected_id) == "/Yes"
+
+
+class TestCheckboxKonfiguration:
+    """Konfigurations-Booleans: Bahncard / Rabatt / 2km / Trennungsgeld / Anmerkungen."""
+
+    def test_no_bahncard_business_sets_BCB_Nein(self):
+        cb = apply_checkbox_logic(_make_data(config={"bahncard_business_vorhanden": False}))
+        assert cb.get("BCB_Nein") == "/Yes"
+
+    def test_with_bahncard_business_does_not_set_BCB_Nein(self):
+        cb = apply_checkbox_logic(_make_data(config={"bahncard_business_vorhanden": True}))
+        assert "BCB_Nein" not in cb
+
+    def test_no_bahncard_privat_sets_BC_Nein(self):
+        cb = apply_checkbox_logic(_make_data(config={"bahncard_privat_vorhanden": False}))
+        assert cb.get("BC_Nein") == "/Yes"
+
+    def test_no_bahncard_beschaffung_sets_Beschaffung_Nein(self):
+        cb = apply_checkbox_logic(_make_data(config={"bahncard_beschaffung_beantragt": False}))
+        assert cb.get("Beschaffung_Nein") == "/Yes"
+
+    def test_grosskundenrabatt_genutzt_sets_Obj6(self):
+        cb = apply_checkbox_logic(_make_data(config={"grosskundenrabatt_genutzt": True}))
+        assert cb.get("Obj6") == "/Yes"
+        assert "Obj7" not in cb
+
+    def test_grosskundenrabatt_nicht_genutzt_sets_Obj7(self):
+        cb = apply_checkbox_logic(_make_data(config={"grosskundenrabatt_genutzt": False}))
+        assert cb.get("Obj7") == "/Yes"
+        assert "Obj6" not in cb
+
+    def test_weitere_ermaessigungen_ja_sets_Obj8(self):
+        cb = apply_checkbox_logic(_make_data(config={"weitere_ermaessigungen_vorhanden": True}))
+        assert cb.get("Obj8") == "/Yes"
+        assert "Obj15" not in cb
+
+    def test_weitere_ermaessigungen_nein_sets_Obj15(self):
+        cb = apply_checkbox_logic(_make_data(config={"weitere_ermaessigungen_vorhanden": False}))
+        assert cb.get("Obj15") == "/Yes"
+        assert "Obj8" not in cb
+
+    def test_weitere_anmerkungen_aktivieren_sets_Obj39(self):
+        cb = apply_checkbox_logic(_make_data(config={"weitere_anmerkungen_checkbox_aktivieren": True}))
+        assert cb.get("Obj39") == "/Yes"
+
+    def test_weitere_anmerkungen_inaktiv_keine_Obj39(self):
+        cb = apply_checkbox_logic(_make_data(config={"weitere_anmerkungen_checkbox_aktivieren": False}))
+        assert "Obj39" not in cb
+
+    def test_dienstgeschaeft_2km_ja_sets_Obj52(self):
+        cb = apply_checkbox_logic(_make_data(config={"dienstgeschaeft_2km_umkreis": True}))
+        assert cb.get("Obj52") == "/Yes"
+        assert "Obj49" not in cb
+
+    def test_dienstgeschaeft_2km_nein_sets_Obj49(self):
+        cb = apply_checkbox_logic(_make_data(config={"dienstgeschaeft_2km_umkreis": False}))
+        assert cb.get("Obj49") == "/Yes"
+        assert "Obj52" not in cb
+
+    def test_anspruch_trennungsgeld_ja_sets_Obj59(self):
+        cb = apply_checkbox_logic(_make_data(config={"anspruch_trennungsgeld": True}))
+        assert cb.get("Obj59") == "/Yes"
+        assert "Obj56" not in cb
+
+    def test_anspruch_trennungsgeld_nein_sets_Obj56(self):
+        cb = apply_checkbox_logic(_make_data(config={"anspruch_trennungsgeld": False}))
+        assert cb.get("Obj56") == "/Yes"
+        assert "Obj59" not in cb
+
+
+class TestCheckboxVerzicht:
+    """Verzichtserklärungen: optionales Top-Level-Feld."""
+
+    def test_verzicht_tagegeld_sets_Obj10(self):
+        cb = apply_checkbox_logic(_make_data(verzicht={"verzicht_tagegeld": True}))
+        assert cb.get("Obj10") == "/Yes"
+
+    def test_verzicht_uebernachtungsgeld_sets_Obj11(self):
+        cb = apply_checkbox_logic(_make_data(verzicht={"verzicht_uebernachtungsgeld": True}))
+        assert cb.get("Obj11") == "/Yes"
+
+    def test_verzicht_fahrtkosten_sets_Obj12(self):
+        cb = apply_checkbox_logic(_make_data(verzicht={"verzicht_fahrtkosten": True}))
+        assert cb.get("Obj12") == "/Yes"
+
+    def test_kein_verzicht_keine_Obj10_11_12(self):
+        cb = apply_checkbox_logic(_make_data(verzicht={}))
+        for obj_id in ("Obj10", "Obj11", "Obj12"):
+            assert obj_id not in cb
+
+    def test_verzicht_erklaerung_kann_komplett_fehlen(self):
+        """Top-Level-Feld ist optional — kein Crash, keine Verzicht-Boxen."""
+        data = _make_data()
+        del data["verzicht_erklaerung"]
+        cb = apply_checkbox_logic(data)
+        for obj_id in ("Obj10", "Obj11", "Obj12"):
+            assert obj_id not in cb
 
 
 # --- TESTS: API ENDPOINTS ---

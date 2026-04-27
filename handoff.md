@@ -28,31 +28,14 @@ Lokal durchgespielt: `ruff check` und `ruff format --check` exit 0, `pytest` 20/
 - `generator.fill_pdf` bekommt jetzt `result.model_dump()` statt des Raw-Dicts → Pydantic-Defaults greifen wirklich.
 - 6 neue Tests (Datum-Plausibilität, Cross-Field, Auth-Helper) — Suite jetzt 28/28.
 
-## 5. Tests für `apply_checkbox_logic`
+## 5–6. Block 2 (Tests + Refactor) — ✅ erledigt am 2026-04-27
 
-**Datei:** `tests/test_app.py` (neue `TestCheckboxLogic`-Klasse)
-
-Wichtigste fehlende Test-Stelle. Tabelle aller Kombinationen:
-- Hin/Rück × {BAHN, BUS, PKW-II, PKW-III, FLUG, DIENSTWAGEN}
-- Plus die Konfigurations-Booleans (Bahncard, Großkundenrabatt, Trennungsgeld, 2km-Umkreis)
-- Plus Verzichtserklärungen
-
-Pro Fall: erwartete Set von `OBJxx` / `BCB_*` / `Obj*` Keys mit `/Yes` prüfen.
-
-**Aufwand:** ~45-60 Min.
-
-## 6. `apply_checkbox_logic` aufteilen
-
-**Datei:** `generator.py:91-158`
-
-Die 70-Zeilen-Funktion in drei Helper splitten:
-- `_checkbox_befoerderung(trans) -> dict`
-- `_checkbox_konfiguration(config) -> dict`
-- `_checkbox_verzicht(verzicht) -> dict`
-
-Erst nach Schritt 5 — die Tests sind das Sicherheitsnetz für den Refactor.
-
-**Aufwand:** ~15 Min.
+- **Tests**: neue Klassen `TestCheckboxBefoerderungHin`, `TestCheckboxBefoerderungRueck`, `TestCheckboxKonfiguration`, `TestCheckboxVerzicht` in `tests/test_app.py`. Decken alle 6 Beförderungs-Typen × Hin/Rück × §-Variante ab (parametrisiert), alle 9 Konfigurations-Booleans und alle 3 Verzicht-Felder. Plus Edge-Cases: `paragraph_5_nrkvo` fehlt → `II`-Default, `verzicht_erklaerung` fehlt → kein Crash. **+32 Tests, Suite jetzt 60/60.**
+- **Refactor**: `apply_checkbox_logic` (70 Z., drei Belange in einer Funktion) zerlegt in drei reine Helper:
+  - `_checkbox_befoerderung(trans)` — Hin/Rück-Mapping
+  - `_checkbox_konfiguration(config)` — Bahncard/Rabatt/2km/Trennungsgeld/Anmerkungen
+  - `_checkbox_verzicht(verzicht)` — Tagegeld/Übernachtung/Fahrtkosten
+  Public Entry Point bleibt `apply_checkbox_logic(data_json)`, ist jetzt ein 5-Zeiler über die Helper. Ja/Nein-Pärchen sauber als Ternary statt `if/else`.
 
 ## 7–10. Block 3 (Aufräumen) — ✅ erledigt am 2026-04-27
 
@@ -77,9 +60,9 @@ Erst nach Schritt 5 — die Tests sind das Sicherheitsnetz für den Refactor.
 
 ## Geschätzter Gesamtaufwand
 
-- ~~Schritt 0 (CI grün)~~ — ✅ erledigt
-- ~~Schritte 1-4 (Sicherheit + Korrektheit, Block 1): ~40 Min~~ — ✅ erledigt
-- Schritte 5-6 (Tests + Refactor, Block 2): ~75 Min — **noch offen**
-- ~~Schritte 7-10 (Aufräumen, Block 3): ~30 Min~~ — ✅ erledigt
+- ~~Schritt 0 (CI grün)~~ — ✅
+- ~~Schritte 1-4 (Sicherheit + Korrektheit, Block 1)~~ — ✅
+- ~~Schritte 5-6 (Tests + Refactor, Block 2)~~ — ✅
+- ~~Schritte 7-10 (Aufräumen, Block 3)~~ — ✅
 
-Bleibt nur noch Block 2 (Tests für `apply_checkbox_logic` + Refactor in 3 Helper). Das ist Code-Qualität, kein Sicherheits- oder Public-Auftritts-Thema.
+**Alle Hauptblöcke durch.** Was offen bleibt steht im Nice-to-have-Abschnitt — keiner dieser Punkte blockiert irgendwas.

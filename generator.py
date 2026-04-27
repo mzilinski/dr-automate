@@ -83,45 +83,48 @@ def create_signature_overlay(text_str: str) -> PdfReader:
     return PdfReader(packet)
 
 
-def apply_checkbox_logic(data_json):
-    cb = {}
-    config = data_json["konfiguration_checkboxen"]
-    trans = data_json["befoerderung"]
-    verzicht = data_json.get("verzicht_erklaerung", {})
+def _checkbox_befoerderung(trans: dict) -> dict:
+    """Hin-/Rückreise-Typ auf PDF-Field-IDs mappen.
 
-    # 1. BEFÖRDERUNG
-    # Formular-Spalten (x-Position): 114=Bahn/Bus, 156=Dienstwagen, 213=PKW§II, 336=PKW§III, 430=Mitfahrt
+    Formular-Spalten (x-Position): 114=Bahn/Bus, 156=Dienstwagen,
+    213=PKW §II, 336=PKW §III, 430=Mitfahrt. Hin und Rück haben jeweils
+    eigene Field-IDs. Flug zählt als Sonderfall und wird wie PKW §III markiert.
+    """
+    cb = {}
+
     hin_typ = trans["hinreise"]["typ"].upper()
     hin_para = trans["hinreise"].get("paragraph_5_nrkvo", "II")
-
     if hin_typ in ("BAHN", "BUS"):
         cb["OBJ5"] = "/Yes"
     elif hin_typ == "DIENSTWAGEN":
         cb["OBJ36"] = "/Yes"
     elif hin_typ == "PKW":
-        if hin_para == "III":
-            cb["OBJ43"] = "/Yes"
-        else:
-            cb["OBJ42"] = "/Yes"
+        cb["OBJ43" if hin_para == "III" else "OBJ42"] = "/Yes"
     elif hin_typ == "FLUG":
-        cb["OBJ43"] = "/Yes"  # Flug gilt als Sonderfall → §5 III
+        cb["OBJ43"] = "/Yes"
 
     rueck_typ = trans["rueckreise"]["typ"].upper()
     rueck_para = trans["rueckreise"].get("paragraph_5_nrkvo", "II")
-
     if rueck_typ in ("BAHN", "BUS"):
         cb["OBJ46"] = "/Yes"
     elif rueck_typ == "DIENSTWAGEN":
         cb["OBJ47"] = "/Yes"
     elif rueck_typ == "PKW":
-        if rueck_para == "III":
-            cb["OBJ14"] = "/Yes"
-        else:
-            cb["OBJ48"] = "/Yes"
+        cb["OBJ14" if rueck_para == "III" else "OBJ48"] = "/Yes"
     elif rueck_typ == "FLUG":
-        cb["OBJ14"] = "/Yes"  # Flug gilt als Sonderfall → §5 III
+        cb["OBJ14"] = "/Yes"
 
-    # 2. CHECKBOXEN
+    return cb
+
+
+def _checkbox_konfiguration(config: dict) -> dict:
+    """Konfigurations-Booleans auf PDF-Field-IDs mappen.
+
+    Bahncard-Felder kreuzen nur die "Nein"-Box an (keine "Ja"-Box im Formular).
+    Die übrigen Felder sind Ja/Nein-Pärchen — eine der beiden Boxen wird immer gesetzt.
+    """
+    cb = {}
+
     if not config["bahncard_business_vorhanden"]:
         cb["BCB_Nein"] = "/Yes"
     if not config["bahncard_privat_vorhanden"]:
@@ -129,38 +132,36 @@ def apply_checkbox_logic(data_json):
     if not config["bahncard_beschaffung_beantragt"]:
         cb["Beschaffung_Nein"] = "/Yes"
 
-    if config["grosskundenrabatt_genutzt"]:
-        cb["Obj6"] = "/Yes"
-    else:
-        cb["Obj7"] = "/Yes"
-
-    if config["weitere_ermaessigungen_vorhanden"]:
-        cb["Obj8"] = "/Yes"
-    else:
-        cb["Obj15"] = "/Yes"
+    cb["Obj6" if config["grosskundenrabatt_genutzt"] else "Obj7"] = "/Yes"
+    cb["Obj8" if config["weitere_ermaessigungen_vorhanden"] else "Obj15"] = "/Yes"
+    cb["Obj52" if config["dienstgeschaeft_2km_umkreis"] else "Obj49"] = "/Yes"
+    cb["Obj59" if config["anspruch_trennungsgeld"] else "Obj56"] = "/Yes"
 
     if config.get("weitere_anmerkungen_checkbox_aktivieren"):
         cb["Obj39"] = "/Yes"
 
-    # 3. SONSTIGES
-    if config["dienstgeschaeft_2km_umkreis"]:
-        cb["Obj52"] = "/Yes"
-    else:
-        cb["Obj49"] = "/Yes"
+    return cb
 
-    if config["anspruch_trennungsgeld"]:
-        cb["Obj59"] = "/Yes"
-    else:
-        cb["Obj56"] = "/Yes"
 
+def _checkbox_verzicht(verzicht: dict) -> dict:
+    """Optionale Verzichtserklärungen auf PDF-Field-IDs mappen."""
+    cb = {}
     if verzicht.get("verzicht_tagegeld"):
         cb["Obj10"] = "/Yes"
     if verzicht.get("verzicht_uebernachtungsgeld"):
         cb["Obj11"] = "/Yes"
     if verzicht.get("verzicht_fahrtkosten"):
         cb["Obj12"] = "/Yes"
-
     return cb
+
+
+def apply_checkbox_logic(data_json: dict) -> dict:
+    """Aggregiert alle Checkbox-Felder aus Beförderung, Konfiguration und Verzicht."""
+    return {
+        **_checkbox_befoerderung(data_json["befoerderung"]),
+        **_checkbox_konfiguration(data_json["konfiguration_checkboxen"]),
+        **_checkbox_verzicht(data_json.get("verzicht_erklaerung", {})),
+    }
 
 
 def set_need_appearances(writer):
