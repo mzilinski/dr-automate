@@ -167,16 +167,23 @@ def apply_checkbox_logic(data_json: dict) -> dict:
 def set_need_appearances(writer):
     """Setzt /NeedAppearances=True im AcroForm, damit Viewer Formularfelder neu rendern.
 
-    Erwartet, dass das Template bereits ein AcroForm hat (alle PDF-Formulare haben das).
-    Wenn nicht, wird eine Warnung geloggt und das Setzen übersprungen — die Felder werden
-    dann je nach Viewer ggf. nicht sofort angezeigt.
+    Best-effort: schlägt das Setzen fehl (z.B. weil das Template kein AcroForm hat oder
+    die pypdf-Variante des Objekts unerwartet ist), wird nur eine Warnung geloggt — das
+    PDF ist trotzdem korrekt befüllt, die Felder erscheinen je nach Viewer ggf. erst
+    nach einer User-Aktion.
     """
     catalog = writer._root_object
-    acroform = catalog.get("/AcroForm")
-    if acroform is None:
+    if "/AcroForm" not in catalog:
         logger.warning("PDF-Template hat kein /AcroForm — NeedAppearances wird nicht gesetzt.")
         return
-    acroform[NameObject("/NeedAppearances")] = BooleanObject(True)
+    try:
+        # /AcroForm liefert oft einen IndirectObject — vor dem Schreiben dereferenzieren.
+        acroform = catalog["/AcroForm"]
+        if hasattr(acroform, "get_object"):
+            acroform = acroform.get_object()
+        acroform[NameObject("/NeedAppearances")] = BooleanObject(True)
+    except Exception as e:
+        logger.warning(f"NeedAppearances konnte nicht gesetzt werden: {e}")
 
 
 def generate_output_filename(data: dict) -> str:
