@@ -54,50 +54,13 @@ Erst nach Schritt 5 — die Tests sind das Sicherheitsnetz für den Refactor.
 
 **Aufwand:** ~15 Min.
 
-## 7. Dockerfile auf `pyproject.toml` umstellen
+## 7–10. Block 3 (Aufräumen) — ✅ erledigt am 2026-04-27
 
-**Datei:** `Dockerfile:14-16`
-
-Aktuell hardcodierte `pip install flask flask-wtf ...`-Liste, driftet von `pyproject.toml`. Stattdessen:
-
-```dockerfile
-COPY pyproject.toml ./
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir .
-```
-
-Außerdem Port-Inkonsistenz auflösen: `.env.example` (5001) vs. `Dockerfile EXPOSE/CMD` (5000) vs. `app.py` Default (5001) — einen Standard wählen und überall verwenden.
-
-**Aufwand:** ~10 Min.
-
-## 8. `dev`-Dependencies konsolidieren
-
-**Datei:** `pyproject.toml:19-33`
-
-Aktuell zweimal deklariert (`[project.optional-dependencies] dev` UND `[dependency-groups] dev`) mit unterschiedlichen Versionen. Eine Variante wählen — bei `uv` ist `[dependency-groups]` der moderne Pfad. Die andere löschen.
-
-**Aufwand:** ~3 Min.
-
-## 9. Bandit-CI ernstnehmen oder entfernen
-
-**Datei:** `.github/workflows/ci.yml:105`
-
-`bandit ... || true` lässt jeden Befund durchgehen. Entweder:
-- `--severity-level medium` setzen und das `|| true` entfernen, oder
-- den Job ganz löschen, wenn er nicht durchgesetzt werden soll.
-
-**Aufwand:** ~5 Min.
-
-## 10. `set_need_appearances` privater-API-Hack
-
-**Datei:** `generator.py:160-176`
-
-Der `if "/AcroForm" not in catalog`-Zweig benutzt `writer._objects[len(...)-1]` und ist für Templates mit Formularfeldern unerreichbar. Wenn er je läuft, baut er ein kaputtes AcroForm. Empfehlung:
-- Den unsicheren Zweig löschen (Template hat immer AcroForm), oder
-- Eine korrekte AcroForm-Erzeugung implementieren falls echt nötig.
-- Außerdem `print(...)` durch `logger.warning(...)` ersetzen.
-
-**Aufwand:** ~10 Min.
+- **Dockerfile**: hardcodierte `pip install flask ...`-Liste durch `pip install .` aus `pyproject.toml` ersetzt. `CMD` läuft jetzt im Shell-Form, sodass `${PORT}` echt expandiert wird (Override via `docker run -e PORT=...` funktioniert). Healthcheck honoriert die Env-Var ebenfalls.
+- **`pyproject.toml`**: `[project.optional-dependencies] dev` gestrichen, einziger Dev-Pfad ist jetzt `[dependency-groups] dev`. CI installiert via `pip install --group dev` (PEP 735, pip ≥ 25.1).
+- **CI Bandit**: `|| true` entfernt; Scan läuft jetzt mit `--severity-level medium`, also rot bei Medium/High. Excludes auf `./tests,./.venv,./.pytest_cache,./htmlcov` erweitert (vorher hat Bandit lokal mit `.venv` durch alle Dependencies gescannt). Einziges echtes Finding (`B104` für `HOST=0.0.0.0`) ist mit `# nosec` und Begründung markiert.
+- **Codecov-Action**: v4 → v5 (Node 24 ready, Param `file` → `files` umbenannt).
+- **`set_need_appearances`**: gefährlicher Branch entfernt, der bei fehlendem `/AcroForm` ein kaputtes Form-Object aus `writer._objects[-1]` zusammengebaut hätte. Jetzt: AcroForm fehlt → Warning + Skip. `print` durch `logger.warning` ersetzt.
 
 ---
 
@@ -114,9 +77,9 @@ Der `if "/AcroForm" not in catalog`-Zweig benutzt `writer._objects[len(...)-1]` 
 
 ## Geschätzter Gesamtaufwand
 
-- Schritt 0 (CI grün, Voraussetzung für alles weitere): ~15 Min.
-- Schritte 1-4 (Sicherheit + Korrektheit, Block 1): ~40 Min.
-- Schritte 5-6 (Tests + Refactor, Block 2): ~75 Min.
-- Schritte 7-10 (Aufräumen, Block 3): ~30 Min.
+- ~~Schritt 0 (CI grün)~~ — ✅ erledigt
+- ~~Schritte 1-4 (Sicherheit + Korrektheit, Block 1): ~40 Min~~ — ✅ erledigt
+- Schritte 5-6 (Tests + Refactor, Block 2): ~75 Min — **noch offen**
+- ~~Schritte 7-10 (Aufräumen, Block 3): ~30 Min~~ — ✅ erledigt
 
-Schritt 0 zuerst — ohne grüne CI fängt jeder folgende Commit den nächsten roten Run. Block 1 danach hat den höchsten Sicherheits-Hebel.
+Bleibt nur noch Block 2 (Tests für `apply_checkbox_logic` + Refactor in 3 Helper). Das ist Code-Qualität, kein Sicherheits- oder Public-Auftritts-Thema.
