@@ -44,6 +44,27 @@ Analysiere den Eingabetext und erstelle daraus ein JSON-Objekt:
 **Adresse:**
 - Start- und Endpunkt ist immer die Privatadresse aus Abschnitt 1, sofern der Input nichts anderes angibt.
 
+**Konfigurations-Checkboxen — konservativ und beleg-pflichtig:**
+
+Alle Booleans in `konfiguration_checkboxen` und `verzicht_erklaerung` haben den Default `false`. Setze einen Boolean nur dann auf `true`, wenn der **Input explizit** das Gegenteil belegt. Der Antrag darf keine Aussagen enthalten, die im Input nicht gestützt sind — der Antragsteller unterschreibt das gegenüber der Verwaltung.
+
+Konkrete Trigger pro Feld (alles andere → `false`):
+
+| Feld | `true` nur wenn Input erwähnt … |
+|------|--------------------------------|
+| `bahncard_business_vorhanden` | "BahnCard Business" / "Geschäftsbahncard" |
+| `bahncard_privat_vorhanden` | "BahnCard 25/50/100" privat |
+| `bahncard_beschaffung_beantragt` | "BahnCard wurde mir beschafft / aufgegeben" |
+| `grosskundenrabatt_genutzt` | "Großkundenrabatt", "Firmenrabatt DB" |
+| `weitere_ermaessigungen_vorhanden` | konkrete Ermäßigung außerhalb BahnCard / Großkundenrabatt (Verbundkarte, Sondertarif, Kundenkarte) — **nicht** automatisch `true`, nur weil Bahn genutzt wird |
+| `dienstgeschaeft_2km_umkreis` | Dienstgeschäftsort liegt nachweislich < 2 km von Dienststätte/Wohnung |
+| `anspruch_trennungsgeld` | Mehrtägige Reise mit auswärtigem Verbleiben + Trennungsgeld-Anspruch im Input |
+| `verzicht_tagegeld` / `verzicht_uebernachtungsgeld` / `verzicht_fahrtkosten` | Antragsteller verzichtet im Input ausdrücklich auf den jeweiligen Posten |
+
+**Konsistenz-Regel:** Wenn ein `true`-Wert ein Pflicht-Erklärungs- oder Begründungsfeld nach sich zieht (analog zu `grosskundenrabatt_genutzt: false` → `grosskundenrabatt_begruendung_wenn_nein` gefüllt), und du keinen sinnvollen Inhalt aus dem Input ableiten kannst, setze das Boolean lieber auf `false`, als ein leeres Pflichtfeld zu erzeugen.
+
+**Zweifel-Regel:** Im Zweifel `false`. Lieber später manuell auf `true` setzen als ein nicht durch den Input gedecktes `true` produzieren.
+
 ## 4. JSON-Schema (Output)
 
 Halte dich strikt an diese Struktur. Schlüssel-Namen dürfen nicht verändert werden.
@@ -89,20 +110,20 @@ Halte dich strikt an diese Struktur. Schlüssel-Namen dürfen nicht verändert w
     "sonderfall_begruendung_textfeld": "String: Pflicht bei PKW §5 III (z.B. 'Mitnahme Kollege', 'Materialtransport', 'Kein Dienstwagen verfügbar')"
   },
   "konfiguration_checkboxen": {
-    "bahncard_business_vorhanden": false,
-    "bahncard_privat_vorhanden": false,
-    "bahncard_beschaffung_beantragt": false,
-    "grosskundenrabatt_genutzt": "Boolean",
+    "bahncard_business_vorhanden": "Boolean: nur true bei expliziter Erwähnung im Input, sonst false",
+    "bahncard_privat_vorhanden": "Boolean: nur true bei expliziter Erwähnung im Input, sonst false",
+    "bahncard_beschaffung_beantragt": "Boolean: nur true bei expliziter Erwähnung im Input, sonst false",
+    "grosskundenrabatt_genutzt": "Boolean: nur true bei expliziter Erwähnung im Input, sonst false",
     "grosskundenrabatt_begruendung_wenn_nein": "String: Begründung wenn false (z.B. 'Nutzung PKW')",
-    "weitere_ermaessigungen_vorhanden": "Boolean",
-    "dienstgeschaeft_2km_umkreis": "Boolean",
-    "anspruch_trennungsgeld": "Boolean",
-    "weitere_anmerkungen_checkbox_aktivieren": "Boolean (true, wenn bemerkungen_feld Inhalt hat)"
+    "weitere_ermaessigungen_vorhanden": "Boolean: nur true bei explizit genannter Sonder-Ermäßigung außerhalb BahnCard/Großkundenrabatt, sonst false",
+    "dienstgeschaeft_2km_umkreis": "Boolean: nur true bei nachweislich <2km zwischen Dienstort und Dienststätte/Wohnung, sonst false",
+    "anspruch_trennungsgeld": "Boolean: nur true bei mehrtägiger Reise mit auswärtigem Verbleiben, sonst false",
+    "weitere_anmerkungen_checkbox_aktivieren": "Boolean: true wenn bemerkungen_feld Inhalt hat, sonst false"
   },
   "verzicht_erklaerung": {
-    "verzicht_tagegeld": "Boolean",
-    "verzicht_uebernachtungsgeld": "Boolean",
-    "verzicht_fahrtkosten": "Boolean"
+    "verzicht_tagegeld": "Boolean: nur true bei explizitem Verzicht im Input, sonst false",
+    "verzicht_uebernachtungsgeld": "Boolean: nur true bei explizitem Verzicht im Input, sonst false",
+    "verzicht_fahrtkosten": "Boolean: nur true bei explizitem Verzicht im Input, sonst false"
   },
   "unterschrift": {
     "datum_seite_2": "DD.MM.YYYY (Datum des Antrags)"
