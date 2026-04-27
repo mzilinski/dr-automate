@@ -18,7 +18,7 @@ from models import validate_reiseantrag
 PDF_TEMPLATE_PATH = os.environ.get("PDF_TEMPLATE_PATH", os.path.join("forms", "DR-Antrag_035_001Stand4-2025pdf.pdf"))
 DEBUG_MODE = os.environ.get("FLASK_DEBUG", "false").lower() == "true"
 PORT = int(os.environ.get("PORT", 5001))
-HOST = os.environ.get("HOST", "0.0.0.0")
+HOST = os.environ.get("HOST", "0.0.0.0")  # nosec B104 — bind auf alle Interfaces ist für Container/Cloud-Deploys gewünscht
 RATE_LIMIT = os.environ.get("RATE_LIMIT", "10")
 PASSPHRASE = os.environ.get("DR_PASSPHRASE", "")  # Leer = kein Schutz
 

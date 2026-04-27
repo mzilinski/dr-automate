@@ -164,20 +164,18 @@ def apply_checkbox_logic(data_json):
 
 
 def set_need_appearances(writer):
-    """Zwingt den PDF-Viewer, Formularfelder neu zu rendern."""
-    try:
-        catalog = writer._root_object
-        if "/AcroForm" not in catalog:
-            writer._root_object.update({NameObject("/AcroForm"): writer._objects[len(writer._objects) - 1]})
+    """Setzt /NeedAppearances=True im AcroForm, damit Viewer Formularfelder neu rendern.
 
-        acroform = catalog["/AcroForm"]
-        if "/NeedAppearances" not in acroform:
-            acroform[NameObject("/NeedAppearances")] = BooleanObject(True)
-        else:
-            acroform["/NeedAppearances"] = BooleanObject(True)
-
-    except Exception as e:
-        print(f"Warnung bei NeedAppearances: {e}")
+    Erwartet, dass das Template bereits ein AcroForm hat (alle PDF-Formulare haben das).
+    Wenn nicht, wird eine Warnung geloggt und das Setzen übersprungen — die Felder werden
+    dann je nach Viewer ggf. nicht sofort angezeigt.
+    """
+    catalog = writer._root_object
+    acroform = catalog.get("/AcroForm")
+    if acroform is None:
+        logger.warning("PDF-Template hat kein /AcroForm — NeedAppearances wird nicht gesetzt.")
+        return
+    acroform[NameObject("/NeedAppearances")] = BooleanObject(True)
 
 
 def generate_output_filename(data: dict) -> str:

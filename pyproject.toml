@@ -16,14 +16,6 @@ dependencies = [
     "reportlab>=4.4.9",
 ]
 
-[project.optional-dependencies]
-dev = [
-    "pytest>=8.0.0",
-    "pytest-cov>=4.1.0",
-    "ruff>=0.3.0",
-    "bandit>=1.7.0",
-]
-
 [dependency-groups]
 dev = [
     "bandit>=1.9.3",
