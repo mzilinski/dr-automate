@@ -25,3 +25,7 @@ bandit-report.json
 
 # Local scratch / temporary work
 tmp/
+
+# Setuptools-Build-Artefakte (entstehen bei `pip install .`)
+build/
+*.egg-info/
