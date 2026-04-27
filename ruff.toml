@@ -1,6 +1,5 @@
 # Ruff Konfiguration für dr-automate
 
-[tool.ruff]
 target-version = "py312"
 line-length = 120
 exclude = [
@@ -11,7 +10,7 @@ exclude = [
     ".github"
 ]
 
-[tool.ruff.lint]
+[lint]
 select = [
     "E",    # pycodestyle errors
     "W",    # pycodestyle warnings
@@ -26,5 +25,5 @@ ignore = [
     "B008",  # function call in default argument
 ]
 
-[tool.ruff.lint.isort]
+[lint.isort]
 known-first-party = ["generator", "models"]
