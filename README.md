@@ -19,7 +19,7 @@ Web-Tool, das aus unstrukturierten Reiseinformationen (E-Mails, Notizen) einen a
 
 ## Voraussetzungen
 
-*   Python 3.12 oder höher
+*   Python 3.13 oder höher
 *   [uv](https://github.com/astral-sh/uv) (empfohlen für das moderne Paketmanagement)
 *   Docker (optional)
 
