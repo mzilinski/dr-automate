@@ -1,20 +1,21 @@
 # Dienstreise-Antrag Automatisierung (dr-automate)
 
-Dieses Tool automatisiert das Ausfüllen von Dienstreiseanträgen (Formular NRKVO 035_001) mithilfe von KI-gestützter Datenextraktion. Es bietet eine einfache Web-Oberfläche, um unstrukturierte Reisedaten (z. B. aus E-Mails) über ein LLM in ein fertiges PDF-Formular zu verwandeln.
+Web-Tool, das aus unstrukturierten Reiseinformationen (E-Mails, Notizen) einen ausgefüllten Reisekostenantrag nach **NRKVO 035_001** (niedersächsisches Reisekostenrecht) als PDF erzeugt. Die Datenextraktion übernimmt ein LLM deiner Wahl (ChatGPT, Claude, Gemini, …) anhand eines mitgelieferten System-Prompts; die App validiert das JSON und füllt das offizielle Formular.
+
+> **Hinweis:** Dieses Tool ersetzt keine rechtliche Prüfung. Erzeugte Anträge vor Einreichung selbst gegenchecken. Das verwendete Formular ist niedersachsenspezifisch.
 
 [![CI/CD](https://github.com/mzilinski/dr-automate/actions/workflows/ci.yml/badge.svg)](https://github.com/mzilinski/dr-automate/actions/workflows/ci.yml)
 
 ## Funktionen
 
-*   **KI-Integration**: Nutzt einen optimierten System-Prompt (`system_prompt.md`), um Reisedaten mit einem LLM (z. B. ChatGPT, Claude) in ein strukturiertes JSON-Format zu konvertieren.
-*   **Intelligente Verbindungssuche**: Der Prompt weist das LLM an, bei Bedarf Bahn-, Flug- und Fährverbindungen zu recherchieren.
-*   **PDF-Generierung**: Füllt das offizielle PDF-Formular automatisch aus, inkl. vollständiger Checkbox-Logik für alle Beförderungsarten (PKW §II/§III, Bahn/Bus, Dienstwagen, Flug) und korrekten Zeilenumbrüchen in Freitextfeldern.
-*   **Robuste KI-Output-Bereinigung**: Beim Einfügen werden Markdown-Code-Fences (` ```json ``` `), Begleittext vor/nach dem JSON, Trailing Commas und Zitatmarker (z. B. `[cite_start]`, `[cite: 1]` von NotebookLM/Gemini) automatisch entfernt – serverseitig und clientseitig.
-*   **Web-Interface**: Benutzerfreundliche Oberfläche mit Dark/Light Mode, Live-JSON-Validierung (inkl. Erkennung leerer Pflichtfelder) und Ladeanimation (kein Bootstrap, eigene CSS-Komponenten).
-*   **Profil-Assistent**: Einmaliges Erfassen persönlicher Daten (Name, Abteilung, Telefon, Adresse, Mitreisender) direkt im Browser. Daten werden in `localStorage` gespeichert und automatisch in den KI-Prompt eingefügt – ohne Serverübertragung.
-*   **Zugriffsschutz**: Passwort-gesicherter Zugang via Flask-Session (`DR_PASSPHRASE`). Unterstützt Auto-Login über URL-Token (`/login?token=...`).
-*   **Smart Naming**: Generiert aussagekräftige Dateinamen (z. B. `20260510_DR-Antrag_Wangerooge_Fortbildung.pdf`).
-*   **Sicherheit**: CSRF-Schutz, Rate Limiting (Nginx + Flask-Limiter), strikte JSON-Validierung mit Pydantic.
+*   **LLM-gestützte Datenextraktion**: Mitgelieferter System-Prompt (`system_prompt.md`) konvertiert Freitext in das erwartete JSON. Der Prompt enthält außerdem Anweisungen, das LLM zur Recherche von Bahn-/Flug-/Fährverbindungen aufzufordern, falls dein LLM Web-Zugriff hat.
+*   **PDF-Befüllung**: Automatisches Ausfüllen des offiziellen Formulars inkl. Checkbox-Logik für alle Beförderungsarten (PKW § II/§ III, Bahn/Bus, Dienstwagen, Flug) und korrekten Zeilenumbrüchen in Freitextfeldern.
+*   **Robuste Eingabe-Bereinigung**: Markdown-Code-Fences (` ```json ``` `), Begleittext vor/nach dem JSON, Trailing Commas und Zitatmarker (`[cite_start]`, `[cite: 1]` von NotebookLM/Gemini) werden client- und serverseitig entfernt.
+*   **Profil-Assistent (Browser-only)**: Persönliche Daten (Name, Abteilung, Telefon, Adresse, Mitreisender) werden ausschließlich im `localStorage` gespeichert und in den Prompt eingefügt — keine Serverübertragung.
+*   **Optionaler Zugriffsschutz**: Single-Passphrase-Auth über `DR_PASSPHRASE` (Flask-Session). Wenn die Variable leer ist, läuft das Tool ohne Login.
+*   **Web-UI**: Eigene CSS-Komponenten (kein Bootstrap), Dark-/Light-Mode via `prefers-color-scheme`, Live-JSON-Validierung.
+*   **Smart Naming**: Dateinamen im Format `YYYYMMDD_DR-Antrag_<Stadt>_<Thema>.pdf`.
+*   **Eingabe-Validierung**: Strikte Pydantic-Schemas, CSRF-Schutz (`flask-wtf`), Rate-Limit auf `/generate` und `/login` (`flask-limiter`, In-Memory-Storage — bei Multi-Worker-/Multi-Instance-Deployments einen Redis-Backend setzen).
 
 ## Voraussetzungen
 
@@ -24,19 +25,19 @@ Dieses Tool automatisiert das Ausfüllen von Dienstreiseanträgen (Formular NRKV
 
 ## Umgebungsvariablen
 
-Die Anwendung kann über folgende Umgebungsvariablen konfiguriert werden:
-
 | Variable | Beschreibung | Standard |
 |----------|--------------|----------|
 | `PORT` | Server-Port | `5001` (lokal), `5000` (Docker) |
 | `HOST` | Server-Host | `0.0.0.0` |
-| `FLASK_DEBUG` | Debug-Modus aktivieren | `false` |
+| `FLASK_DEBUG` | Debug-Modus (nur lokal!) | `false` |
 | `PDF_TEMPLATE_PATH` | Pfad zur PDF-Vorlage | `forms/DR-Antrag_035_001Stand4-2025pdf.pdf` |
-| `SECRET_KEY` | Secret für CSRF/Sessions | `dev-secret-key...` |
+| `SECRET_KEY` | **Pflicht in Produktion.** Secret für CSRF/Sessions. Generieren mit `python -c "import secrets; print(secrets.token_hex(32))"` | unsicherer Dev-Default |
 | `RATE_LIMIT` | Max. Requests/Minute für `/generate` | `10` |
-| `DR_PASSPHRASE` | Passwort für den Zugriffsschutz (leer = offen) | `` |
+| `DR_PASSPHRASE` | Passwort für den Zugriffsschutz (leer = offen, kein Login) | `` |
 | `IMPRESSUM_URL` | URL zur Impressumsseite | `#` |
 | `DATENSCHUTZ_URL` | URL zur Datenschutzerklärung | `#` |
+
+> **Sicherheit in Produktion:** `SECRET_KEY` und `DR_PASSPHRASE` müssen gesetzt sein. Ohne `SECRET_KEY` sind Sessions fälschbar; ohne `DR_PASSPHRASE` ist die App offen.
 
 Eine Beispiel-Konfiguration findest du in [.env.example](.env.example).
 
@@ -50,12 +51,12 @@ Eine Beispiel-Konfiguration findest du in [.env.example](.env.example).
 
 2.  **Abhängigkeiten installieren:**
     ```bash
+    # Mit uv (empfohlen):
     uv sync
-    # oder manuell mit pip:
-    # pip install flask flask-wtf flask-limiter gunicorn pypdf reportlab pillow pydantic
-    
-    # Für Entwicklung (Tests, Linting):
-    # pip install pytest pytest-cov ruff bandit
+
+    # Oder mit pip:
+    pip install .
+    pip install --group dev   # Tests, Linting
     ```
 
 3.  **Anwendung starten:**
@@ -132,12 +133,16 @@ dr-automate/
 │   └── login.html         # Login-Seite (nur wenn DR_PASSPHRASE gesetzt)
 ├── tests/                 # Unit-Tests
 │   └── test_app.py
-├── .github/workflows/     # CI/CD Pipeline
-│   └── ci.yml
+├── .github/
+│   ├── workflows/ci.yml   # CI/CD Pipeline
+│   └── dependabot.yml     # Dependency-Updates
 ├── Dockerfile             # Container-Konfiguration
 ├── pyproject.toml         # Python-Projektdefinition
 ├── ruff.toml              # Linter-Konfiguration
-└── pytest.ini             # Test-Konfiguration
+├── pytest.ini             # Test-Konfiguration
+├── CONTRIBUTING.md        # Mitarbeit
+├── SECURITY.md            # Sicherheitsmeldungen
+└── handoff.md             # Offene Punkte aus Code-Review
 ```
 
 ## API-Endpunkte
@@ -145,7 +150,7 @@ dr-automate/
 | Endpunkt | Methode | Beschreibung |
 |----------|---------|-------------|
 | `/` | GET | Web-Interface (erfordert Auth wenn `DR_PASSPHRASE` gesetzt) |
-| `/login` | GET, POST | Login-Seite; Auto-Login via `?token=<passphrase>` |
+| `/login` | GET, POST | Login-Seite. Optional: Auto-Login via `?token=<passphrase>` (⚠️ Token landet in Browser-History und ggf. Reverse-Proxy-Logs — nur in vertrauenswürdigen Kontexten verwenden). |
 | `/logout` | GET | Session beenden, zurück zur Login-Seite |
 | `/generate` | POST | PDF generieren (Rate Limited: 10/min) |
 | `/example` | GET | Beispiel-JSON für Frontend |
@@ -156,28 +161,26 @@ dr-automate/
 ### Tests ausführen
 
 ```bash
-# Alle Tests
-pytest tests/ -v
-
-# Mit Coverage-Report
-pytest tests/ -v --cov=. --cov-report=html
+uv run pytest tests/ -v
+uv run pytest tests/ -v --cov=. --cov-report=html   # mit Coverage-Report
 ```
 
-### Linting
+### Linting & Format
 
 ```bash
-# Code prüfen
-ruff check .
-
-# Automatisch formatieren
-ruff format .
+uvx ruff check .
+uvx ruff format .
 ```
 
 ### Security Scan
 
 ```bash
-bandit -r . -x ./tests
+uvx bandit -r . -x ./tests
 ```
+
+### Mitarbeiten
+
+Siehe [CONTRIBUTING.md](CONTRIBUTING.md). Sicherheitslücken bitte gemäß [SECURITY.md](SECURITY.md) melden.
 
 ## Lizenz
 
