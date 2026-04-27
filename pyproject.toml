@@ -24,3 +24,8 @@ dev = [
     "ruff>=0.14.13",
 ]
 
+# Es ist eine Flask-App, keine Bibliothek — nur die drei Python-Module ins Wheel,
+# nichts aus forms/ oder templates/ versuchen zu packen.
+[tool.setuptools]
+py-modules = ["app", "generator", "models"]
+
