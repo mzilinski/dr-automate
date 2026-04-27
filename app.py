@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import re
+import secrets
 import shutil
 import tempfile
 
@@ -18,7 +19,6 @@ PDF_TEMPLATE_PATH = os.environ.get("PDF_TEMPLATE_PATH", os.path.join("forms", "D
 DEBUG_MODE = os.environ.get("FLASK_DEBUG", "false").lower() == "true"
 PORT = int(os.environ.get("PORT", 5001))
 HOST = os.environ.get("HOST", "0.0.0.0")
-SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key-change-in-production")
 RATE_LIMIT = os.environ.get("RATE_LIMIT", "10")
 PASSPHRASE = os.environ.get("DR_PASSPHRASE", "")  # Leer = kein Schutz
 
@@ -28,9 +28,30 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# --- SECRET KEY ---
+# Production: SECRET_KEY env var ist Pflicht (sonst sind Sessions fälschbar).
+# Debug-Modus: ephemeren Key generieren, damit lokales Entwickeln ohne Setup funktioniert.
+SECRET_KEY = os.environ.get("SECRET_KEY")
+if not SECRET_KEY:
+    if DEBUG_MODE:
+        SECRET_KEY = secrets.token_hex(32)
+        logger.warning(
+            "SECRET_KEY ist nicht gesetzt — verwende ephemeren Key (Debug-Modus). Sessions überleben keinen Restart."
+        )
+    else:
+        raise RuntimeError(
+            "SECRET_KEY environment variable must be set. "
+            "Generate one with: python -c 'import secrets; print(secrets.token_hex(32))'"
+        )
+
 # --- APP SETUP ---
 app = Flask(__name__)
 app.config["SECRET_KEY"] = SECRET_KEY
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=not DEBUG_MODE,
+)
 
 # CSRF-Schutz
 csrf = CSRFProtect(app)
@@ -41,6 +62,13 @@ limiter = Limiter(key_func=get_remote_address, app=app, default_limits=[], stora
 # Prüfe ob Template existiert
 if not os.path.exists(PDF_TEMPLATE_PATH):
     logger.warning(f"Template file not found at {PDF_TEMPLATE_PATH}")
+
+
+def _check_passphrase(candidate: str) -> bool:
+    """Konstantzeit-Vergleich gegen DR_PASSPHRASE. False wenn keine Passphrase konfiguriert."""
+    if not PASSPHRASE:
+        return False
+    return secrets.compare_digest(candidate, PASSPHRASE)
 
 
 _CITATION_RE = re.compile(r"\s*\[cite:[^\]]+\]", re.IGNORECASE)
@@ -85,20 +113,22 @@ def require_auth():
 
 
 @app.route("/login", methods=["GET", "POST"])
-@limiter.limit("10 per minute", methods=["POST"])
+@limiter.limit("5 per minute", methods=["POST"])
+@limiter.limit("30 per hour", methods=["POST"])
 def login():
     if session.get("authenticated"):
         return redirect(url_for("index"))
-    # Auto-Login via URL-Token (z.B. aus Landing-Page-Link)
+    # Auto-Login via URL-Token (z.B. aus Landing-Page-Link).
+    # Achtung: Token landet in Browser-History und ggf. Reverse-Proxy-Logs.
     url_token = request.args.get("token", "")
-    if url_token and url_token == PASSPHRASE:
+    if url_token and _check_passphrase(url_token):
         session["authenticated"] = True
         logger.info(f"Auto-Login via URL-Token von {request.remote_addr}")
         return redirect(url_for("index"))
 
     error = False
     if request.method == "POST":
-        if request.form.get("passphrase", "") == PASSPHRASE:
+        if _check_passphrase(request.form.get("passphrase", "")):
             session["authenticated"] = True
             logger.info(f"Erfolgreicher Login von {request.remote_addr}")
             return redirect(url_for("index"))
@@ -168,9 +198,9 @@ def generate():
         # Create temporary directory for output
         temp_dir = tempfile.mkdtemp()
 
-        # Generate PDF
+        # Generate PDF mit dem validierten Modell (inkl. Pydantic-Defaults)
         try:
-            output_path = generator.fill_pdf(data, PDF_TEMPLATE_PATH, temp_dir)
+            output_path = generator.fill_pdf(result.model_dump(), PDF_TEMPLATE_PATH, temp_dir)
             filename = os.path.basename(output_path)
 
             # Send file to user

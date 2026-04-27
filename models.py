@@ -5,9 +5,12 @@ Diese Modelle definieren die erwartete Struktur der JSON-Daten und
 validieren eingehende Anfragen strikt.
 """
 
-import re
+from datetime import datetime
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
+
+DATE_FMT = "%d.%m.%Y"
+TIME_FMT = "%H:%M"
 
 
 class Meta(BaseModel):
@@ -48,18 +51,46 @@ class ReiseDetails(BaseModel):
     @field_validator("start_datum", "ende_datum", "dienstgeschaeft_beginn_datum", "dienstgeschaeft_ende_datum")
     @classmethod
     def validate_datum(cls, v: str) -> str:
-        """Validiert das Datumsformat DD.MM.YYYY."""
-        if not re.match(r"^\d{2}\.\d{2}\.\d{4}$", v):
-            raise ValueError(f"Ungültiges Datumsformat: '{v}'. Erwartet: DD.MM.YYYY")
+        """Validiert Format UND Plausibilität (z.B. lehnt 32.13.2026 ab)."""
+        try:
+            datetime.strptime(v, DATE_FMT)
+        except ValueError as e:
+            raise ValueError(f"Ungültiges Datum: '{v}'. Erwartet: DD.MM.YYYY") from e
         return v
 
     @field_validator("start_zeit", "ende_zeit", "dienstgeschaeft_beginn_zeit", "dienstgeschaeft_ende_zeit")
     @classmethod
     def validate_zeit(cls, v: str) -> str:
-        """Validiert das Zeitformat HH:MM."""
-        if not re.match(r"^\d{2}:\d{2}$", v):
-            raise ValueError(f"Ungültiges Zeitformat: '{v}'. Erwartet: HH:MM")
+        """Validiert Format UND Plausibilität (z.B. lehnt 25:00 ab)."""
+        try:
+            datetime.strptime(v, TIME_FMT)
+        except ValueError as e:
+            raise ValueError(f"Ungültige Zeit: '{v}'. Erwartet: HH:MM") from e
         return v
+
+    @model_validator(mode="after")
+    def validate_zeitraum(self) -> "ReiseDetails":
+        """Reise-Ende darf nicht vor Reise-Beginn liegen, gleiches gilt für Dienstgeschäft."""
+        start = datetime.strptime(f"{self.start_datum} {self.start_zeit}", f"{DATE_FMT} {TIME_FMT}")
+        ende = datetime.strptime(f"{self.ende_datum} {self.ende_zeit}", f"{DATE_FMT} {TIME_FMT}")
+        if ende < start:
+            raise ValueError(
+                f"Reise-Ende ({self.ende_datum} {self.ende_zeit}) liegt vor Reise-Beginn "
+                f"({self.start_datum} {self.start_zeit})"
+            )
+
+        dg_start = datetime.strptime(
+            f"{self.dienstgeschaeft_beginn_datum} {self.dienstgeschaeft_beginn_zeit}", f"{DATE_FMT} {TIME_FMT}"
+        )
+        dg_ende = datetime.strptime(
+            f"{self.dienstgeschaeft_ende_datum} {self.dienstgeschaeft_ende_zeit}", f"{DATE_FMT} {TIME_FMT}"
+        )
+        if dg_ende < dg_start:
+            raise ValueError(
+                f"Dienstgeschäft-Ende ({self.dienstgeschaeft_ende_datum} {self.dienstgeschaeft_ende_zeit}) "
+                f"liegt vor Dienstgeschäft-Beginn ({self.dienstgeschaeft_beginn_datum} {self.dienstgeschaeft_beginn_zeit})"
+            )
+        return self
 
 
 class ZusatzInfos(BaseModel):
