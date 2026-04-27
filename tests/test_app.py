@@ -115,8 +115,8 @@ class TestModels:
         assert "datum" in error.lower() or "format" in error.lower()
 
     def test_invalid_time_format_fails(self, valid_json_data):
-        """Falsches Zeitformat wird abgelehnt."""
-        valid_json_data["reise_details"]["start_zeit"] = "6:30"  # Fehlendes 0
+        """Komplett unparsbare Zeit (z.B. Wort) wird abgelehnt."""
+        valid_json_data["reise_details"]["start_zeit"] = "morgens"
         is_valid, error = validate_reiseantrag(valid_json_data)
         assert is_valid is False
 
@@ -125,6 +125,80 @@ class TestModels:
         valid_json_data["befoerderung"]["hinreise"]["typ"] = "FAHRRAD"
         is_valid, error = validate_reiseantrag(valid_json_data)
         assert is_valid is False
+
+    def test_impossible_date_rejected(self, valid_json_data):
+        """Datumsformat stimmt, aber Tag/Monat existiert nicht (32.13.2026)."""
+        valid_json_data["reise_details"]["start_datum"] = "32.13.2026"
+        is_valid, error = validate_reiseantrag(valid_json_data)
+        assert is_valid is False
+        assert "datum" in error.lower()
+
+    def test_impossible_time_rejected(self, valid_json_data):
+        """Zeitformat stimmt, aber 25:00 ist keine valide Uhrzeit."""
+        valid_json_data["reise_details"]["start_zeit"] = "25:00"
+        is_valid, error = validate_reiseantrag(valid_json_data)
+        assert is_valid is False
+
+    def test_ende_before_start_rejected(self, valid_json_data):
+        """Reise-Ende vor Reise-Beginn wird abgelehnt."""
+        valid_json_data["reise_details"]["start_datum"] = "20.05.2026"
+        valid_json_data["reise_details"]["ende_datum"] = "15.05.2026"
+        is_valid, error = validate_reiseantrag(valid_json_data)
+        assert is_valid is False
+        assert "ende" in error.lower() or "beginn" in error.lower()
+
+    def test_dienstgeschaeft_ende_before_beginn_rejected(self, valid_json_data):
+        """Dienstgeschäft-Ende vor Dienstgeschäft-Beginn wird abgelehnt."""
+        valid_json_data["reise_details"]["dienstgeschaeft_beginn_datum"] = "17.05.2026"
+        valid_json_data["reise_details"]["dienstgeschaeft_beginn_zeit"] = "14:00"
+        valid_json_data["reise_details"]["dienstgeschaeft_ende_datum"] = "15.05.2026"
+        valid_json_data["reise_details"]["dienstgeschaeft_ende_zeit"] = "10:00"
+        is_valid, error = validate_reiseantrag(valid_json_data)
+        assert is_valid is False
+        assert "dienstgeschäft" in error.lower() or "dienstgeschaeft" in error.lower()
+
+    def test_same_day_trip_accepted(self, valid_json_data):
+        """Eintägige Reise (start_datum == ende_datum) wird akzeptiert."""
+        valid_json_data["reise_details"]["start_datum"] = "15.05.2026"
+        valid_json_data["reise_details"]["start_zeit"] = "08:00"
+        valid_json_data["reise_details"]["ende_datum"] = "15.05.2026"
+        valid_json_data["reise_details"]["ende_zeit"] = "18:00"
+        valid_json_data["reise_details"]["dienstgeschaeft_beginn_datum"] = "15.05.2026"
+        valid_json_data["reise_details"]["dienstgeschaeft_beginn_zeit"] = "10:00"
+        valid_json_data["reise_details"]["dienstgeschaeft_ende_datum"] = "15.05.2026"
+        valid_json_data["reise_details"]["dienstgeschaeft_ende_zeit"] = "16:00"
+        is_valid, _ = validate_reiseantrag(valid_json_data)
+        assert is_valid is True
+
+
+# --- TESTS: AUTH ---
+
+
+class TestAuth:
+    """Tests für die Passphrase-Auth."""
+
+    def test_check_passphrase_constant_time_returns_false_when_unset(self, monkeypatch):
+        """Wenn keine Passphrase gesetzt ist, lehnt _check_passphrase jeden Wert ab."""
+        from app import _check_passphrase
+
+        monkeypatch.setattr("app.PASSPHRASE", "")
+        assert _check_passphrase("anything") is False
+        assert _check_passphrase("") is False  # leer == leer darf NICHT True ergeben
+
+    def test_check_passphrase_matches(self, monkeypatch):
+        """Korrekte Passphrase wird akzeptiert."""
+        from app import _check_passphrase
+
+        monkeypatch.setattr("app.PASSPHRASE", "geheim")
+        assert _check_passphrase("geheim") is True
+
+    def test_check_passphrase_rejects_wrong(self, monkeypatch):
+        """Falsche Passphrase wird abgelehnt."""
+        from app import _check_passphrase
+
+        monkeypatch.setattr("app.PASSPHRASE", "geheim")
+        assert _check_passphrase("wrong") is False
+        assert _check_passphrase("geheim ") is False  # Whitespace zählt
 
 
 # --- TESTS: GENERATOR ---

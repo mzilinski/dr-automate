@@ -18,67 +18,15 @@ Priorisierte Punkte aus dem Review vom 2026-04-27. Reihenfolge ist die empfohlen
 
 Lokal durchgespielt: `ruff check` und `ruff format --check` exit 0, `pytest` 20/20 passed. Docker-Build nicht lokal getestet — passiert beim CI-Run.
 
-## 1. Passphrase-Vergleich konstantzeitig + `SECRET_KEY` absichern
+## 1–4. Block 1 (Sicherheit + Korrektheit) — ✅ erledigt am 2026-04-27
 
-**Datei:** `app.py:19, 95, 102`
-
-- `SECRET_KEY` darf in Produktion keinen Default haben. Entweder hart auf `os.environ["SECRET_KEY"]` umstellen (KeyError beim Start) oder explizit prüfen:
-  ```python
-  if not DEBUG_MODE and not os.environ.get("SECRET_KEY"):
-      raise RuntimeError("SECRET_KEY env var must be set in production")
-  ```
-- Beide Passphrase-Vergleiche (URL-Token in `login()` und Form-POST) auf `secrets.compare_digest` umstellen:
-  ```python
-  import secrets
-  if PASSPHRASE and secrets.compare_digest(
-      request.form.get("passphrase", ""), PASSPHRASE
-  ):
-      ...
-  ```
-- Zusätzlich: prüfen, ob das URL-Token-Auto-Login wirklich gebraucht wird. Falls ja, mittelfristig durch kurzlebige Einmal-Token ersetzen statt der Dauer-Passphrase in URL/Logs.
-
-**Aufwand:** ~10 Min.
-
-## 2. Session-Cookie-Flags für Produktion
-
-**Datei:** `app.py` (nach `app.config['SECRET_KEY'] = SECRET_KEY`)
-
-```python
-app.config.update(
-    SESSION_COOKIE_SECURE=not DEBUG_MODE,
-    SESSION_COOKIE_HTTPONLY=True,
-    SESSION_COOKIE_SAMESITE="Lax",
-)
-```
-
-**Aufwand:** ~2 Min.
-
-## 3. Datums-Validierung verschärfen + Cross-Field-Check
-
-**Datei:** `models.py:45-51`
-
-- Regex durch echtes `datetime.strptime` ersetzen (sonst rutschen z.B. `32.13.2026` durch).
-- `model_validator(mode="after")` ergänzen, der prüft:
-  - `ende_datum/zeit >= start_datum/zeit`
-  - `dienstgeschaeft_ende >= dienstgeschaeft_beginn`
-  - `dienstgeschaeft_*` liegt innerhalb von `start`/`ende`
-
-**Aufwand:** ~20 Min. inkl. Tests.
-
-## 4. Validiertes Modell an `fill_pdf` weiterreichen
-
-**Datei:** `app.py:164-174`
-
-Aktuell wird `data` (raw dict) an `generator.fill_pdf` übergeben — Pydantic-Defaults (`"" → "II"` etc.) gehen verloren. Stattdessen:
-
-```python
-is_valid, result = validate_reiseantrag(data)
-if not is_valid:
-    return jsonify({"error": f"Validierungsfehler: {result}"}), 400
-output_path = generator.fill_pdf(result.model_dump(), PDF_TEMPLATE_PATH, temp_dir)
-```
-
-**Aufwand:** ~5 Min.
+- `SECRET_KEY`: kein unsicherer Default mehr. Ohne `SECRET_KEY`-Env-Var crasht die App mit klarer Fehlermeldung; im Debug-Modus wird ein ephemerer Key generiert. Test-Setup über `tests/conftest.py`. Docker-CI versorgt den Smoke-Test mit `openssl rand -hex 32`.
+- `secrets.compare_digest`: beide Passphrase-Vergleiche (Form-POST und URL-Token) laufen jetzt konstantzeitig über `_check_passphrase()`. Die Funktion ist robust gegen leere `PASSPHRASE` (kein "" == "" → True-Bypass).
+- Login-Rate-Limit verschärft: `5/minute` und `30/hour` (vorher: `10/minute`).
+- Session-Cookie-Flags: `HTTPONLY=True`, `SAMESITE=Lax`, `SECURE=not DEBUG_MODE`.
+- Datums-/Zeit-Validierung: `datetime.strptime` statt Regex (`32.13.2026` und `25:00` werden jetzt abgelehnt). `model_validator(mode="after")` prüft Reise- und Dienstgeschäfts-Zeiträume auf Plausibilität (Ende ≥ Beginn).
+- `generator.fill_pdf` bekommt jetzt `result.model_dump()` statt des Raw-Dicts → Pydantic-Defaults greifen wirklich.
+- 6 neue Tests (Datum-Plausibilität, Cross-Field, Auth-Helper) — Suite jetzt 28/28.
 
 ## 5. Tests für `apply_checkbox_logic`
 
