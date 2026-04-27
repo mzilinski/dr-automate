@@ -10,46 +10,13 @@ Priorisierte Punkte aus dem Review vom 2026-04-27. Reihenfolge ist die empfohlen
 
 `ruff.toml` benutzte `pyproject.toml`-Sections (`[tool.ruff]`, `[tool.ruff.lint]`). Aktuelle ruff-Versionen lehnen das ab → TOML-Parse-Error → Lint-Step bricht sofort ab. Behoben: Sections umgeschrieben auf root-keys + `[lint]` + `[lint.isort]`.
 
-### 0b. Pre-existing Lint-Findings aufräumen
+### 0b. Pre-existing Lint-Findings aufräumen (✅ erledigt am 2026-04-27)
 
-Mit reparierter Config kommen 92 Lint-Findings ans Licht (waren bisher unsichtbar). Alle in vorhandenen Dateien — nichts Neues durch das Review verursacht.
+`uvx ruff check . --fix` + `uvx ruff format .` + manueller Fix für ein verbliebenes `C408` (`dict()` → `{}`-Literal in `app.py:_legal_urls`). Cleanup berührt nur Style: Imports sortiert, `Optional[X]` → `X | None`, Trailing-Whitespace, Quote-Style, Einzeiler `if x: y` aufgesplittet. Geänderte Dateien: `app.py`, `generator.py`, `models.py`, `tests/test_app.py` (~380 Zeilen Diff, rein kosmetisch). Alle 20 Tests bleiben grün.
 
-```
-ruff check . --output-format=concise
-# 92 errors, 67 auto-fixbar
-ruff format --check .
-# 4 Dateien würden umformatiert: app.py, generator.py, models.py, tests/test_app.py
-```
+### 0c. Verifizieren (✅ erledigt am 2026-04-27)
 
-Findings nach Kategorie:
-- `W293` (~50×): Whitespace auf Blank-Lines — auto-fixbar
-- `UP045` (~7×): `Optional[X]` → `X | None` — auto-fixbar
-- `F401` (2×): Unused Imports `unittest.mock.MagicMock`, `io.BytesIO` in `tests/test_app.py` — auto-fixbar
-- `I001` (2×): Import-Reihenfolge in `tests/test_app.py` — auto-fixbar
-
-**Vorgehen:**
-```bash
-uvx ruff check . --fix
-uvx ruff format .
-# danach prüfen, ob Tests noch grün sind
-uv run pytest tests/ -v
-```
-
-Das `ruff format`-Diff wird groß sein (4 Dateien, viele Whitespace-/Quote-Änderungen). Vor dem Commit reviewen, dass nichts Funktionales geändert wurde.
-
-### 0c. Verifizieren
-
-Nach 0a + 0b lokal vollständig durchspielen, was die CI macht:
-```bash
-uvx ruff check . --output-format=github  # muss exit 0
-uvx ruff format --check .                # muss exit 0
-uv run pytest tests/ -v --cov=.          # muss grün
-docker build -t dr-automate:local .      # muss bauen
-```
-
-Erst dann pushen — sonst entsteht wieder ein roter Run und wir sind zurück am Anfang.
-
-**Aufwand gesamt:** ~15 Min (auto-fix + Diff-Review + lokaler CI-Smoketest).
+Lokal durchgespielt: `ruff check` und `ruff format --check` exit 0, `pytest` 20/20 passed. Docker-Build nicht lokal getestet — passiert beim CI-Run.
 
 ## 1. Passphrase-Vergleich konstantzeitig + `SECRET_KEY` absichern
 
