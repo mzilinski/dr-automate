@@ -206,7 +206,15 @@
       margin-bottom: .4rem;
     }
 
-    textarea, input[type="text"] {
+    textarea,
+    input[type="text"],
+    input[type="email"],
+    input[type="number"],
+    input[type="date"],
+    input[type="time"],
+    input[type="tel"],
+    input[type="url"],
+    select {
       width: 100%;
       background: var(--mono-bg);
       border: 1.5px solid var(--border);
@@ -220,7 +228,16 @@
       resize: vertical;
       transition: border-color .18s, box-shadow .18s;
     }
-    textarea:focus, input[type="text"]:focus {
+    select { font-family: 'Figtree', sans-serif; }
+    textarea:focus,
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    input[type="number"]:focus,
+    input[type="date"]:focus,
+    input[type="time"]:focus,
+    input[type="tel"]:focus,
+    input[type="url"]:focus,
+    select:focus {
       border-color: var(--accent);
       box-shadow: 0 0 0 3px var(--accent-glow);
     }
