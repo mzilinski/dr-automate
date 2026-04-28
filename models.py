@@ -6,6 +6,7 @@ validieren eingehende Anfragen strikt.
 """
 
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -169,6 +170,147 @@ class ReiseantragData(BaseModel):
         "extra": "ignore",  # Ignoriere zusätzliche Felder
         "str_strip_whitespace": True,
     }
+
+
+# ============================================================
+# Abrechnungs-Modelle (Reisekostenvordruck 035_002)
+# ============================================================
+
+RKR_CODES = ("DR", "VR", "AFR", "RPR", "RRS", "GNE", "SONSTIGE")
+
+
+class Stammdaten(BaseModel):
+    """Abrechnungs-spezifische Stammdaten (Profil-Erweiterung)."""
+
+    iban: str = Field(default="", max_length=34)
+    bic: str = Field(default="", max_length=20)
+    email: str = Field(default="", max_length=120)
+    abrechnende_dienststelle: str = Field(default="", max_length=200)
+
+    @field_validator("iban", mode="before")
+    @classmethod
+    def normalize_iban(cls, v: str) -> str:
+        """IBAN: Whitespace entfernen, Großbuchstaben."""
+        if not v:
+            return ""
+        return "".join(str(v).split()).upper()
+
+
+class AnlagenBeigefuegt(BaseModel):
+    genehmigung_035_001: bool = False
+    anlagen_035_003: bool = False
+
+
+class Anordnung(BaseModel):
+    dienststelle: str = Field(default="", max_length=200)
+    datum: str = Field(default="", max_length=10)
+
+
+class Verpflegung(BaseModel):
+    """Anzahl unentgeltlich bereitgestellter Mahlzeiten — treibt Tagegeld-Kürzung."""
+
+    fruehstueck_anzahl: int = Field(default=0, ge=0, le=99)
+    mittag_anzahl: int = Field(default=0, ge=0, le=99)
+    abend_anzahl: int = Field(default=0, ge=0, le=99)
+
+
+class Uebernachtungen(BaseModel):
+    """Übernachtungs-Posten."""
+
+    anzahl_pauschal: int = Field(default=0, ge=0, le=99, description="Nächte ohne Beleg → 20 €/Nacht")
+    anzahl_unentgeltlich: int = Field(default=0, ge=0, le=99, description="Vom Amt gestellte Nächte (kein Übernachtungsgeld)")
+    kosten_eur: float = Field(default=0.0, ge=0)
+    begruendung_ueber_100: str = Field(default="", max_length=500)
+
+
+class BelegBetraege(BaseModel):
+    """Einzeln belegte Beträge (Belege gehen physisch zur Dienststelle)."""
+
+    fahrkarte_eur: float = Field(default=0.0, ge=0)
+    zuschlaege_eur: float = Field(default=0.0, ge=0)
+    wagenklasse: str = Field(default="", max_length=20)
+    sonstige_fahrt_eur: float = Field(default=0.0, ge=0)
+    sonstige_fahrt_erlaeuterung: str = Field(default="", max_length=500)
+    sonstige_kosten_eur: float = Field(default=0.0, ge=0)
+    sonstige_kosten_erlaeuterung: str = Field(default="", max_length=500)
+
+
+class Wegstrecke(BaseModel):
+    """Kilometer für Wegstreckenentschädigung. Satz wird aus § 5 II/III abgeleitet."""
+
+    km_hinreise: int = Field(default=0, ge=0, le=99999)
+    km_rueckreise: int = Field(default=0, ge=0, le=99999)
+
+
+class Abzuege(BaseModel):
+    zuwendungen_eur: float = Field(default=0.0, ge=0)
+    reisekostenabschlag_eur: float = Field(default=0.0, ge=0)
+    eigenanteile_eur: float = Field(default=0.0, ge=0)
+    eigenanteile_erlaeuterung: str = Field(default="", max_length=500)
+
+
+class Flags(BaseModel):
+    urlaub_ueber_5_tage: bool = False
+
+
+class BerechneteWerte(BaseModel):
+    """Server-autoritative Berechnung — wird beim Generieren ignoriert/überschrieben."""
+
+    tagegeld_brutto_eur: float = 0.0
+    kuerzung_eur: float = 0.0
+    tagegeld_netto_eur: float = 0.0
+    uebernachtungsgeld_pauschal_eur: float = 0.0
+    wegstreckenentschaedigung_eur: float = 0.0
+    zwischensumme_eur: float = 0.0
+    auszahlbetrag_eur: float = 0.0
+
+
+class AbrechnungData(BaseModel):
+    """Hauptmodell für die Reisekostenabrechnung (Formular 035_002)."""
+
+    _meta: Meta | None = None
+
+    # 1:1 vom Antrag übernommen / vorbefüllt (auf der Abrechnung pflicht)
+    stammdaten: Stammdaten
+    antragsteller: Antragsteller
+    reise_details: ReiseDetails
+    befoerderung: Befoerderung
+    konfiguration_checkboxen: KonfigurationCheckboxen
+    verzicht_erklaerung: VerzichtErklaerung | None = VerzichtErklaerung()
+
+    # Abrechnungs-spezifisch
+    rkr: Literal["DR", "VR", "AFR", "RPR", "RRS", "GNE", "SONSTIGE"] = "DR"
+    rrs_aktenzeichen: str = Field(default="", max_length=200)
+    anlagen_beigefuegt: AnlagenBeigefuegt = AnlagenBeigefuegt()
+    anordnung: Anordnung = Anordnung()
+    verpflegung: Verpflegung = Verpflegung()
+    uebernachtungen: Uebernachtungen = Uebernachtungen()
+    beleg_betraege: BelegBetraege = BelegBetraege()
+    wegstrecke: Wegstrecke = Wegstrecke()
+    abzuege: Abzuege = Abzuege()
+    flags: Flags = Flags()
+
+    # Wird vom Server gesetzt
+    berechnet: BerechneteWerte = BerechneteWerte()
+
+    model_config = {
+        "extra": "ignore",
+        "str_strip_whitespace": True,
+    }
+
+
+def validate_abrechnung(data: dict) -> tuple[bool, str | AbrechnungData]:
+    """Validiert die Abrechnungs-Daten gegen das Pydantic-Schema."""
+    try:
+        validated = AbrechnungData.model_validate(data)
+        return True, validated
+    except Exception as e:
+        error_msg = str(e)
+        if "validation error" in error_msg.lower():
+            lines = error_msg.split("\n")
+            errors = [line.strip() for line in lines if line.strip() and not line.startswith("For further")]
+            error_msg = "; ".join(errors[:3])
+        return False, error_msg
 
 
 def validate_reiseantrag(data: dict) -> tuple[bool, str | ReiseantragData]:
