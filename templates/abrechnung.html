@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reisekosten-Abrechnung Assistent</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,400&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
+  <style>
+    /* Wizard-spezifisch */
+    .stepper {
+      display: flex;
+      gap: .35rem;
+      flex-wrap: wrap;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: .65rem;
+      margin-bottom: 1.25rem;
+      animation: fadeDown .4s .05s ease both;
+    }
+    .stepper-item {
+      flex: 1 1 auto;
+      min-width: 90px;
+      background: transparent;
+      color: var(--muted);
+      border: 1.5px solid transparent;
+      border-radius: 8px;
+      padding: .45rem .55rem;
+      font-family: 'Figtree', sans-serif;
+      font-size: .76rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: background .15s, color .15s, border-color .15s;
+      line-height: 1.25;
+    }
+    .stepper-item:hover { background: var(--surface-hi); color: var(--text); }
+    .stepper-item.is-active {
+      background: var(--accent-subtle);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+    .stepper-item.is-done { color: var(--ok); }
+    .stepper-item-num {
+      display: block;
+      font-family: 'Fraunces', serif;
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: .15rem;
+    }
+
+    .wiz-step { display: none; }
+    .wiz-step.is-active { display: block; }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .75rem 1rem;
+      margin-bottom: 1rem;
+    }
+    .field-grid > .full { grid-column: 1 / -1; }
+    @media (max-width: 540px) {
+      .field-grid { grid-template-columns: 1fr; }
+    }
+
+    input[type="number"], input[type="email"], input[type="date"], input[type="time"], select {
+      width: 100%;
+      background: var(--mono-bg);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .82rem;
+      line-height: 1.65;
+      padding: .65rem .8rem;
+      outline: none;
+      transition: border-color .18s, box-shadow .18s;
+    }
+    input[type="number"]:focus, input[type="email"]:focus, input[type="date"]:focus, input[type="time"]:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+    select {
+      font-family: 'Figtree', sans-serif;
+    }
+
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      padding: .5rem 0;
+    }
+    .check-row input[type="checkbox"] {
+      width: 1.05rem;
+      height: 1.05rem;
+      accent-color: var(--accent);
+      flex-shrink: 0;
+    }
+    .check-row label {
+      font-size: .88rem;
+      cursor: pointer;
+      color: var(--text);
+    }
+
+    .nav-row {
+      display: flex;
+      justify-content: space-between;
+      gap: .65rem;
+      margin-top: 1.25rem;
+      padding-top: 1rem;
+      border-top: 1px dashed var(--border);
+      flex-wrap: wrap;
+    }
+
+    .summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .88rem;
+      margin: .75rem 0;
+    }
+    .summary-table td {
+      padding: .55rem .25rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .summary-table td:nth-child(2) {
+      text-align: right;
+      font-family: 'JetBrains Mono', monospace;
+      font-variant-numeric: tabular-nums;
+    }
+    .summary-table tr.deduction td:nth-child(2) { color: var(--err); }
+    .summary-table tr.total td {
+      font-weight: 600;
+      font-size: 1.05rem;
+      border-top: 2px solid var(--accent);
+      border-bottom: none;
+      padding-top: .9rem;
+      color: var(--accent);
+    }
+    .summary-note {
+      font-size: .78rem;
+      color: var(--muted);
+      margin-top: .5rem;
+    }
+
+    .info-box {
+      background: var(--info-subtle);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: .65rem .85rem;
+      font-size: .82rem;
+      line-height: 1.5;
+      margin: .75rem 0;
+      color: var(--text);
+    }
+    .warn-box {
+      background: var(--warn-subtle);
+      border: 1px solid #b8860b;
+      border-radius: 8px;
+      padding: .65rem .85rem;
+      font-size: .82rem;
+      line-height: 1.5;
+      margin: .75rem 0;
+      color: #7a5800;
+    }
+    @media (prefers-color-scheme: dark) {
+      .warn-box { color: #d4a830; border-color: #7a5800; }
+    }
+
+    .file-drop {
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 1.5rem 1rem;
+      text-align: center;
+      background: var(--mono-bg);
+      cursor: pointer;
+      transition: border-color .15s, background .15s;
+    }
+    .file-drop:hover, .file-drop.dragover {
+      border-color: var(--accent);
+      background: var(--accent-subtle);
+    }
+    .file-drop p { font-size: .85rem; color: var(--muted); }
+    .file-drop strong { color: var(--text); }
+
+    .badge {
+      display: inline-block;
+      padding: .15rem .5rem;
+      border-radius: 999px;
+      font-size: .7rem;
+      font-weight: 600;
+      letter-spacing: .04em;
+      background: var(--accent-subtle);
+      color: var(--accent);
+      margin-left: .4rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="alert-stack" id="alertStack"></div>
+
+  <div class="spinner-overlay" id="loadingSpinner">
+    <div class="spinner-box">
+      <div class="spinner"></div>
+      <p class="spinner-label">PDF wird generiert…</p>
+    </div>
+  </div>
+
+  <div class="app">
+
+    <header class="app-header">
+      <p class="app-eyebrow">DR · Automate</p>
+      <h1 class="app-title">Reisekosten-<em>Abrechnung</em></h1>
+    </header>
+
+    <div class="profile-banner">
+      <div class="profile-left">
+        <div class="avatar empty" id="profileAvatar">?</div>
+        <span class="profile-label" id="profileStatus">Profil wird geladen …</span>
+      </div>
+      <a href="/" class="btn btn-ghost btn-sm">Profil&nbsp;bearbeiten</a>
+    </div>
+
+    <nav class="stepper" id="stepper" aria-label="Wizard-Navigation">
+      <button class="stepper-item" type="button" data-go="1"><span class="stepper-item-num">1</span>Antrag laden</button>
+      <button class="stepper-item" type="button" data-go="2"><span class="stepper-item-num">2</span>Stammdaten</button>
+      <button class="stepper-item" type="button" data-go="3"><span class="stepper-item-num">3</span>Reise</button>
+      <button class="stepper-item" type="button" data-go="4"><span class="stepper-item-num">4</span>Verpflegung</button>
+      <button class="stepper-item" type="button" data-go="5"><span class="stepper-item-num">5</span>Belege</button>
+      <button class="stepper-item" type="button" data-go="6"><span class="stepper-item-num">6</span>Wegstrecke</button>
+      <button class="stepper-item" type="button" data-go="7"><span class="stepper-item-num">7</span>Abzüge</button>
+      <button class="stepper-item" type="button" data-go="8"><span class="stepper-item-num">8</span>Sonstiges</button>
+      <button class="stepper-item" type="button" data-go="9"><span class="stepper-item-num">9</span>PDF</button>
+    </nav>
+
+    <div class="step">
+      <div class="step-inner">
+
+        <!-- Step 1: Antrag/Daten laden ───────────────────────────────── -->
+        <section class="wiz-step" data-step="1">
+          <h2 class="step-title"><span class="step-title-num">01</span>Daten laden</h2>
+          <p class="step-lead">
+            Lade das JSON eines vorherigen Antrags oder einer Abrechnung.
+            Antrags-JSON wird automatisch in das Abrechnungs-Schema überführt.
+          </p>
+
+          <label for="fileInput" class="file-drop" id="fileDrop">
+            <p><strong>Datei wählen</strong> oder hierher ziehen</p>
+            <p style="font-size:.78rem; margin-top:.3rem;">Antrags-JSON oder gespeicherte Abrechnung (.json)</p>
+          </label>
+          <input type="file" id="fileInput" accept=".json,application/json" hidden>
+
+          <div style="margin: 1rem 0; text-align:center; color:var(--muted); font-size:.82rem;">— oder —</div>
+
+          <div class="full">
+            <label class="field-label" for="jsonPaste">JSON einfügen</label>
+            <textarea id="jsonPaste" rows="6" placeholder='Komplettes JSON eines Antrags oder einer Abrechnung hier einfügen …'></textarea>
+            <button type="button" class="btn btn-outline btn-sm" style="margin-top:.5rem;" onclick="loadFromPaste()">Übernehmen</button>
+          </div>
+
+          <div class="info-box" style="margin-top:1rem;">
+            Du kannst auch ohne Input weitermachen — fülle dann alle Felder im Wizard manuell aus.
+          </div>
+
+          <div class="nav-row">
+            <span></span>
+            <button type="button" class="btn btn-primary btn-sm" onclick="goStep(2)">Weiter →</button>
+          </div>
+        </section>
+
+        <!-- Step 2: Stammdaten ───────────────────────────────────────── -->
+        <section class="wiz-step" data-step="2">
+          <h2 class="step-title"><span class="step-title-num">02</span>Stammdaten</h2>
+          <p class="step-lead">
+            Daten aus dem Profil sind vorbefüllt. Pflichtfelder für die Abrechnung
+            (IBAN, BIC, abrechnende Dienststelle) werden hier ergänzt, falls im Profil noch nicht hinterlegt.
+          </p>
+
+          <div class="field-grid">
+            <div class="full">
+              <label class="field-label" for="f_name">Name, Vorname *</label>
+              <input type="text" id="f_name" data-bind="antragsteller.name">
+            </div>
+            <div class="full">
+              <label class="field-label" for="f_abteilung">Beschäftigungsstelle / Abteilung *</label>
+              <input type="text" id="f_abteilung" data-bind="antragsteller.abteilung">
+            </div>
+            <div>
+              <label class="field-label" for="f_telefon">Telefon</label>
+              <input type="text" id="f_telefon" data-bind="antragsteller.telefon">
+            </div>
+            <div>
+              <label class="field-label" for="f_email">E-Mail</label>
+              <input type="email" id="f_email" data-bind="stammdaten.email">
+            </div>
+            <div class="full">
+              <label class="field-label" for="f_adresse">Wohnungsanschrift *</label>
+              <input type="text" id="f_adresse" data-bind="antragsteller.adresse_privat">
+            </div>
+            <div>
+              <label class="field-label" for="f_iban">IBAN *</label>
+              <input type="text" id="f_iban" data-bind="stammdaten.iban" placeholder="DE89 3704 0044 0532 0130 00" maxlength="34">
+            </div>
+            <div>
+              <label class="field-label" for="f_bic">BIC *</label>
+              <input type="text" id="f_bic" data-bind="stammdaten.bic" placeholder="COBADEFFXXX">
+            </div>
+            <div class="full">
+              <label class="field-label" for="f_abrechnende">Abrechnende Dienststelle *</label>
+              <input type="text" id="f_abrechnende" data-bind="stammdaten.abrechnende_dienststelle" placeholder="NLBV Aurich">
+            </div>
+            <div class="full">
+              <label class="field-label" for="f_mitreisender">Mitreisender (optional)</label>
+              <input type="text" id="f_mitreisender" data-bind="antragsteller.mitreisender_name">
+            </div>
+          </div>
+
+          <div class="nav-row">
+            <button type="button" class="btn btn-ghost btn-sm" onclick="goStep(1)">← Zurück</button>
+            <button type="button" class="btn btn-primary btn-sm" onclick="goStep(3)">Weiter →</button>
+          </div>
+        </section>
+
+        <!-- Step 3: Reise + RKR + Anlagen ────────────────────────────── -->
+        <section class="wiz-step" data-step="3">
+          <h2 class="step-title"><span class="step-title-num">03</span>Reise &amp; Anlagen</h2>
+          <p class="step-lead">
+            Tatsächliche Reisezeiten — diese können von den geplanten Werten im Antrag abweichen.
+          </p>
+
+          <div class="field-grid">
+            <div class="full">
+              <label class="field-label" for="f_zielort">Zielort *</label>
+              <input type="text" id="f_zielort" data-bind="reise_details.zielort">
+            </div>
+            <div class="full">
+              <label class="field-label" for="f_reiseweg">Reiseweg *</label>
+              <input type="text" id="f_reiseweg" data-bind="reise_details.reiseweg">
+            </div>
+            <div class="full">
+              <label class="field-label" for="f_zweck">Zweck *</label>
+              <input type="text" id="f_zweck" data-bind="reise_details.zweck">
+            </div>
+
+            <div>
+              <label class="field-label" for="f_start_datum">Reise-Beginn (Datum) *</label>
+              <input type="text" id="f_start_datum" data-bind="reise_details.start_datum" placeholder="DD.MM.YYYY">
+            </div>
+            <div>
+              <label class="field-label" for="f_start_zeit">Uhrzeit *</label>
+              <input type="text" id="f_start_zeit" data-bind="reise_details.start_zeit" placeholder="HH:MM">
+            </div>
+            <div>
+              <label class="field-label" for="f_dg_beginn_datum">Dienstgeschäft Beginn *</label>
+              <input type="text" id="f_dg_beginn_datum" data-bind="reise_details.dienstgeschaeft_beginn_datum" placeholder="DD.MM.YYYY">
+            </div>
+            <div>
+              <label class="field-label" for="f_dg_beginn_zeit">Uhrzeit *</label>
+              <input type="text" id="f_dg_beginn_zeit" data-bind="reise_details.dienstgeschaeft_beginn_zeit" placeholder="HH:MM">
+            </div>
+            <div>
+              <label class="field-label" for="f_dg_ende_datum">Dienstgeschäft Ende *</label>
+              <input type="text" id="f_dg_ende_datum" data-bind="reise_details.dienstgeschaeft_ende_datum" placeholder="DD.MM.YYYY">
+            </div>
+            <div>
+              <label class="field-label" for="f_dg_ende_zeit">Uhrzeit *</label>
+              <input type="text" id="f_dg_ende_zeit" data-bind="reise_details.dienstgeschaeft_ende_zeit" placeholder="HH:MM">
+            </div>
+            <div>
+              <label class="field-label" for="f_ende_datum">Reise-Ende (Datum) *</label>
+              <input type="text" id="f_ende_datum" data-bind="reise_details.ende_datum" placeholder="DD.MM.YYYY">
+            </div>
+            <div>
+              <label class="field-label" for="f_ende_zeit">Uhrzeit *</label>
+              <input type="text" id="f_ende_zeit" data-bind="reise_details.ende_zeit" placeholder="HH:MM">
+            </div>
+          </div>
+
+          <h3 style="font-family:'Fraunces',serif; font-size:1rem; margin:1.25rem 0 .6rem; color:var(--accent);">Beförderungsmittel</h3>
+          <div class="field-grid">
+            <div>
+              <label class="field-label" for="f_hin_typ">Hinreise — Typ</label>
+              <select id="f_hin_typ" data-bind="befoerderung.hinreise.typ">
+                <option value="PKW">PKW</option>
+                <option value="BAHN">Bahn</option>
+                <option value="BUS">Bus</option>
+                <option value="DIENSTWAGEN">Dienstwagen</option>
+                <option value="FLUG">Flug</option>
+              </select>
+            </div>
+            <div>
+              <label class="field-label" for="f_hin_para">§ 5 NRKVO</label>
+              <select id="f_hin_para" data-bind="befoerderung.hinreise.paragraph_5_nrkvo">
+                <option value="II">II — kleine Wegstrecke (0,25 €/km)</option>
+                <option value="III">III — große Wegstrecke (0,38 €/km, triftiger Grund)</option>
+              </select>
+            </div>
+            <div>
+              <label class="field-label" for="f_rueck_typ">Rückreise — Typ</label>
+              <select id="f_rueck_typ" data-bind="befoerderung.rueckreise.typ">
+                <option value="PKW">PKW</option>
+                <option value="BAHN">Bahn</option>
+                <option value="BUS">Bus</option>
+                <option value="DIENSTWAGEN">Dienstwagen</option>
+                <option value="FLUG">Flug</option>
+              </select>
+            </div>
+            <div>
+              <label class="field-label" for="f_rueck_para">§ 5 NRKVO</label>
+              <select id="f_rueck_para" data-bind="befoerderung.rueckreise.paragraph_5_nrkvo">
+                <option value="II">II — kleine Wegstrecke</option>
+                <option value="III">III — große Wegstrecke</option>
+              </select>
+            </div>
+            <div class="full">
+              <label class="field-label" for="f_sonderfall">Begründung bei § 5 III (Pflicht)</label>
+              <input type="text" id="f_sonderfall" data-bind="befoerderung.sonderfall_begruendung_textfeld" placeholder="z.B. Materialtransport, schlechte ÖPNV-Anbindung">
+            </div>
+          </div>
+
+          <h3 style="font-family:'Fraunces',serif; font-size:1rem; margin:1.25rem 0 .6rem; color:var(--accent);">Reiseart &amp; Anlagen</h3>
+          <div class="field-grid">
+            <div>
+              <label class="field-label" for="f_rkr">Grund der RKR *</label>
+              <select id="f_rkr" data-bind="rkr">
+                <option value="DR">DR — Dienstreise</option>
+                <option value="VR">VR — Vorstellungsreise</option>
+                <option value="AFR">AFR — Aus- u. Fortbildungsreise</option>
+                <option value="RPR">RPR — Reise des Personalrats</option>
+                <option value="RRS">RRS — Reise in einer Rechtssache</option>
+                <option value="GNE">GNE — Genehmigungsfreie Reise</option>
+                <option value="SONSTIGE">Sonstige</option>
+              </select>
+            </div>
+            <div id="rrs_az_wrapper" style="display:none;">
+              <label class="field-label" for="f_rrs_az">Az. der Sachakten *</label>
+              <input type="text" id="f_rrs_az" data-bind="rrs_aktenzeichen">
+            </div>
+
+            <div>
+              <label class="field-label" for="f_anordnung_dienst">Anordnende Dienststelle</label>
+              <input type="text" id="f_anordnung_dienst" data-bind="anordnung.dienststelle">
+            </div>
+            <div>
+              <label class="field-label" for="f_anordnung_datum">Datum der Anordnung</label>
+              <input type="text" id="f_anordnung_datum" data-bind="anordnung.datum" placeholder="DD.MM.YYYY">
+            </div>
+
+            <div class="full check-row">
+              <input type="checkbox" id="f_anlage1" data-bind="anlagen_beigefuegt.genehmigung_035_001">
+              <label for="f_anlage1">Genehmigung (035_001) liegt bei</label>
+            </div>
+            <div class="full check-row">
+              <input type="checkbox" id="f_anlage2" data-bind="anlagen_beigefuegt.anlagen_035_003">
+              <label for="f_anlage2">Anlagen (035_003) liegen bei</label>
+            </div>
+          </div>
+
+          <div class="nav-row">
+            <button type="button" class="btn btn-ghost btn-sm" onclick="goStep(2)">← Zurück</button>
+            <button type="button" class="btn btn-primary btn-sm" onclick="goStep(4)">Weiter →</button>
+          </div>
+        </section>
+
+        <!-- Step 4: Verpflegung & Übernachtung ───────────────────────── -->
+        <section class="wiz-step" data-step="4">
+          <h2 class="step-title"><span class="step-title-num">04</span>Verpflegung &amp; Übernachtung</h2>
+          <p class="step-lead">
+            Zähle nur unentgeltlich vom Amt bereitgestellte Mahlzeiten — diese kürzen das Tagegeld.
+          </p>
+
+          <div class="info-box">
+            Aktuelle Kürzungen: Frühstück 5,60 € · Mittagessen 11,20 € · Abendessen 11,20 €
+            (vom vollen Tagegeld 28 €)
+          </div>
+
+          <div class="field-grid">
+            <div>
+              <label class="field-label" for="f_fruehstueck">Frühstück (Anzahl)</label>
+              <input type="number" id="f_fruehstueck" data-bind="verpflegung.fruehstueck_anzahl" min="0" max="99" step="1" value="0">
+            </div>
+            <div>
+              <label class="field-label" for="f_mittag">Mittagessen (Anzahl)</label>
+              <input type="number" id="f_mittag" data-bind="verpflegung.mittag_anzahl" min="0" max="99" step="1" value="0">
+            </div>
+            <div>
+              <label class="field-label" for="f_abend">Abendessen (Anzahl)</label>
+              <input type="number" id="f_abend" data-bind="verpflegung.abend_anzahl" min="0" max="99" step="1" value="0">
+            </div>
+          </div>
+
+          <h3 style="font-family:'Fraunces',serif; font-size:1rem; margin:1.25rem 0 .6rem; color:var(--accent);">Übernachtungen</h3>
+          <div class="field-grid">
+            <div>
+              <label class="field-label" for="f_naechte_pauschal">Nächte mit Übernachtungsgeld</label>
+              <input type="number" id="f_naechte_pauschal" data-bind="uebernachtungen.anzahl_pauschal" min="0" max="99" step="1" value="0">
+              <p class="wiz-hint">20 €/Nacht ohne Beleg, max. 14 Nächte</p>
+            </div>
+            <div>
+              <label class="field-label" for="f_naechte_unentgeltlich">Nächte unentgeltlich (Amt)</label>
+              <input type="number" id="f_naechte_unentgeltlich" data-bind="uebernachtungen.anzahl_unentgeltlich" min="0" max="99" step="1" value="0">
+            </div>
+            <div class="full">
+              <label class="field-label" for="f_uebern_kosten">Übernachtungskosten lt. Beleg (gesamt EUR)</label>
+              <input type="number" id="f_uebern_kosten" data-bind="uebernachtungen.kosten_eur" min="0" step="0.01" value="0">
+              <p class="wiz-hint">Belege gehen in Papierform mit dem Antrag mit. Über 100 €/Nacht: Begründung Pflicht.</p>
+            </div>
+            <div class="full" id="f_begr_100_wrapper" style="display:none;">
+              <label class="field-label" for="f_begr_100">Begründung &gt; 100 €/Nacht *</label>
+              <input type="text" id="f_begr_100" data-bind="uebernachtungen.begruendung_ueber_100">
+            </div>
+          </div>
+
+          <div class="nav-row">
+            <button type="button" class="btn btn-ghost btn-sm" onclick="goStep(3)">← Zurück</button>
+            <button type="button" class="btn btn-primary btn-sm" onclick="goStep(5)">Weiter →</button>
+          </div>
+        </section>
+
+        <!-- Step 5: Belege & Beträge ─────────────────────────────────── -->
+        <section class="wiz-step" data-step="5">
+          <h2 class="step-title"><span class="step-title-num">05</span>Belege &amp; Beträge</h2>
+          <p class="step-lead">
+            Belege gehen physisch zur abrechnenden Stelle — hier nur Beträge und ggf. Erläuterungen.
+          </p>
+
+          <h3 style="font-family:'Fraunces',serif; font-size:1rem; margin:.5rem 0 .6rem; color:var(--accent);">Bahn / Bus</h3>
+          <div class="field-grid">
+            <div>
+              <label class="field-label" for="f_fahrkarte">Fahrkarte (EUR)</label>
+              <input type="number" id="f_fahrkarte" data-bind="beleg_betraege.fahrkarte_eur" min="0" step="0.01" value="0">
+            </div>
+            <div>
+              <label class="field-label" for="f_zuschlaege">Zuschläge (EUR)</label>
+              <input type="number" id="f_zuschlaege" data-bind="beleg_betraege.zuschlaege_eur" min="0" step="0.01" value="0">
+            </div>
+            <div class="full">
+              <label class="field-label" for="f_wagenklasse">Wagenklasse</label>
+              <input type="text" id="f_wagenklasse" data-bind="beleg_betraege.wagenklasse" placeholder="z.B. 2. Klasse">
+            </div>
+          </div>
+
+          <h3 style="font-family:'Fraunces',serif; font-size:1rem; margin:1.25rem 0 .6rem; color:var(--accent);">Sonstige Fahrtkosten</h3>
+          <div class="field-grid">
+            <div>
+              <label class="field-label" for="f_sonst_fahrt">Betrag (EUR)</label>
+              <input type="number" id="f_sonst_fahrt" data-bind="beleg_betraege.sonstige_fahrt_eur" min="0" step="0.01" value="0">
+            </div>
+            <div class="full">
+              <label class="field-label" for="f_sonst_fahrt_erl">Erläuterung</label>
+              <input type="text" id="f_sonst_fahrt_erl" data-bind="beleg_betraege.sonstige_fahrt_erlaeuterung" placeholder="z.B. Fähre, Taxi, ÖPNV-Zugang">
+            </div>
+          </div>
+
+          <h3 style="font-family:'Fraunces',serif; font-size:1rem; margin:1.25rem 0 .6rem; color:var(--accent);">Sonstige Kosten</h3>
+          <div class="field-grid">
+            <div>
+              <label class="field-label" for="f_sonst_kosten">Betrag (EUR)</label>
+              <input type="number" id="f_sonst_kosten" data-bind="beleg_betraege.sonstige_kosten_eur" min="0" step="0.01" value="0">
+            </div>
+            <div class="full">
+              <label class="field-label" for="f_sonst_kosten_erl">Erläuterung *</label>
+              <input type="text" id="f_sonst_kosten_erl" data-bind="beleg_betraege.sonstige_kosten_erlaeuterung" placeholder="Pflicht bei Betrag > 0">
+            </div>
+          </div>
+
+          <div class="nav-row">
+            <button type="button" class="btn btn-ghost btn-sm" onclick="goStep(4)">← Zurück</button>
+            <button type="button" class="btn btn-primary btn-sm" onclick="goStep(6)">Weiter →</button>
+          </div>
+        </section>
+
+        <!-- Step 6: Wegstrecke ───────────────────────────────────────── -->
+        <section class="wiz-step" data-step="6">
+          <h2 class="step-title"><span class="step-title-num">06</span>Wegstreckenentschädigung</h2>
+          <p class="step-lead">
+            Nur bei PKW. Satz wird automatisch aus der Beförderungsart in Schritt 3 abgeleitet.
+          </p>
+
+          <div class="info-box" id="wegstrecke_info">Aktueller Satz wird live berechnet.</div>
+
+          <div class="field-grid">
+            <div>
+              <label class="field-label" for="f_km_hin">Kilometer Hinreise</label>
+              <input type="number" id="f_km_hin" data-bind="wegstrecke.km_hinreise" min="0" max="99999" step="1" value="0">
+            </div>
+            <div>
+              <label class="field-label" for="f_km_rueck">Kilometer Rückreise</label>
+              <input type="number" id="f_km_rueck" data-bind="wegstrecke.km_rueckreise" min="0" max="99999" step="1" value="0">
+            </div>
+          </div>
+
+          <div class="nav-row">
+            <button type="button" class="btn btn-ghost btn-sm" onclick="goStep(5)">← Zurück</button>
+            <button type="button" class="btn btn-primary btn-sm" onclick="goStep(7)">Weiter →</button>
+          </div>
+        </section>
+
+        <!-- Step 7: Abzüge ──────────────────────────────────────────── -->
+        <section class="wiz-step" data-step="7">
+          <h2 class="step-title"><span class="step-title-num">07</span>Abzüge</h2>
+          <p class="step-lead">
+            Vorab erhaltene Beträge oder Eigenanteile, die vom Erstattungsbetrag abgezogen werden.
+          </p>
+
+          <div class="field-grid">
+            <div class="full">
+              <label class="field-label" for="f_zuwendungen">Zuwendungen Dritter (EUR)</label>
+              <input type="number" id="f_zuwendungen" data-bind="abzuege.zuwendungen_eur" min="0" step="0.01" value="0">
+              <p class="wiz-hint">z.B. erstattete Fahrtkosten durch Veranstalter</p>
+            </div>
+            <div class="full">
+              <label class="field-label" for="f_abschlag">Reisekostenabschlag (EUR)</label>
+              <input type="number" id="f_abschlag" data-bind="abzuege.reisekostenabschlag_eur" min="0" step="0.01" value="0">
+              <p class="wiz-hint">Vor der Reise erhaltener Vorschuss</p>
+            </div>
+            <div class="full">
+              <label class="field-label" for="f_eigenanteil">Eigenanteile (EUR)</label>
+              <input type="number" id="f_eigenanteil" data-bind="abzuege.eigenanteile_eur" min="0" step="0.01" value="0">
+            </div>
+            <div class="full">
+              <label class="field-label" for="f_eigen_erl">Erläuterung Eigenanteile</label>
+              <input type="text" id="f_eigen_erl" data-bind="abzuege.eigenanteile_erlaeuterung">
+            </div>
+          </div>
+
+          <div class="nav-row">
+            <button type="button" class="btn btn-ghost btn-sm" onclick="goStep(6)">← Zurück</button>
+            <button type="button" class="btn btn-primary btn-sm" onclick="goStep(8)">Weiter →</button>
+          </div>
+        </section>
+
+        <!-- Step 8: Sonstiges ───────────────────────────────────────── -->
+        <section class="wiz-step" data-step="8">
+          <h2 class="step-title"><span class="step-title-num">08</span>Sonstige Angaben</h2>
+          <p class="step-lead">
+            Konfigurations-Fragen aus dem Antrag — falls die Abrechnung abweicht, hier korrigieren.
+          </p>
+
+          <div class="check-row">
+            <input type="checkbox" id="f_2km" data-bind="konfiguration_checkboxen.dienstgeschaeft_2km_umkreis">
+            <label for="f_2km">Dienstgeschäft im 2-km-Umkreis (kein Tagegeld)</label>
+          </div>
+          <div class="check-row">
+            <input type="checkbox" id="f_trennung" data-bind="konfiguration_checkboxen.anspruch_trennungsgeld">
+            <label for="f_trennung">Anspruch auf Trennungsgeld</label>
+          </div>
+          <div class="check-row">
+            <input type="checkbox" id="f_grosskunde" data-bind="konfiguration_checkboxen.grosskundenrabatt_genutzt">
+            <label for="f_grosskunde">Großkundenrabatt genutzt</label>
+          </div>
+          <div class="check-row">
+            <input type="checkbox" id="f_bcb" data-bind="konfiguration_checkboxen.bahncard_business_vorhanden">
+            <label for="f_bcb">BahnCard Business vorhanden</label>
+          </div>
+          <div class="check-row">
+            <input type="checkbox" id="f_bcp" data-bind="konfiguration_checkboxen.bahncard_privat_vorhanden">
+            <label for="f_bcp">BahnCard privat vorhanden</label>
+          </div>
+          <div class="check-row">
+            <input type="checkbox" id="f_erm" data-bind="konfiguration_checkboxen.weitere_ermaessigungen_vorhanden">
+            <label for="f_erm">Weitere Ermäßigungen / Ermäßigungskarte</label>
+          </div>
+          <div class="check-row">
+            <input type="checkbox" id="f_urlaub" data-bind="flags.urlaub_ueber_5_tage">
+            <label for="f_urlaub">Mit Urlaub > 5 Tage verbunden</label>
+          </div>
+
+          <div style="margin-top:1rem;">
+            <label class="field-label" for="f_grosskunde_begr">Begründung wenn kein Großkundenrabatt</label>
+            <input type="text" id="f_grosskunde_begr" data-bind="konfiguration_checkboxen.grosskundenrabatt_begruendung_wenn_nein">
+          </div>
+
+          <h3 style="font-family:'Fraunces',serif; font-size:1rem; margin:1.25rem 0 .6rem; color:var(--accent);">Verzichtserklärungen</h3>
+          <div class="check-row">
+            <input type="checkbox" id="f_verz_tageg" data-bind="verzicht_erklaerung.verzicht_tagegeld">
+            <label for="f_verz_tageg">Verzicht auf Tagegeld</label>
+          </div>
+          <div class="check-row">
+            <input type="checkbox" id="f_verz_uebern" data-bind="verzicht_erklaerung.verzicht_uebernachtungsgeld">
+            <label for="f_verz_uebern">Verzicht auf Übernachtungsgeld</label>
+          </div>
+          <div class="check-row">
+            <input type="checkbox" id="f_verz_fahrt" data-bind="verzicht_erklaerung.verzicht_fahrtkosten">
+            <label for="f_verz_fahrt">Verzicht auf Fahrtkosten</label>
+          </div>
+
+          <div class="nav-row">
+            <button type="button" class="btn btn-ghost btn-sm" onclick="goStep(7)">← Zurück</button>
+            <button type="button" class="btn btn-primary btn-sm" onclick="goStep(9)">Weiter →</button>
+          </div>
+        </section>
+
+        <!-- Step 9: Zusammenfassung & PDF ────────────────────────────── -->
+        <section class="wiz-step" data-step="9">
+          <h2 class="step-title"><span class="step-title-num">09</span>Zusammenfassung &amp; PDF</h2>
+          <p class="step-lead">
+            Live-Berechnung nach NRKVO Stand <strong>{{ nrkvo_stand }}</strong>. Zur Sicherheit
+            das JSON exportieren — beim nächsten Browser/Gerät kannst du dort wieder einsteigen.
+          </p>
+
+          <div id="validationSummary" style="margin-bottom:1rem;"></div>
+
+          <table class="summary-table">
+            <tr><td>Tagegeld brutto</td><td id="s_tg_brutto">0,00 €</td></tr>
+            <tr class="deduction"><td>− Kürzung Verpflegung</td><td id="s_kuerzung">0,00 €</td></tr>
+            <tr><td>Tagegeld netto</td><td id="s_tg_netto">0,00 €</td></tr>
+            <tr><td>Übernachtungsgeld pauschal</td><td id="s_uebern_pausch">0,00 €</td></tr>
+            <tr><td>Übernachtungskosten lt. Beleg</td><td id="s_uebern_beleg">0,00 €</td></tr>
+            <tr><td>Wegstreckenentschädigung</td><td id="s_wegstrecke">0,00 €</td></tr>
+            <tr><td>Fahrkarte + Zuschläge</td><td id="s_fahrkarte">0,00 €</td></tr>
+            <tr><td>Sonstige Fahrtkosten</td><td id="s_sonst_fahrt">0,00 €</td></tr>
+            <tr><td>Sonstige Kosten</td><td id="s_sonst_kosten">0,00 €</td></tr>
+            <tr><td><strong>Zwischensumme</strong></td><td id="s_zwischen"><strong>0,00 €</strong></td></tr>
+            <tr class="deduction"><td>− Zuwendungen Dritter</td><td id="s_zuw">0,00 €</td></tr>
+            <tr class="deduction"><td>− Reisekostenabschlag</td><td id="s_absch">0,00 €</td></tr>
+            <tr class="deduction"><td>− Eigenanteile</td><td id="s_eig">0,00 €</td></tr>
+            <tr class="total"><td>Auszahlbetrag</td><td id="s_auszahl">0,00 €</td></tr>
+          </table>
+
+          <div class="summary-note">
+            Die endgültige Berechnung erfolgt durch den Server beim PDF-Generieren. Diese Anzeige ist
+            nur eine Vorschau und ersetzt keine sachliche Prüfung.
+          </div>
+
+          <form id="genForm" style="margin-top:1.25rem;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="json_data" id="json_data">
+            <div class="btn-row">
+              <button type="submit" class="btn btn-primary btn-primary-lg" id="submitBtn">
+                Abrechnung generieren (PDF)
+              </button>
+              <div class="btn-secondary-row">
+                <button type="button" class="btn btn-outline btn-sm" onclick="exportJson()">JSON exportieren</button>
+                <button type="button" class="btn btn-ghost btn-sm" onclick="goStep(1)">↩ Neue Abrechnung</button>
+              </div>
+            </div>
+          </form>
+        </section>
+
+      </div>
+    </div>
+
+    <footer class="app-footer">
+      <small>
+        v0.1.0
+        <span class="sep">·</span>
+        <a href="/">Antrag</a>
+        <span class="sep">·</span>
+        NRKVO Stand {{ nrkvo_stand }}
+        <span class="sep">·</span>
+        <a href="/health" target="_blank">Status</a>
+        <span class="sep">·</span>
+        <a href="/logout">Abmelden</a>
+      </small>
+    </footer>
+
+  </div>
+
+  <script>
+    const PROFILE_KEY = 'dr_profile';
+    const RATES = {
+      WEGSTRECKE_KLEIN: 0.25,
+      WEGSTRECKE_KLEIN_MAX: 125.0,
+      WEGSTRECKE_GROSS: 0.38,
+      TAGEGELD_VOLL: 28.0,
+      TAGEGELD_TEIL: 14.0,
+      KUERZUNG_FRUEH_PCT: 20,
+      KUERZUNG_MITTAG_PCT: 40,
+      KUERZUNG_ABEND_PCT: 40,
+      UEBERNACHTUNG_PAUSCHAL: 20.0,
+      UEBERNACHTUNG_MAX_NAECHTE: 14,
+      UEBERNACHTUNG_BELEG_OHNE_BEGR: 100.0,
+    };
+
+    function blankState() {
+      return {
+        stammdaten: { iban: '', bic: '', email: '', abrechnende_dienststelle: '' },
+        antragsteller: { name: '', abteilung: '', telefon: '', adresse_privat: '', mitreisender_name: '' },
+        reise_details: {
+          zielort: '', reiseweg: '', zweck: '',
+          start_datum: '', start_zeit: '', ende_datum: '', ende_zeit: '',
+          dienstgeschaeft_beginn_datum: '', dienstgeschaeft_beginn_zeit: '',
+          dienstgeschaeft_ende_datum: '', dienstgeschaeft_ende_zeit: '',
+        },
+        befoerderung: {
+          hinreise: { typ: 'PKW', paragraph_5_nrkvo: 'II' },
+          rueckreise: { typ: 'PKW', paragraph_5_nrkvo: 'II' },
+          sonderfall_begruendung_textfeld: '',
+        },
+        konfiguration_checkboxen: {
+          bahncard_business_vorhanden: false, bahncard_privat_vorhanden: false,
+          bahncard_beschaffung_beantragt: false,
+          grosskundenrabatt_genutzt: false, grosskundenrabatt_begruendung_wenn_nein: '',
+          weitere_ermaessigungen_vorhanden: false,
+          dienstgeschaeft_2km_umkreis: false, anspruch_trennungsgeld: false,
+          weitere_anmerkungen_checkbox_aktivieren: false,
+        },
+        verzicht_erklaerung: {
+          verzicht_tagegeld: false, verzicht_uebernachtungsgeld: false, verzicht_fahrtkosten: false,
+        },
+        rkr: 'DR',
+        rrs_aktenzeichen: '',
+        anlagen_beigefuegt: { genehmigung_035_001: false, anlagen_035_003: false },
+        anordnung: { dienststelle: '', datum: '' },
+        verpflegung: { fruehstueck_anzahl: 0, mittag_anzahl: 0, abend_anzahl: 0 },
+        uebernachtungen: { anzahl_pauschal: 0, anzahl_unentgeltlich: 0, kosten_eur: 0, begruendung_ueber_100: '' },
+        beleg_betraege: {
+          fahrkarte_eur: 0, zuschlaege_eur: 0, wagenklasse: '',
+          sonstige_fahrt_eur: 0, sonstige_fahrt_erlaeuterung: '',
+          sonstige_kosten_eur: 0, sonstige_kosten_erlaeuterung: '',
+        },
+        wegstrecke: { km_hinreise: 0, km_rueckreise: 0 },
+        abzuege: { zuwendungen_eur: 0, reisekostenabschlag_eur: 0, eigenanteile_eur: 0, eigenanteile_erlaeuterung: '' },
+        flags: { urlaub_ueber_5_tage: false },
+      };
+    }
+
+    let state = blankState();
+
+    // ── Path helpers ─────────────────────────────────────────────────
+    function getPath(obj, path) {
+      return path.split('.').reduce((o, k) => (o == null ? undefined : o[k]), obj);
+    }
+    function setPath(obj, path, value) {
+      const keys = path.split('.');
+      let cur = obj;
+      for (let i = 0; i < keys.length - 1; i++) {
+        if (cur[keys[i]] == null) cur[keys[i]] = {};
+        cur = cur[keys[i]];
+      }
+      cur[keys[keys.length - 1]] = value;
+    }
+
+    // ── Stepper ─────────────────────────────────────────────────────
+    let currentStep = 1;
+    function goStep(n) {
+      currentStep = n;
+      document.querySelectorAll('.wiz-step').forEach(s => s.classList.remove('is-active'));
+      const target = document.querySelector(`.wiz-step[data-step="${n}"]`);
+      if (target) target.classList.add('is-active');
+      document.querySelectorAll('.stepper-item').forEach((b, i) => {
+        b.classList.toggle('is-active', i + 1 === n);
+        b.classList.toggle('is-done', i + 1 < n);
+      });
+      if (n === 9) renderSummary();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    document.querySelectorAll('.stepper-item').forEach(b => {
+      b.addEventListener('click', () => goStep(parseInt(b.dataset.go)));
+    });
+
+    // ── Alerts ──────────────────────────────────────────────────────
+    function showAlert(msg, type = 'danger') {
+      const stack = document.getElementById('alertStack');
+      const el = document.createElement('div');
+      el.className = `alert alert-${type}`;
+      el.innerHTML = `<span>${msg}</span><button class="alert-close" onclick="this.closest('.alert').remove()">✕</button>`;
+      stack.appendChild(el);
+      setTimeout(() => el.remove(), 7000);
+    }
+
+    // ── Profile ─────────────────────────────────────────────────────
+    function loadProfile() {
+      try { return JSON.parse(localStorage.getItem(PROFILE_KEY) || 'null'); }
+      catch { return null; }
+    }
+    function applyProfile() {
+      const p = loadProfile();
+      const status = document.getElementById('profileStatus');
+      const avatar = document.getElementById('profileAvatar');
+      if (!p) {
+        status.textContent = 'Kein Profil — Daten direkt im Wizard eingeben.';
+        status.classList.add('missing');
+        return;
+      }
+      status.textContent = `${p.name} · ${p.abteilung}`;
+      const parts = (p.name || '').trim().split(/\s+/);
+      const initials = (parts[0]?.[0] || '') + (parts[parts.length - 1]?.[0] || '');
+      avatar.textContent = initials.toUpperCase() || '?';
+      avatar.classList.remove('empty');
+
+      // Profil ins state übernehmen, falls Felder noch leer
+      if (!state.antragsteller.name) state.antragsteller.name = p.name || '';
+      if (!state.antragsteller.abteilung) state.antragsteller.abteilung = p.abteilung || '';
+      if (!state.antragsteller.telefon) state.antragsteller.telefon = p.telefon || '';
+      if (!state.antragsteller.adresse_privat) state.antragsteller.adresse_privat = p.adresse || '';
+      if (!state.antragsteller.mitreisender_name) state.antragsteller.mitreisender_name = p.mitreisender || '';
+      if (!state.stammdaten.iban) state.stammdaten.iban = p.iban || '';
+      if (!state.stammdaten.bic) state.stammdaten.bic = p.bic || '';
+      if (!state.stammdaten.email) state.stammdaten.email = p.email || '';
+      if (!state.stammdaten.abrechnende_dienststelle) state.stammdaten.abrechnende_dienststelle = p.abrechnende_dienststelle || '';
+      if (p.rkr_default) state.rkr = p.rkr_default;
+    }
+
+    // ── Bind state ↔ form ──────────────────────────────────────────
+    function syncFormFromState() {
+      document.querySelectorAll('[data-bind]').forEach(el => {
+        const path = el.dataset.bind;
+        const v = getPath(state, path);
+        if (el.type === 'checkbox') el.checked = !!v;
+        else if (el.type === 'number') el.value = v ?? 0;
+        else el.value = v ?? '';
+      });
+      document.getElementById('rrs_az_wrapper').style.display = state.rkr === 'RRS' ? '' : 'none';
+      updateBegrUeber100Visibility();
+      updateWegstreckeInfo();
+    }
+    function syncStateFromForm() {
+      document.querySelectorAll('[data-bind]').forEach(el => {
+        const path = el.dataset.bind;
+        let v;
+        if (el.type === 'checkbox') v = el.checked;
+        else if (el.type === 'number') v = parseFloat(el.value) || 0;
+        else v = el.value;
+        setPath(state, path, v);
+      });
+    }
+    document.addEventListener('input', e => {
+      if (!e.target.matches('[data-bind]')) return;
+      syncStateFromForm();
+      if (e.target.id === 'f_rkr') {
+        document.getElementById('rrs_az_wrapper').style.display = state.rkr === 'RRS' ? '' : 'none';
+      }
+      updateBegrUeber100Visibility();
+      updateWegstreckeInfo();
+    });
+    document.addEventListener('change', e => {
+      if (!e.target.matches('[data-bind]')) return;
+      syncStateFromForm();
+    });
+
+    function updateBegrUeber100Visibility() {
+      const w = document.getElementById('f_begr_100_wrapper');
+      const naechte = state.uebernachtungen.anzahl_pauschal;
+      const kosten = state.uebernachtungen.kosten_eur;
+      const proNacht = naechte > 0 ? kosten / naechte : 0;
+      w.style.display = proNacht > RATES.UEBERNACHTUNG_BELEG_OHNE_BEGR ? '' : 'none';
+    }
+
+    function updateWegstreckeInfo() {
+      const info = document.getElementById('wegstrecke_info');
+      const hin = state.befoerderung.hinreise;
+      const rueck = state.befoerderung.rueckreise;
+      const lines = [];
+      if (hin.typ === 'PKW') {
+        const satz = hin.paragraph_5_nrkvo === 'III' ? RATES.WEGSTRECKE_GROSS : RATES.WEGSTRECKE_KLEIN;
+        lines.push(`Hinreise PKW § ${hin.paragraph_5_nrkvo}: ${(satz * 100).toFixed(0)} ct/km`);
+      } else {
+        lines.push(`Hinreise: ${hin.typ} (keine Wegstrecke)`);
+      }
+      if (rueck.typ === 'PKW') {
+        const satz = rueck.paragraph_5_nrkvo === 'III' ? RATES.WEGSTRECKE_GROSS : RATES.WEGSTRECKE_KLEIN;
+        lines.push(`Rückreise PKW § ${rueck.paragraph_5_nrkvo}: ${(satz * 100).toFixed(0)} ct/km`);
+      } else {
+        lines.push(`Rückreise: ${rueck.typ}`);
+      }
+      info.innerHTML = lines.join('<br>');
+    }
+
+    // ── Berechnung ──────────────────────────────────────────────────
+    function parseDt(datum, zeit) {
+      const m = (datum || '').match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+      const t = (zeit || '').match(/^(\d{1,2}):(\d{2})$/);
+      if (!m || !t) return null;
+      return new Date(+m[3], +m[2] - 1, +m[1], +t[1], +t[2]);
+    }
+    function tagegeldTage(start, ende) {
+      if (!start || !ende || ende < start) return [0, 0];
+      const sameDay = start.toDateString() === ende.toDateString();
+      if (sameDay) return [0, (ende - start) / 60000 > 8 * 60 ? 1 : 0];
+      const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+      const endeDay = new Date(ende.getFullYear(), ende.getMonth(), ende.getDate());
+      const diffDays = Math.round((endeDay - startDay) / (24 * 3600 * 1000));
+      return [Math.max(0, diffDays - 1), 2];
+    }
+    function compute() {
+      const r = RATES;
+      const rd = state.reise_details;
+      const start = parseDt(rd.start_datum, rd.start_zeit);
+      const ende = parseDt(rd.ende_datum, rd.ende_zeit);
+
+      let tgBrutto = 0;
+      if (!state.konfiguration_checkboxen.dienstgeschaeft_2km_umkreis) {
+        const [v, t] = tagegeldTage(start, ende);
+        tgBrutto = v * r.TAGEGELD_VOLL + t * r.TAGEGELD_TEIL;
+      }
+      let kuerz = state.verpflegung.fruehstueck_anzahl * r.TAGEGELD_VOLL * r.KUERZUNG_FRUEH_PCT / 100
+                + state.verpflegung.mittag_anzahl * r.TAGEGELD_VOLL * r.KUERZUNG_MITTAG_PCT / 100
+                + state.verpflegung.abend_anzahl * r.TAGEGELD_VOLL * r.KUERZUNG_ABEND_PCT / 100;
+      kuerz = Math.min(kuerz, tgBrutto);
+      let tgNetto = tgBrutto - kuerz;
+      if (state.verzicht_erklaerung.verzicht_tagegeld) { tgBrutto = 0; kuerz = 0; tgNetto = 0; }
+
+      const naechte = Math.min(state.uebernachtungen.anzahl_pauschal, r.UEBERNACHTUNG_MAX_NAECHTE);
+      let uebernPausch = naechte * r.UEBERNACHTUNG_PAUSCHAL;
+      if (state.verzicht_erklaerung.verzicht_uebernachtungsgeld) uebernPausch = 0;
+
+      let weg = 0;
+      if (!state.verzicht_erklaerung.verzicht_fahrtkosten) {
+        if (state.befoerderung.hinreise.typ === 'PKW') {
+          const s = state.befoerderung.hinreise.paragraph_5_nrkvo === 'III' ? r.WEGSTRECKE_GROSS : r.WEGSTRECKE_KLEIN;
+          weg += state.wegstrecke.km_hinreise * s;
+        }
+        if (state.befoerderung.rueckreise.typ === 'PKW') {
+          const s = state.befoerderung.rueckreise.paragraph_5_nrkvo === 'III' ? r.WEGSTRECKE_GROSS : r.WEGSTRECKE_KLEIN;
+          weg += state.wegstrecke.km_rueckreise * s;
+        }
+        const nurKlein = state.befoerderung.hinreise.paragraph_5_nrkvo === 'II'
+                      && state.befoerderung.rueckreise.paragraph_5_nrkvo === 'II';
+        if (nurKlein && weg > r.WEGSTRECKE_KLEIN_MAX) weg = r.WEGSTRECKE_KLEIN_MAX;
+      }
+
+      const fahrkarteSum = state.beleg_betraege.fahrkarte_eur + state.beleg_betraege.zuschlaege_eur;
+      let fahrkarte = fahrkarteSum;
+      let sonstFahrt = state.beleg_betraege.sonstige_fahrt_eur;
+      if (state.verzicht_erklaerung.verzicht_fahrtkosten) {
+        fahrkarte = 0;
+        sonstFahrt = 0;
+      }
+      const sonstKosten = state.beleg_betraege.sonstige_kosten_eur;
+      const uebernBeleg = state.uebernachtungen.kosten_eur;
+
+      const zwischen = tgNetto + uebernPausch + weg + fahrkarte + sonstFahrt + sonstKosten + uebernBeleg;
+      const auszahl = zwischen - state.abzuege.zuwendungen_eur - state.abzuege.reisekostenabschlag_eur - state.abzuege.eigenanteile_eur;
+
+      return { tgBrutto, kuerz, tgNetto, uebernPausch, uebernBeleg, weg, fahrkarte, sonstFahrt, sonstKosten, zwischen, auszahl };
+    }
+
+    function fmt(eur) {
+      return eur.toFixed(2).replace('.', ',') + ' €';
+    }
+    function renderSummary() {
+      const c = compute();
+      document.getElementById('s_tg_brutto').textContent = fmt(c.tgBrutto);
+      document.getElementById('s_kuerzung').textContent = '−' + fmt(c.kuerz);
+      document.getElementById('s_tg_netto').textContent = fmt(c.tgNetto);
+      document.getElementById('s_uebern_pausch').textContent = fmt(c.uebernPausch);
+      document.getElementById('s_uebern_beleg').textContent = fmt(c.uebernBeleg);
+      document.getElementById('s_wegstrecke').textContent = fmt(c.weg);
+      document.getElementById('s_fahrkarte').textContent = fmt(c.fahrkarte);
+      document.getElementById('s_sonst_fahrt').textContent = fmt(c.sonstFahrt);
+      document.getElementById('s_sonst_kosten').textContent = fmt(c.sonstKosten);
+      document.getElementById('s_zwischen').innerHTML = '<strong>' + fmt(c.zwischen) + '</strong>';
+      document.getElementById('s_zuw').textContent = '−' + fmt(state.abzuege.zuwendungen_eur);
+      document.getElementById('s_absch').textContent = '−' + fmt(state.abzuege.reisekostenabschlag_eur);
+      document.getElementById('s_eig').textContent = '−' + fmt(state.abzuege.eigenanteile_eur);
+      document.getElementById('s_auszahl').textContent = fmt(c.auszahl);
+
+      // Validation
+      const errs = [];
+      const a = state.antragsteller, s = state.stammdaten;
+      if (!a.name) errs.push('Name fehlt');
+      if (!a.abteilung) errs.push('Beschäftigungsstelle fehlt');
+      if (!a.adresse_privat) errs.push('Adresse fehlt');
+      if (!s.iban) errs.push('IBAN fehlt');
+      if (!s.bic) errs.push('BIC fehlt');
+      if (!s.abrechnende_dienststelle) errs.push('Abrechnende Dienststelle fehlt');
+      const rd = state.reise_details;
+      ['zielort', 'reiseweg', 'zweck', 'start_datum', 'start_zeit', 'ende_datum', 'ende_zeit',
+       'dienstgeschaeft_beginn_datum', 'dienstgeschaeft_beginn_zeit',
+       'dienstgeschaeft_ende_datum', 'dienstgeschaeft_ende_zeit'].forEach(k => {
+        if (!rd[k]) errs.push(`reise_details.${k} fehlt`);
+      });
+      if (state.befoerderung.hinreise.paragraph_5_nrkvo === 'III' || state.befoerderung.rueckreise.paragraph_5_nrkvo === 'III') {
+        if (!state.befoerderung.sonderfall_begruendung_textfeld) errs.push('Begründung § 5 III fehlt');
+      }
+      if (state.rkr === 'RRS' && !state.rrs_aktenzeichen) errs.push('RRS-Aktenzeichen fehlt');
+      const naechte = state.uebernachtungen.anzahl_pauschal;
+      const proNacht = naechte > 0 ? state.uebernachtungen.kosten_eur / naechte : 0;
+      if (proNacht > RATES.UEBERNACHTUNG_BELEG_OHNE_BEGR && !state.uebernachtungen.begruendung_ueber_100) {
+        errs.push('Begründung > 100 €/Nacht fehlt');
+      }
+      const v = document.getElementById('validationSummary');
+      const submit = document.getElementById('submitBtn');
+      if (errs.length) {
+        v.innerHTML = `<div class="warn-box"><strong>Pflichtangaben fehlen:</strong><br>${errs.join('<br>')}</div>`;
+        submit.disabled = true;
+      } else {
+        v.innerHTML = '<div class="info-box" style="background:var(--ok-subtle); color:var(--ok); border-color:var(--ok);">Alle Pflichtangaben vorhanden.</div>';
+        submit.disabled = false;
+      }
+    }
+
+    // ── Datei laden / einfügen ─────────────────────────────────────
+    function mergeIntoState(loaded) {
+      // Antrags-JSON hat keine stammdaten/abrechnungs-Felder — die kommen aus Profil/State.
+      // Abrechnungs-JSON ist Vollformat — komplett übernehmen.
+      const target = blankState();
+      // Profil first-pass
+      const p = loadProfile() || {};
+      Object.assign(target.stammdaten, {
+        iban: p.iban || '', bic: p.bic || '', email: p.email || '',
+        abrechnende_dienststelle: p.abrechnende_dienststelle || '',
+      });
+      // Loaded-Daten overlay
+      const sections = ['stammdaten', 'antragsteller', 'reise_details', 'befoerderung',
+                       'konfiguration_checkboxen', 'verzicht_erklaerung',
+                       'rrs_aktenzeichen', 'anlagen_beigefuegt', 'anordnung',
+                       'verpflegung', 'uebernachtungen', 'beleg_betraege',
+                       'wegstrecke', 'abzuege', 'flags'];
+      sections.forEach(s => {
+        if (loaded[s] !== undefined) {
+          if (typeof loaded[s] === 'object' && loaded[s] !== null && !Array.isArray(loaded[s])) {
+            target[s] = { ...target[s], ...loaded[s] };
+          } else {
+            target[s] = loaded[s];
+          }
+        }
+      });
+      if (loaded.rkr) target.rkr = loaded.rkr;
+      state = target;
+      applyProfile();
+      syncFormFromState();
+    }
+
+    function loadFromPaste() {
+      const txt = document.getElementById('jsonPaste').value.trim();
+      if (!txt) { showAlert('Kein JSON eingegeben', 'warning'); return; }
+      try {
+        const obj = JSON.parse(txt);
+        mergeIntoState(obj);
+        showAlert('Daten übernommen — bitte in den Schritten 2–8 vervollständigen.', 'success');
+        goStep(2);
+      } catch (e) {
+        showAlert('Ungültiges JSON: ' + e.message);
+      }
+    }
+
+    // File-Drop
+    const drop = document.getElementById('fileDrop');
+    const fileInput = document.getElementById('fileInput');
+    drop.addEventListener('click', () => fileInput.click());
+    drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('dragover'); });
+    drop.addEventListener('dragleave', () => drop.classList.remove('dragover'));
+    drop.addEventListener('drop', e => {
+      e.preventDefault(); drop.classList.remove('dragover');
+      if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', e => {
+      if (e.target.files[0]) handleFile(e.target.files[0]);
+    });
+    function handleFile(file) {
+      const reader = new FileReader();
+      reader.onload = ev => {
+        try {
+          const obj = JSON.parse(ev.target.result);
+          mergeIntoState(obj);
+          showAlert(`„${file.name}" geladen — Daten in Schritten 2–8 prüfen.`, 'success');
+          goStep(2);
+        } catch (e) {
+          showAlert('Datei kann nicht geparst werden: ' + e.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // ── Export ──────────────────────────────────────────────────────
+    function suggestFilename(ext) {
+      const rd = state.reise_details;
+      const m = rd.start_datum.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+      const datePrefix = m ? `${m[3]}${m[2]}${m[1]}` : new Date().toISOString().slice(0, 10).replace(/-/g, '');
+      const cityMatch = rd.zielort.match(/\d{5}\s+([A-Za-zäöüÄÖÜß\s\-]+)/);
+      const city = cityMatch ? cityMatch[1].trim() : (rd.zielort || 'Reise');
+      const zweck = rd.zweck.split(':').pop().trim().split(/\s+/)[0] || '';
+      let suffix = city + (zweck ? '_' + zweck : '');
+      suffix = suffix.replace(/[^A-Za-z0-9äöüÄÖÜß_]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '') || 'Abrechnung';
+      return `${datePrefix}_DR-Abrechnung_${suffix}.${ext}`;
+    }
+
+    function exportJson() {
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = suggestFilename('json');
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+      showAlert('JSON heruntergeladen — gut für Korrektur-Runden.', 'success');
+    }
+
+    // ── Submit / PDF ────────────────────────────────────────────────
+    const spinner = document.getElementById('loadingSpinner');
+    document.getElementById('genForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      syncStateFromForm();
+      document.getElementById('json_data').value = JSON.stringify(state);
+      spinner.classList.add('active');
+      try {
+        const csrf = document.querySelector('input[name=csrf_token]').value;
+        const fd = new FormData();
+        fd.set('csrf_token', csrf);
+        fd.set('json_data', JSON.stringify(state));
+        const res = await fetch('/abrechnung/generate', { method: 'POST', body: fd });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ error: res.statusText }));
+          showAlert(`Fehler: ${err.error || res.statusText}`);
+          return;
+        }
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const cd = res.headers.get('content-disposition') || '';
+        const m = cd.match(/filename[*]?=(?:UTF-8'')?"?([^";]+)"?/i);
+        a.download = m ? decodeURIComponent(m[1]) : suggestFilename('pdf');
+        document.body.appendChild(a); a.click(); a.remove();
+        URL.revokeObjectURL(url);
+        showAlert('PDF heruntergeladen — JSON sicherheitshalber auch exportieren!', 'success');
+      } catch (err) {
+        showAlert('Netzwerk-/Server-Fehler: ' + err.message);
+      } finally {
+        spinner.classList.remove('active');
+      }
+    });
+
+    // ── Init ────────────────────────────────────────────────────────
+    applyProfile();
+    syncFormFromState();
+    goStep(1);
+  </script>
+
+</body>
+</html>

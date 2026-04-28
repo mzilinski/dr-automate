@@ -12,10 +12,15 @@ from flask_limiter.util import get_remote_address
 from flask_wtf import CSRFProtect
 
 import generator
-from models import validate_reiseantrag
+import generator_abrechnung
+import nrkvo_rates
+from models import validate_abrechnung, validate_reiseantrag
 
 # --- KONFIGURATION ---
 PDF_TEMPLATE_PATH = os.environ.get("PDF_TEMPLATE_PATH", os.path.join("forms", "DR-Antrag_035_001Stand4-2025pdf.pdf"))
+PDF_TEMPLATE_ABRECHNUNG_PATH = os.environ.get(
+    "PDF_TEMPLATE_ABRECHNUNG_PATH", os.path.join("forms", "Reisekostenvordruck.pdf")
+)
 DEBUG_MODE = os.environ.get("FLASK_DEBUG", "false").lower() == "true"
 PORT = int(os.environ.get("PORT", 5001))
 HOST = os.environ.get("HOST", "0.0.0.0")  # nosec B104 — bind auf alle Interfaces ist für Container/Cloud-Deploys gewünscht
@@ -98,6 +103,10 @@ def _legal_urls():
     }
 
 
+def _common_template_ctx():
+    return {**_legal_urls(), "nrkvo_stand": nrkvo_rates.RATES_STAND}
+
+
 # --- AUTH ---
 _OPEN_ENDPOINTS = {"health_check", "login", "logout", "static"}
 
@@ -134,7 +143,7 @@ def login():
             return redirect(url_for("index"))
         error = True
         logger.warning(f"Fehlgeschlagener Login-Versuch von {request.remote_addr}")
-    return render_template("login.html", error=error, **_legal_urls())
+    return render_template("login.html", error=error, **_common_template_ctx())
 
 
 @app.route("/logout")
@@ -154,7 +163,7 @@ def index():
     except Exception as e:
         prompt_content = f"Error loading prompt file: {e}"
 
-    return render_template("index.html", prompt_content=prompt_content, **_legal_urls())
+    return render_template("index.html", prompt_content=prompt_content, **_common_template_ctx())
 
 
 @app.route("/example", methods=["GET"])
@@ -225,6 +234,81 @@ def generate():
         return jsonify({"error": "Invalid JSON format"}), 400
     except Exception as e:
         logger.exception(f"Unerwarteter Fehler bei PDF-Generierung: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/abrechnung", methods=["GET"])
+def abrechnung_index():
+    """Wizard-UI für die Reisekostenabrechnung."""
+    return render_template("abrechnung.html", **_common_template_ctx())
+
+
+@app.route("/abrechnung/generate", methods=["POST"])
+@limiter.limit(f"{RATE_LIMIT} per minute")
+def abrechnung_generate():
+    """Erzeugt das ausgefüllte Abrechnungs-PDF."""
+    try:
+        json_text = request.form.get("json_data")
+        if not json_text:
+            logger.warning("Abrechnung: Request ohne JSON-Daten erhalten")
+            return jsonify({"error": "No JSON data provided"}), 400
+
+        data = json.loads(json_text)
+
+        is_valid, result = validate_abrechnung(data)
+        if not is_valid:
+            logger.warning(f"Abrechnung: Ungültige JSON-Struktur: {result}")
+            return jsonify({"error": f"Validierungsfehler: {result}"}), 400
+
+        temp_dir = tempfile.mkdtemp()
+        try:
+            output_path = generator_abrechnung.fill_pdf(result, PDF_TEMPLATE_ABRECHNUNG_PATH, temp_dir)
+            filename = os.path.basename(output_path)
+
+            @after_this_request
+            def remove_temp_file(response):
+                try:
+                    shutil.rmtree(temp_dir)
+                except Exception as e:
+                    app.logger.error(f"Error removing temp dir: {e}")
+                return response
+
+            logger.info(f"Abrechnungs-PDF erfolgreich generiert: {filename}")
+            return send_file(output_path, as_attachment=True, download_name=filename)
+        except Exception as e:
+            shutil.rmtree(temp_dir)
+            raise e
+
+    except json.JSONDecodeError as e:
+        logger.error(f"Abrechnung: JSON-Parsing-Fehler: {e}")
+        return jsonify({"error": "Invalid JSON format"}), 400
+    except Exception as e:
+        logger.exception(f"Abrechnung: Unerwarteter Fehler bei PDF-Generierung: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/abrechnung/calc", methods=["POST"])
+@limiter.limit(f"{RATE_LIMIT} per minute")
+def abrechnung_calc():
+    """Liefert die autoritative Berechnung für den Wizard.
+
+    Das Frontend rechnet live in JS, dieser Endpoint dient als Server-Check
+    und für komplexere Fälle, in denen das Frontend zu konservativ rechnet.
+    """
+    from abrechnung_calc import berechnung
+
+    try:
+        json_text = request.form.get("json_data") or request.get_data(as_text=True)
+        data = json.loads(json_text)
+        is_valid, result = validate_abrechnung(data)
+        if not is_valid:
+            return jsonify({"error": f"Validierungsfehler: {result}"}), 400
+        b = berechnung(result)
+        return jsonify(b.model_dump())
+    except json.JSONDecodeError:
+        return jsonify({"error": "Invalid JSON format"}), 400
+    except Exception as e:
+        logger.exception(f"Abrechnung-Calc-Fehler: {e}")
         return jsonify({"error": str(e)}), 500
 
 
