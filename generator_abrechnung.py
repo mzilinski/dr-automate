@@ -158,6 +158,8 @@ def _build_text_fields(data: AbrechnungData) -> dict:
         eur_pro_nacht = data.uebernachtungen.kosten_eur / naechte
         if eur_pro_nacht > nrkvo_rates.UEBERNACHTUNG_BELEG_OHNE_BEGRUENDUNG_MAX_EUR and data.uebernachtungen.begruendung_ueber_100:
             erl_parts.append(f"Übernachtung > 100 €/Nacht: {data.uebernachtungen.begruendung_ueber_100}")
+    if data.beleg_betraege.wagenklasse:
+        erl_parts.append(f"Wagenklasse: {data.beleg_betraege.wagenklasse}")
     if data.beleg_betraege.sonstige_fahrt_erlaeuterung:
         erl_parts.append(data.beleg_betraege.sonstige_fahrt_erlaeuterung)
     fields["Erlaeuterungen"] = "\r".join(erl_parts)
