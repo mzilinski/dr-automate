@@ -228,7 +228,7 @@ class BelegBetraege(BaseModel):
 
     fahrkarte_eur: float = Field(default=0.0, ge=0)
     zuschlaege_eur: float = Field(default=0.0, ge=0)
-    wagenklasse: str = Field(default="", max_length=20)
+    wagenklasse: str = Field(default="", max_length=50)
     sonstige_fahrt_eur: float = Field(default=0.0, ge=0)
     sonstige_fahrt_erlaeuterung: str = Field(default="", max_length=500)
     sonstige_kosten_eur: float = Field(default=0.0, ge=0)
