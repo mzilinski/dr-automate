@@ -394,7 +394,8 @@
             <div>
               <label class="field-label" for="f_hin_typ">Hinreise — Typ</label>
               <select id="f_hin_typ" data-bind="befoerderung.hinreise.typ">
-                <option value="PKW">PKW</option>
+                <option value="PKW">PKW (selbst gefahren)</option>
+                <option value="MITFAHRT">Mitfahrt im PKW</option>
                 <option value="BAHN">Bahn</option>
                 <option value="BUS">Bus</option>
                 <option value="DIENSTWAGEN">Dienstwagen</option>
@@ -411,7 +412,8 @@
             <div>
               <label class="field-label" for="f_rueck_typ">Rückreise — Typ</label>
               <select id="f_rueck_typ" data-bind="befoerderung.rueckreise.typ">
-                <option value="PKW">PKW</option>
+                <option value="PKW">PKW (selbst gefahren)</option>
+                <option value="MITFAHRT">Mitfahrt im PKW</option>
                 <option value="BAHN">Bahn</option>
                 <option value="BUS">Bus</option>
                 <option value="DIENSTWAGEN">Dienstwagen</option>
@@ -980,20 +982,15 @@
       const info = document.getElementById('wegstrecke_info');
       const hin = state.befoerderung.hinreise;
       const rueck = state.befoerderung.rueckreise;
-      const lines = [];
-      if (hin.typ === 'PKW') {
-        const satz = hin.paragraph_5_nrkvo === 'III' ? RATES.WEGSTRECKE_GROSS : RATES.WEGSTRECKE_KLEIN;
-        lines.push(`Hinreise PKW § ${hin.paragraph_5_nrkvo}: ${(satz * 100).toFixed(0)} ct/km`);
-      } else {
-        lines.push(`Hinreise: ${hin.typ} (keine Wegstrecke)`);
-      }
-      if (rueck.typ === 'PKW') {
-        const satz = rueck.paragraph_5_nrkvo === 'III' ? RATES.WEGSTRECKE_GROSS : RATES.WEGSTRECKE_KLEIN;
-        lines.push(`Rückreise PKW § ${rueck.paragraph_5_nrkvo}: ${(satz * 100).toFixed(0)} ct/km`);
-      } else {
-        lines.push(`Rückreise: ${rueck.typ}`);
-      }
-      info.innerHTML = lines.join('<br>');
+      const labelFor = (b) => {
+        if (b.typ === 'PKW') {
+          const satz = b.paragraph_5_nrkvo === 'III' ? RATES.WEGSTRECKE_GROSS : RATES.WEGSTRECKE_KLEIN;
+          return `PKW § ${b.paragraph_5_nrkvo}: ${(satz * 100).toFixed(0)} ct/km`;
+        }
+        if (b.typ === 'MITFAHRT') return 'Mitfahrt — keine eigene Wegstreckenentschädigung';
+        return `${b.typ} (keine Wegstrecke)`;
+      };
+      info.innerHTML = `Hinreise ${labelFor(hin)}<br>Rückreise ${labelFor(rueck)}`;
     }
 
     // ── Berechnung ──────────────────────────────────────────────────
@@ -1276,7 +1273,7 @@
       'f_dg_ende_zeit': 'Uhrzeit des Dienstgeschäfts-Endes. Bsp.: 17:00',
       'f_ende_datum': 'Tatsächliche Rückkehr zu Hause.',
       'f_ende_zeit': 'Uhrzeit der Rückkehr zu Hause. Bsp.: 19:30',
-      'f_hin_typ': 'Hauptverkehrsmittel der Hinreise. Bei Flug: Zubringer wählen (PKW oder Bahn) — Flugbeleg in Schritt 5 eintragen.',
+      'f_hin_typ': 'Hauptverkehrsmittel der Hinreise. PKW = selbst gefahren (mit Wegstrecke). MITFAHRT = im PKW eines anderen mitgefahren (keine eigene Wegstrecke). Bei Flug: Zubringer wählen (PKW/MITFAHRT/Bahn) — Flugbeleg in Schritt 5.',
       'f_hin_para': 'II = kleine Wegstrecke (0,25 €/km, max 125 €). III = große Wegstrecke (0,38 €/km), nur bei triftigem Grund (Materialtransport, schlechte ÖPNV-Anbindung, Mitnahme Kollege).',
       'f_rueck_typ': 'Hauptverkehrsmittel der Rückreise — kann von Hinreise abweichen.',
       'f_rueck_para': 'Wie Hinreise — II = kleine, III = große Wegstrecke.',

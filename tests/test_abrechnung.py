@@ -230,6 +230,61 @@ def test_berechnung_wegstrecke_keine_bei_bahn(base_data):
     assert b.wegstreckenentschaedigung_eur == 0
 
 
+def test_berechnung_wegstrecke_keine_bei_mitfahrt(base_data):
+    """MITFAHRT: Mitfahrer hat keinen eigenen Anspruch — auch wenn km eingetragen."""
+    base_data["befoerderung"]["hinreise"]["typ"] = "MITFAHRT"
+    base_data["befoerderung"]["rueckreise"]["typ"] = "MITFAHRT"
+    base_data["wegstrecke"] = {"km_hinreise": 200, "km_rueckreise": 200}
+    ok, d = validate_abrechnung(base_data)
+    assert ok
+    b = berechnung(d)
+    assert b.wegstreckenentschaedigung_eur == 0
+
+
+def test_mitfahrt_validates(base_data):
+    base_data["befoerderung"]["hinreise"]["typ"] = "MITFAHRT"
+    ok, d = validate_abrechnung(base_data)
+    assert ok
+    assert d.befoerderung.hinreise.typ == "MITFAHRT"
+
+
+def test_mitfahrt_pdf_erlaeuterung(base_data, tmp_path):
+    """Mitfahrt-Hinweis erscheint automatisch im Erläuterungen-Feld."""
+    base_data["befoerderung"]["hinreise"]["typ"] = "MITFAHRT"
+    base_data["befoerderung"]["rueckreise"]["typ"] = "MITFAHRT"
+    ok, d = validate_abrechnung(base_data)
+    assert ok
+    out = fill_pdf(d, "forms/Reisekostenvordruck.pdf", str(tmp_path))
+    fields = PdfReader(out).get_fields()
+    erl = fields["Erlaeuterungen"]["/V"]
+    assert "Mitfahrer hin und zurück" in erl
+    assert "Wegstreckenentschädigung" in erl
+
+
+def test_mitfahrt_einseitig_pdf_erlaeuterung(base_data, tmp_path):
+    """Nur Hinreise als Mitfahrt — Hinweis spezifiziert die Richtung."""
+    base_data["befoerderung"]["hinreise"]["typ"] = "MITFAHRT"
+    # Rueckreise bleibt PKW
+    ok, d = validate_abrechnung(base_data)
+    assert ok
+    out = fill_pdf(d, "forms/Reisekostenvordruck.pdf", str(tmp_path))
+    fields = PdfReader(out).get_fields()
+    erl = fields["Erlaeuterungen"]["/V"]
+    assert "Hinreise: Mitfahrer" in erl
+
+
+def test_antrag_pdf_mitfahrt_box(base_data, tmp_path):
+    """Antrag-Generator setzt Mitfahrt-Boxen (OBJ44/OBJ50) bei MITFAHRT."""
+    from generator import fill_pdf as fill_antrag_pdf
+
+    base_data["befoerderung"]["hinreise"]["typ"] = "MITFAHRT"
+    base_data["befoerderung"]["rueckreise"]["typ"] = "MITFAHRT"
+    out = fill_antrag_pdf(base_data, "forms/DR-Antrag_035_001Stand4-2025pdf.pdf", str(tmp_path))
+    fields = PdfReader(out).get_fields()
+    assert fields["OBJ44"]["/V"] == "/Yes"
+    assert fields["OBJ50"]["/V"] == "/Yes"
+
+
 def test_berechnung_uebernachtungsgeld_pauschal(base_data):
     base_data["uebernachtungen"] = {"anzahl_pauschal": 3}
     ok, d = validate_abrechnung(base_data)

@@ -150,6 +150,15 @@ def _build_text_fields(data: AbrechnungData) -> dict:
 
     # Erläuterungen (Reisezweck, PKW-Begründung, mitfahrende Personen, Sonstiges)
     erl_parts = []
+    # Mitfahrt explizit auszeichnen — die Abrechnung hat keine eigene Mitfahrt-Box
+    mitfahrt_hin = data.befoerderung.hinreise.typ == "MITFAHRT"
+    mitfahrt_rueck = data.befoerderung.rueckreise.typ == "MITFAHRT"
+    if mitfahrt_hin and mitfahrt_rueck:
+        erl_parts.append("Mitfahrer hin und zurück (kein eigener Anspruch auf Wegstreckenentschädigung)")
+    elif mitfahrt_hin:
+        erl_parts.append("Hinreise: Mitfahrer (kein eigener Anspruch auf Wegstreckenentschädigung)")
+    elif mitfahrt_rueck:
+        erl_parts.append("Rückreise: Mitfahrer (kein eigener Anspruch auf Wegstreckenentschädigung)")
     if data.befoerderung.sonderfall_begruendung_textfeld:
         erl_parts.append(data.befoerderung.sonderfall_begruendung_textfeld)
     if data.antragsteller.mitreisender_name:
@@ -294,6 +303,8 @@ def _build_button_fields(data: AbrechnungData) -> dict:
         cb["OBJ7" if para == "III" else "OBJ6"] = "/Yes"
     elif typ == "FLUG":
         cb["OBJ8"] = "/Yes"
+    # MITFAHRT: keine Box angekreuzt — der Mitfahrer macht für den PKW-Anteil
+    # keinen eigenen Posten geltend, der Hinweis steht in den Erläuterungen.
 
     # Zuwendungen Dritter: OBJ9=Nein, OBJ10=Ja
     if data.abzuege.zuwendungen_eur > 0:

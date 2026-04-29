@@ -103,7 +103,7 @@ class ZusatzInfos(BaseModel):
 class Befoerderungsart(BaseModel):
     """Art der Beförderung für Hin- oder Rückreise."""
 
-    typ: str = Field(..., pattern=r"^(PKW|BAHN|BUS|DIENSTWAGEN|FLUG)$")
+    typ: str = Field(..., pattern=r"^(PKW|BAHN|BUS|DIENSTWAGEN|FLUG|MITFAHRT)$")
     paragraph_5_nrkvo: str = Field(default="II", pattern=r"^(II|III)$")
 
     @field_validator("paragraph_5_nrkvo", mode="before")

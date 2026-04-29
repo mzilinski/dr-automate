@@ -28,9 +28,15 @@ Analysiere den Eingabetext und erstelle daraus ein JSON-Objekt:
 - Wenn „III" gewählt wird: `sonderfall_begruendung_textfeld` ist Pflicht.
 
 **Flugreisen:**
-- `befoerderung.typ` = Typ des Zubringers zum Flughafen (meist „PKW").
+- `befoerderung.typ` = Typ des Zubringers zum Flughafen (meist „PKW" oder „MITFAHRT").
 - Alle Flugdetails (Zeiten, Flugnummern) in `zusatz_infos.bemerkungen_feld`.
 - `weitere_anmerkungen_checkbox_aktivieren` = true.
+
+**Mitfahrt (passiv):**
+- Wenn der Antragsteller im PKW eines anderen mitgefahren ist (kein eigener Anspruch auf Wegstreckenentschädigung): `befoerderung.typ = "MITFAHRT"`.
+- `paragraph_5_nrkvo` ist hier irrelevant (Default „II" bleibt). Im Antrag wird die separate „Mitfahrt"-Box gekreuzt; die Abrechnung lässt die Beförderungsmittel-Boxen leer und schreibt einen Hinweis in die Erläuterungen.
+- Wenn nur eine Richtung Mitfahrt war (z.B. Hin Mitfahrt, Rück Bahn), nur die jeweilige Richtung auf MITFAHRT setzen.
+- Den Namen des Fahrers in `zusatz_infos.bemerkungen_feld` ergänzen.
 
 **Zeiten:**
 - Unterscheide zwischen Reisezeit (Abfahrt/Ankunft zu Hause) und Dienstgeschäft (Beginn/Ende des Termins).
@@ -100,11 +106,11 @@ Halte dich strikt an diese Struktur. Schlüssel-Namen dürfen nicht verändert w
   },
   "befoerderung": {
     "hinreise": {
-      "typ": "String: 'PKW', 'BAHN', 'BUS', 'DIENSTWAGEN' (bei Flug: Zubringer-Typ)",
+      "typ": "String: 'PKW' (selbst gefahren), 'MITFAHRT' (Mitfahrer im PKW), 'BAHN', 'BUS', 'DIENSTWAGEN' (bei Flug: Zubringer-Typ)",
       "paragraph_5_nrkvo": "String: 'II' (Standard) oder 'III' (triftiger Grund)"
     },
     "rueckreise": {
-      "typ": "String: 'PKW', 'BAHN', 'BUS', 'DIENSTWAGEN'",
+      "typ": "String: 'PKW', 'MITFAHRT', 'BAHN', 'BUS', 'DIENSTWAGEN'",
       "paragraph_5_nrkvo": "String: 'II' oder 'III'"
     },
     "sonderfall_begruendung_textfeld": "String: Pflicht bei PKW §5 III (z.B. 'Mitnahme Kollege', 'Materialtransport', 'Kein Dienstwagen verfügbar')"
