@@ -102,6 +102,8 @@ def _checkbox_befoerderung(trans: dict) -> dict:
         cb["OBJ43" if hin_para == "III" else "OBJ42"] = "/Yes"
     elif hin_typ == "FLUG":
         cb["OBJ43"] = "/Yes"
+    elif hin_typ == "MITFAHRT":
+        cb["OBJ44"] = "/Yes"  # eigene Mitfahrt-Box im Antrag
 
     rueck_typ = trans["rueckreise"]["typ"].upper()
     rueck_para = trans["rueckreise"].get("paragraph_5_nrkvo", "II")
@@ -113,6 +115,8 @@ def _checkbox_befoerderung(trans: dict) -> dict:
         cb["OBJ14" if rueck_para == "III" else "OBJ48"] = "/Yes"
     elif rueck_typ == "FLUG":
         cb["OBJ14"] = "/Yes"
+    elif rueck_typ == "MITFAHRT":
+        cb["OBJ50"] = "/Yes"  # eigene Mitfahrt-Box im Antrag
 
     return cb
 
