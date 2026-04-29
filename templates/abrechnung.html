@@ -170,19 +170,22 @@
     }
 
     .file-drop {
+      display: block;
       border: 2px dashed var(--border);
       border-radius: 12px;
       padding: 1.5rem 1rem;
       text-align: center;
       background: var(--mono-bg);
       cursor: pointer;
+      user-select: none;
       transition: border-color .15s, background .15s;
     }
     .file-drop:hover, .file-drop.dragover {
       border-color: var(--accent);
       background: var(--accent-subtle);
     }
-    .file-drop p { font-size: .85rem; color: var(--muted); }
+    .file-drop p { font-size: .85rem; color: var(--muted); margin: 0; }
+    .file-drop p + p { margin-top: .35rem; }
     .file-drop strong { color: var(--text); }
 
     .badge {
