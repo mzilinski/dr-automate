@@ -547,3 +547,77 @@
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
+
+    /* ── TOOLTIPS ───────────────────────────────────────────────────── */
+    .tip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.05rem;
+      height: 1.05rem;
+      margin-left: .4rem;
+      padding: 0;
+      border: none;
+      border-radius: 50%;
+      background: var(--accent-subtle);
+      color: var(--accent);
+      font-family: 'Figtree', sans-serif;
+      font-size: .68rem;
+      font-weight: 700;
+      cursor: help;
+      user-select: none;
+      position: relative;
+      vertical-align: middle;
+      line-height: 1;
+      letter-spacing: 0;
+      text-transform: none;
+      transition: background .15s, color .15s;
+    }
+    .tip:hover, .tip:focus, .tip.active {
+      background: var(--accent);
+      color: var(--accent-fg);
+      outline: none;
+    }
+    .tip::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: calc(100% + 10px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--text);
+      color: var(--surface);
+      padding: .6rem .85rem;
+      border-radius: 8px;
+      font-size: .78rem;
+      font-weight: 400;
+      letter-spacing: 0;
+      text-transform: none;
+      width: max-content;
+      max-width: 280px;
+      white-space: normal;
+      line-height: 1.5;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s;
+    }
+    .tip::before {
+      content: '';
+      position: absolute;
+      bottom: calc(100% + 4px);
+      left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: var(--text);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s;
+    }
+    .tip:hover::after, .tip:focus::after, .tip.active::after,
+    .tip:hover::before, .tip:focus::before, .tip.active::before {
+      opacity: 1;
+    }
+    @media (prefers-color-scheme: dark) {
+      .tip::after { box-shadow: 0 8px 24px rgba(0, 0, 0, .55); }
+    }
