@@ -347,35 +347,35 @@
 
             <div>
               <label class="field-label" for="f_start_datum">Reise-Beginn (Datum) *</label>
-              <input type="text" id="f_start_datum" data-bind="reise_details.start_datum" placeholder="DD.MM.YYYY">
+              <input type="date" id="f_start_datum" data-bind="reise_details.start_datum">
             </div>
             <div>
               <label class="field-label" for="f_start_zeit">Uhrzeit *</label>
-              <input type="text" id="f_start_zeit" data-bind="reise_details.start_zeit" placeholder="HH:MM">
+              <input type="time" id="f_start_zeit" data-bind="reise_details.start_zeit">
             </div>
             <div>
               <label class="field-label" for="f_dg_beginn_datum">Dienstgeschäft Beginn *</label>
-              <input type="text" id="f_dg_beginn_datum" data-bind="reise_details.dienstgeschaeft_beginn_datum" placeholder="DD.MM.YYYY">
+              <input type="date" id="f_dg_beginn_datum" data-bind="reise_details.dienstgeschaeft_beginn_datum">
             </div>
             <div>
               <label class="field-label" for="f_dg_beginn_zeit">Uhrzeit *</label>
-              <input type="text" id="f_dg_beginn_zeit" data-bind="reise_details.dienstgeschaeft_beginn_zeit" placeholder="HH:MM">
+              <input type="time" id="f_dg_beginn_zeit" data-bind="reise_details.dienstgeschaeft_beginn_zeit">
             </div>
             <div>
               <label class="field-label" for="f_dg_ende_datum">Dienstgeschäft Ende *</label>
-              <input type="text" id="f_dg_ende_datum" data-bind="reise_details.dienstgeschaeft_ende_datum" placeholder="DD.MM.YYYY">
+              <input type="date" id="f_dg_ende_datum" data-bind="reise_details.dienstgeschaeft_ende_datum">
             </div>
             <div>
               <label class="field-label" for="f_dg_ende_zeit">Uhrzeit *</label>
-              <input type="text" id="f_dg_ende_zeit" data-bind="reise_details.dienstgeschaeft_ende_zeit" placeholder="HH:MM">
+              <input type="time" id="f_dg_ende_zeit" data-bind="reise_details.dienstgeschaeft_ende_zeit">
             </div>
             <div>
               <label class="field-label" for="f_ende_datum">Reise-Ende (Datum) *</label>
-              <input type="text" id="f_ende_datum" data-bind="reise_details.ende_datum" placeholder="DD.MM.YYYY">
+              <input type="date" id="f_ende_datum" data-bind="reise_details.ende_datum">
             </div>
             <div>
               <label class="field-label" for="f_ende_zeit">Uhrzeit *</label>
-              <input type="text" id="f_ende_zeit" data-bind="reise_details.ende_zeit" placeholder="HH:MM">
+              <input type="time" id="f_ende_zeit" data-bind="reise_details.ende_zeit">
             </div>
           </div>
 
@@ -456,7 +456,7 @@
             </div>
             <div>
               <label class="field-label" for="f_anordnung_datum">Datum der Anordnung</label>
-              <input type="text" id="f_anordnung_datum" data-bind="anordnung.datum" placeholder="DD.MM.YYYY">
+              <input type="date" id="f_anordnung_datum" data-bind="anordnung.datum">
             </div>
 
             <div class="full check-row">
@@ -907,6 +907,18 @@
       if (p.rkr_default) state.rkr = p.rkr_default;
     }
 
+    // ── Datums-Konvertierung: state hält "DD.MM.YYYY", input liefert "YYYY-MM-DD"
+    function germanToIso(de) {
+      const m = (de || '').match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+      if (!m) return '';
+      return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+    }
+    function isoToGerman(iso) {
+      const m = (iso || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (!m) return '';
+      return `${m[3]}.${m[2]}.${m[1]}`;
+    }
+
     // ── Bind state ↔ form ──────────────────────────────────────────
     function syncFormFromState() {
       document.querySelectorAll('[data-bind]').forEach(el => {
@@ -914,6 +926,7 @@
         const v = getPath(state, path);
         if (el.type === 'checkbox') el.checked = !!v;
         else if (el.type === 'number') el.value = v ?? 0;
+        else if (el.type === 'date') el.value = germanToIso(v);
         else el.value = v ?? '';
       });
       document.getElementById('rrs_az_wrapper').style.display = state.rkr === 'RRS' ? '' : 'none';
@@ -926,6 +939,7 @@
         let v;
         if (el.type === 'checkbox') v = el.checked;
         else if (el.type === 'number') v = parseFloat(el.value) || 0;
+        else if (el.type === 'date') v = isoToGerman(el.value);
         else v = el.value;
         setPath(state, path, v);
       });
