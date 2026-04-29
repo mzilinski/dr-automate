@@ -278,8 +278,8 @@ def test_pdf_roundtrip(base_data, tmp_path):
     assert fields["Name__Vorname"]["/V"] == base_data["antragsteller"]["name"]
     # Beschäftigungsstelle
     assert fields["Beschaeftigungsstelle"]["/V"] == base_data["antragsteller"]["abteilung"]
-    # BIC
-    assert fields["Kreditinstitut"]["/V"] == base_data["stammdaten"]["bic"]
+    # BIC (Feldname auf Stand 08.2025 von "Kreditinstitut" zu "BIC" umbenannt)
+    assert fields["BIC"]["/V"] == base_data["stammdaten"]["bic"]
 
 
 def test_pdf_filename_format(base_data, tmp_path):

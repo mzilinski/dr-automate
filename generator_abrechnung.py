@@ -75,7 +75,7 @@ def _build_text_fields(data: AbrechnungData) -> dict:
 
     # IBAN char-für-char
     fields.update(_split_iban(data.stammdaten.iban))
-    fields["Kreditinstitut"] = data.stammdaten.bic
+    fields["BIC"] = data.stammdaten.bic
 
     # RKR + Datum/Daten der Reise
     rd = data.reise_details

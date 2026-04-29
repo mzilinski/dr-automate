@@ -1,0 +1,5427 @@
+%PDF-1.4
+%ª«¬­
+1 0 obj
+<<
+/Title (035_002 - Reisekostenrechnung [Stand: 08.2025])
+/Producer (cirali-pdf Pdf-V74 http://www.fjd.de)
+/Creator (Cirali Output Manager B1-23 http://www.fjd.de)
+/Author (IT.Niedersachsen - Formularservicestelle)
+>>
+endobj
+2 0 obj
+<< /Type /Catalog
+/Pages 3 0 R
+/Names 256 0 R
+/AcroForm 10 0 R
+/AA << /WP << /S /JavaScript /JS (
+var n = this.numFields;\rvar f;\rvar fn;\rfor\(var i=0;i<n;i++\)\r{\r   fn = this.getNthFieldName\(i\);\r   if\(""==fn\) continue;\r\r   f = this.getField\(fn\);\r   if\(null==f\) continue;\r   if\("button"==f.type\)continue;\r\r   SYS_FILL\(f,color.transparent\);\r\r\r   if\("checkbox"==f.type\)\r   { f.style=style.cr;\r     f.strokeColor=getBorderColor\(fn\);\r   }\r   else\r   {    if\(""+f.strokeColor!=""+color.transparent\)\r   		{  f.strokeColor=color.transparent;\r   		}\r   }\r}\r) >>
+ /DP << /S /JavaScript /JS (
+SYS_RESET_BG_COLORS_UPON_ALL_PAGES\(\);) >>
+ >>
+>>
+endobj
+3 0 obj
+<< /Type /Pages
+/Kids [ 4 0 R 7 0 R]
+/Count 2
+>>
+endobj
+4 0 obj
+<< /Type /Page
+/Parent 3 0 R
+/Annots 6 0 R
+/MediaBox [ 0 0 595.28 841.89 ]
+/Contents [ 5 0 R ]
+/AA << /O << /S /JavaScript /JS (
+SYS_RESET_BG_COLORS_UPON_ALL_PAGES\(\);) >>
+ >>
+/Resources
+<< /ProcSet [ /PDF /ImageC ] 
+ /Font << /HeBo 351 0 R
+/Helv 350 0 R
+>>>>
+>>
+endobj
+5 0 obj
+<< /Length 29219 >>
+stream
+0.0 0.0 0.0 RG 0.0 0.0 0.0 rg BT /HeBo 12.0 Tf 71.12 801.04 Td (Antrag) Tj ET
+BT /HeBo 12.0 Tf 112.52 801.04 Td (auf) Tj ET
+BT /HeBo 12.0 Tf 133.82 801.04 Td (Gewährung) Tj ET
+BT /HeBo 12.0 Tf 203.32 801.04 Td (von) Tj ET
+BT /HeBo 12.0 Tf 71.12 790.4 Td (Reisekostenvergütung) Tj ET
+BT /Helv 8.0 Tf 319.77 790.36 Td (Zutreffendes) Tj ET
+BT /Helv 8.0 Tf 366.77 790.36 Td (bitte) Tj ET
+BT /Helv 8.0 Tf 383.97 790.36 Td (ankreuzen) Tj ET
+BT /Helv 8.0 Tf 423.17 790.36 Td () Tj ET
+BT /Helv 8.0 Tf 425.37 790.36 Td () Tj ET
+BT /Helv 8.0 Tf 427.57 790.36 Td () Tj ET
+BT /Helv 8.0 Tf 429.77 790.36 Td () Tj ET
+BT /Helv 8.0 Tf 431.97 790.36 Td () Tj ET
+BT /Helv 8.0 Tf 434.17 790.36 Td () Tj ET
+BT /Helv 8.0 Tf 436.37 790.36 Td () Tj ET
+BT /Helv 8.0 Tf 438.57 790.36 Td () Tj ET
+BT /Helv 8.0 Tf 440.77 790.36 Td (oder) Tj ET
+BT /Helv 8.0 Tf 458.87 790.36 Td (ausfüllen) Tj ET
+BT /Helv 8.0 Tf 492.97 790.36 Td (\(außer) Tj ET
+BT /Helv 8.0 Tf 518.67 790.36 Td (rote) Tj ET
+BT /Helv 8.0 Tf 534.57 790.36 Td (Felder\)) Tj ET
+2 J [] 0 d 1.0 w 68.28 784.99 m 68.28 642.74 l S
+68.28 784.99 m 568.99 784.99 l S
+2 J [] 0 d 0.5 w 398.29 784.99 m 398.29 642.74 l S
+BT /Helv 8.0 Tf 71.12 776.7 Td (Beschäftigungsstelle) Tj ET
+BT /Helv 8.0 Tf 146.32 776.7 Td (\(z.) Tj ET
+BT /Helv 8.0 Tf 157.32 776.7 Td (B.) Tj ET
+BT /Helv 8.0 Tf 167.02 776.7 Td (Schule) Tj ET
+BT /Helv 8.0 Tf 193.52 776.7 Td (und) Tj ET
+BT /Helv 8.0 Tf 208.92 776.7 Td (Schul-Nr.,) Tj ET
+BT /Helv 8.0 Tf 246.62 776.7 Td (Amt\),) Tj ET
+BT /Helv 8.0 Tf 267.92 776.7 Td (Dienstort) Tj ET
+BT /Helv 8.0 Tf 415.36 776.7 Td (Abrechnende) Tj ET
+BT /Helv 8.0 Tf 464.76 776.7 Td (Dienststelle) Tj ET
+2 J [] 0 d 1.0 w 568.99 784.99 m 568.99 693.95 l S
+BT /Helv 7.0 Tf 415.36 752.09 Td (Wohnungsanschrift,) Tj ET
+BT /Helv 7.0 Tf 479.56 752.09 Td (Telefon,) Tj ET
+BT /Helv 7.0 Tf 506.86 752.09 Td (E-Mail-Adresse) Tj ET
+398.86 693.95 m 568.99 693.95 l S
+2 J [] 0 d 0.5 w 71.12 739.47 m 395.45 739.47 l S
+395.45 756.54 m 395.45 739.47 l S
+68.28 756.54 m 68.28 739.47 l S
+BT /Helv 8.0 Tf 71.12 753.94 Td (Name,) Tj ET
+BT /Helv 8.0 Tf 96.82 753.94 Td (Vorname) Tj ET
+68.28 733.78 m 68.28 716.71 l S
+71.12 716.71 m 395.45 716.71 l S
+BT /Helv 8.0 Tf 71.12 731.18 Td (IBAN) Tj ET
+BT /Helv 8.0 Tf 91.92 731.18 Td (\(22) Tj ET
+BT /Helv 8.0 Tf 105.62 731.18 Td (Stellen\)) Tj ET
+395.45 733.78 m 395.45 716.71 l S
+71.12 693.95 m 395.45 693.95 l S
+395.45 711.02 m 395.45 693.95 l S
+68.28 711.02 m 68.28 693.95 l S
+BT /Helv 8.0 Tf 71.12 708.42 Td (BIC) Tj ET
+BT /Helv 8.0 Tf 86.62 708.42 Td (des) Tj ET
+BT /Helv 8.0 Tf 101.62 708.42 Td (Kreditinstituts) Tj ET
+BT /Helv 8.0 Tf 151.62 708.42 Td (\(8) Tj ET
+BT /Helv 8.0 Tf 160.92 708.42 Td (bzw.) Tj ET
+BT /Helv 8.0 Tf 179.32 708.42 Td (11) Tj ET
+BT /Helv 8.0 Tf 190.32 708.42 Td (Stellen\)) Tj ET
+71.12 671.19 m 395.45 671.19 l S
+395.45 688.26 m 395.45 671.19 l S
+68.28 688.26 m 68.28 671.19 l S
+BT /Helv 8.0 Tf 71.12 685.66 Td (Grund) Tj ET
+BT /Helv 8.0 Tf 95.42 685.66 Td (der) Tj ET
+BT /Helv 8.0 Tf 109.12 685.66 Td (RKR) Tj ET
+BT /Helv 8.0 Tf 128.22 685.66 Td (\(Abkürzung) Tj ET
+BT /Helv 8.0 Tf 171.02 685.66 Td (eintragen\),) Tj ET
+BT /Helv 8.0 Tf 211.22 685.66 Td (Datum/Daten) Tj ET
+BT /Helv 8.0 Tf 260.32 685.66 Td (der) Tj ET
+BT /Helv 8.0 Tf 274.02 685.66 Td (Reise\(n\)) Tj ET
+71.12 648.43 m 395.45 648.43 l S
+395.45 665.5 m 395.45 648.43 l S
+68.28 665.5 m 68.28 648.43 l S
+BT /Helv 8.0 Tf 71.12 662.9 Td (noch) Tj ET
+BT /Helv 8.0 Tf 90.52 662.9 Td (Grund) Tj ET
+BT /Helv 8.0 Tf 114.82 662.9 Td (der) Tj ET
+BT /Helv 8.0 Tf 128.52 662.9 Td (RKR) Tj ET
+ 68.85 173.33 m
+ 0.75 0.75 0.75 RG 0.75 0.75 0.75 rg 398.29 173.33 l
+ 398.29 19.7 l
+ 68.85 19.7 l
+ 68.85 173.33 l
+ f
+0.0 0.0 0.0 RG 0.0 0.0 0.0 rg BT /HeBo 8.0 Tf 312.94 323.22 Td (ICH) Tj ET
+BT /HeBo 8.0 Tf 328.94 323.22 Td (BEANTRAGE) Tj ET
+BT /HeBo 8.0 Tf 400.57 323.78 Td (Tagegeld) Tj ET
+BT /Helv 8.0 Tf 71.12 312.97 Td (\(Bei) Tj ET
+BT /Helv 8.0 Tf 87.52 312.97 Td (RRS\)) Tj ET
+BT /Helv 8.0 Tf 109.32 312.97 Td (Az.) Tj ET
+BT /Helv 8.0 Tf 122.92 312.97 Td (der) Tj ET
+BT /Helv 8.0 Tf 136.62 312.97 Td (Sachakten) Tj ET
+BT /Helv 8.0 Tf 176.32 312.97 Td (bzw.) Tj ET
+BT /Helv 8.0 Tf 194.72 312.97 Td (ersuchende) Tj ET
+BT /Helv 8.0 Tf 238.42 312.97 Td (Behörde) Tj ET
+BT /Helv 8.0 Tf 270.62 312.97 Td (und) Tj ET
+BT /Helv 8.0 Tf 286.02 312.97 Td (Az.) Tj ET
+ 518.35 245.02 m
+ 0.99 0.84 0.84 RG 0.99 0.84 0.84 rg 569.56 245.02 l
+ 569.56 19.7 l
+ 518.35 19.7 l
+ 518.35 245.02 l
+ f
+ 463.73 332.64 m
+ 569.56 332.64 l
+ 569.56 244.45 l
+ 463.73 244.45 l
+ 463.73 332.64 l
+ f
+ 387.48 330.94 m
+ 0.0 0.0 0.0 RG 0.0 0.0 0.0 rg 387.48 322.4 l
+ 396.02 326.67 l
+ 387.48 330.94 l
+ f
+1.0 0.0 0.0 RG 1.0 0.0 0.0 rg BT /Helv 5.0 Tf 472.17 327.44 Td (Kürzungsbeträge) Tj ET
+BT /Helv 5.0 Tf 484.37 322.32 Td (-EUR-) Tj ET
+BT /Helv 7.0 Tf 535.94 324.21 Td (EUR) Tj ET
+0.0 0.0 0.0 RG 0.0 0.0 0.0 rg BT /Helv 8.0 Tf 71.12 236.16 Td (Ende) Tj ET
+BT /Helv 8.0 Tf 91.82 236.16 Td (des) Tj ET
+BT /Helv 8.0 Tf 106.82 236.16 Td (Dienstgesch.) Tj ET
+BT /Helv 8.0 Tf 155.02 236.16 Td (\(Datum/Uhrz.\)) Tj ET
+BT /Helv 8.0 Tf 401.14 312.97 Td (Tage) Tj ET
+2 J [] 0 d 0.5 w 463.73 295.66 m 463.73 76.6 l S
+425.6 788.4 m 436.98 799.78 l S
+425.6 799.78 m 436.98 799.78 l S
+436.98 799.78 m 436.98 788.4 l S
+436.98 788.4 m 425.6 788.4 l S
+425.6 788.4 m 425.6 799.78 l S
+425.6 799.78 m 436.98 788.4 l S
+BT /Helv 8.0 Tf 71.12 287.37 Td (Die) Tj ET
+BT /Helv 8.0 Tf 85.32 287.37 Td (Reise) Tj ET
+BT /Helv 8.0 Tf 107.92 287.37 Td (wurde) Tj ET
+BT /Helv 8.0 Tf 131.72 287.37 Td (durchgeführt) Tj ET
+BT /Helv 8.0 Tf 178.62 287.37 Td (entsprechend) Tj ET
+BT /Helv 8.0 Tf 228.92 287.37 Td (beigefügter\(n\)) Tj ET
+BT /Helv 8.0 Tf 85.35 275.42 Td (Genehmigung\(en\)) Tj ET
+BT /Helv 8.0 Tf 151.65 275.42 Td (\(035_001\)) Tj ET
+BT /Helv 8.0 Tf 250.36 275.42 Td (Anlage\(n\)) Tj ET
+BT /Helv 8.0 Tf 287.06 275.42 Td (\(035_003\)) Tj ET
+BT /Helv 8.0 Tf 71.12 261.77 Td (Beginn) Tj ET
+BT /Helv 8.0 Tf 98.02 261.77 Td (der) Tj ET
+BT /Helv 8.0 Tf 111.72 261.77 Td (Dienstreise) Tj ET
+BT /Helv 8.0 Tf 153.82 261.77 Td (\(Datum/Uhrz.\)) Tj ET
+BT /Helv 8.0 Tf 236.13 261.77 Td (Beginn) Tj ET
+BT /Helv 8.0 Tf 263.03 261.77 Td (des) Tj ET
+BT /Helv 8.0 Tf 278.03 261.77 Td (Dienstgesch.) Tj ET
+BT /Helv 8.0 Tf 326.23 261.77 Td (\(Datum/Uhrz.\)) Tj ET
+BT /Helv 8.0 Tf 438.78 312.97 Td (EUR) Tj ET
+BT /Helv 8.0 Tf 426.61 300.46 Td (X) Tj ET
+BT /Helv 8.0 Tf 401.14 235.59 Td (Übernachtungs-) Tj ET
+BT /Helv 8.0 Tf 401.14 227.44 Td (geld) Tj ET
+BT /Helv 7.0 Tf 483.31 234.31 Td (EUR) Tj ET
+ 464.3 295.66 m
+ 1.0 0.0 0.0 RG 1.0 0.0 0.0 rg 569.56 295.66 l
+ 569.56 295.66 l
+ 464.3 295.66 l
+ 464.3 295.66 l
+ f
+464.3 295.66 m 569.56 295.66 l S
+569.56 295.66 m 569.56 295.66 l S
+569.56 295.66 m 464.3 295.66 l S
+464.3 295.66 m 464.3 295.66 l S
+0.0 0.0 0.0 RG 0.0 0.0 0.0 rg BT /Helv 8.0 Tf 236.13 236.16 Td (Ende) Tj ET
+BT /Helv 8.0 Tf 256.83 236.16 Td (der) Tj ET
+BT /Helv 8.0 Tf 270.53 236.16 Td (Dienstreise) Tj ET
+BT /Helv 8.0 Tf 312.63 236.16 Td (\(Datum/Uhrz.\)) Tj ET
+BT /Helv 8.0 Tf 85.35 209.42 Td (Auf) Tj ET
+BT /Helv 8.0 Tf 99.55 209.42 Td (Anordnung) Tj ET
+BT /Helv 8.0 Tf 140.55 209.42 Td (oder) Tj ET
+BT /Helv 8.0 Tf 158.65 209.42 Td (Genehmigung) Tj ET
+BT /Helv 8.0 Tf 85.35 201.27 Td (durch) Tj ET
+BT /Helv 8.0 Tf 236.13 213.4 Td (Dienststelle/Datum) Tj ET
+ 463.73 332.64 m
+ 1.0 0.0 0.0 RG 1.0 0.0 0.0 rg 569.56 332.64 l
+ 569.56 332.64 l
+ 463.73 332.64 l
+ 463.73 332.64 l
+ f
+2 J [] 0 d 1.5 w 463.73 332.64 m 569.56 332.64 l S
+569.56 332.64 m 569.56 332.64 l S
+569.56 332.64 m 463.73 332.64 l S
+463.73 332.64 m 463.73 332.64 l S
+ 463.73 244.45 m
+ 518.35 244.45 l
+ 518.35 244.45 l
+ 463.73 244.45 l
+ 463.73 244.45 l
+ f
+463.73 244.45 m 518.35 244.45 l S
+518.35 244.45 m 518.35 244.45 l S
+518.35 244.45 m 463.73 244.45 l S
+463.73 244.45 m 463.73 244.45 l S
+ 463.73 332.64 m
+ 463.73 332.64 l
+ 463.73 244.45 l
+ 463.73 244.45 l
+ 463.73 332.64 l
+ f
+463.73 332.64 m 463.73 332.64 l S
+463.73 332.64 m 463.73 244.45 l S
+463.73 244.45 m 463.73 244.45 l S
+463.73 244.45 m 463.73 332.64 l S
+ 518.35 332.64 m
+ 518.35 332.64 l
+ 518.35 245.02 l
+ 518.35 245.02 l
+ 518.35 332.64 l
+ f
+2 J [] 0 d 0.5 w 518.35 332.64 m 518.35 332.64 l S
+518.35 332.64 m 518.35 245.02 l S
+518.35 245.02 m 518.35 245.02 l S
+518.35 245.02 m 518.35 332.64 l S
+0.0 0.0 0.0 RG 0.0 0.0 0.0 rg 2 J [] 0 d 1.0 w 68.28 332.64 m 462.59 332.64 l S
+BT /Helv 8.0 Tf 241.82 606.0 Td (Business) Tj ET
+BT /Helv 8.0 Tf 276.32 606.0 Td (25) Tj ET
+BT /Helv 8.0 Tf 71.12 617.38 Td (Ich) Tj ET
+BT /Helv 8.0 Tf 83.92 617.38 Td (besitze) Tj ET
+BT /Helv 8.0 Tf 111.22 617.38 Td (eine) Tj ET
+BT /Helv 8.0 Tf 128.42 617.38 Td (BahnCard/Mir) Tj ET
+BT /Helv 8.0 Tf 179.82 617.38 Td (wurde) Tj ET
+BT /Helv 8.0 Tf 203.62 617.38 Td (aufgegeben,) Tj ET
+BT /Helv 8.0 Tf 249.92 617.38 Td (eine) Tj ET
+BT /Helv 8.0 Tf 267.12 617.38 Td (BahnCard) Tj ET
+BT /Helv 8.0 Tf 305.12 617.38 Td (zu) Tj ET
+BT /Helv 8.0 Tf 315.62 617.38 Td (beschaffen.) Tj ET
+BT /Helv 8.0 Tf 84.78 606.0 Td (Nein) Tj ET
+BT /Helv 8.0 Tf 155.33 606.0 Td (Ja,) Tj ET
+BT /Helv 8.0 Tf 168.13 606.0 Td (und) Tj ET
+BT /Helv 8.0 Tf 183.53 606.0 Td (zwar) Tj ET
+BT /Helv 8.0 Tf 443.81 606.0 Td (25) Tj ET
+BT /Helv 8.0 Tf 483.64 606.0 Td (50) Tj ET
+BT /Helv 8.0 Tf 523.47 606.0 Td (100) Tj ET
+398.29 693.95 m 398.29 642.74 l S
+313.51 802.06 m 568.99 802.06 l S
+568.99 802.06 m 568.99 784.99 l S
+568.99 784.99 m 313.51 784.99 l S
+313.51 784.99 m 313.51 802.06 l S
+ q
+0.0 1.0 -1.0 0.0 124.42 44.730000000000004 cm S
+BT /Helv 7.0 Tf 29.02 88.1 Td (035_002) Tj ET
+BT /Helv 7.0 Tf 29.02 79.2 Td (08.2025) Tj ET
+ Q
+ 401.71 751.99 m
+ 0.0 0.0 0.0 RG 0.0 0.0 0.0 rg 401.71 742.32 l
+ 411.38 747.16 l
+ 401.71 751.99 l
+ f
+2 J [] 0 d 0.5 w 398.29 332.64 m 398.29 19.7 l S
+2 J [] 0 d 1.0 w 68.28 332.64 m 68.28 19.7 l S
+ 569.56 332.64 m
+ 1.0 0.0 0.0 RG 1.0 0.0 0.0 rg 569.56 332.64 l
+ 569.56 19.7 l
+ 569.56 19.7 l
+ 569.56 332.64 l
+ f
+2 J [] 0 d 1.5 w 569.56 332.64 m 569.56 332.64 l S
+569.56 332.64 m 569.56 19.7 l S
+569.56 19.7 m 569.56 19.7 l S
+569.56 19.7 m 569.56 332.64 l S
+ 464.3 321.26 m
+ 569.56 321.26 l
+ 569.56 321.26 l
+ 464.3 321.26 l
+ 464.3 321.26 l
+ f
+2 J [] 0 d 0.5 w 464.3 321.26 m 569.56 321.26 l S
+569.56 321.26 m 569.56 321.26 l S
+569.56 321.26 m 464.3 321.26 l S
+464.3 321.26 m 464.3 321.26 l S
+ 464.3 270.06 m
+ 569.56 270.06 l
+ 569.56 270.06 l
+ 464.3 270.06 l
+ 464.3 270.06 l
+ f
+464.3 270.06 m 569.56 270.06 l S
+569.56 270.06 m 569.56 270.06 l S
+569.56 270.06 m 464.3 270.06 l S
+464.3 270.06 m 464.3 270.06 l S
+0.0 0.0 0.0 RG 0.0 0.0 0.0 rg 2 J [] 0 d 1.0 w 68.28 642.74 m 398.29 642.74 l S
+68.28 637.05 m 568.99 637.05 l S
+568.99 637.05 m 568.99 338.33 l S
+568.99 338.33 m 68.28 338.33 l S
+68.28 338.33 m 68.28 637.05 l S
+BT /HeBo 8.0 Tf 71.12 628.76 Td (Allgemeines) Tj ET
+2 J [] 0 d 0.5 w 68.28 625.67 m 568.99 625.67 l S
+BT /Helv 8.0 Tf 307.25 606.0 Td (Business) Tj ET
+BT /Helv 8.0 Tf 341.75 606.0 Td (50) Tj ET
+BT /Helv 5.0 Tf 415.36 688.18 Td (Grund) Tj ET
+BT /Helv 5.0 Tf 430.76 688.18 Td (der) Tj ET
+BT /Helv 5.0 Tf 439.46 688.18 Td (Reisekostenrechnung) Tj ET
+BT /Helv 5.0 Tf 489.56 688.18 Td (\(RKR\):) Tj ET
+BT /Helv 5.0 Tf 415.36 681.78 Td (Dienstreise) Tj ET
+BT /Helv 5.0 Tf 442.06 681.78 Td (=) Tj ET
+BT /Helv 5.0 Tf 446.36 681.78 Td (DR) Tj ET
+BT /Helv 5.0 Tf 415.36 675.38 Td (Vorstellungsreise=) Tj ET
+BT /Helv 5.0 Tf 458.46 675.38 Td (VR) Tj ET
+BT /Helv 5.0 Tf 415.36 668.98 Td (Aus-) Tj ET
+BT /Helv 5.0 Tf 427.06 668.98 Td (u.) Tj ET
+BT /Helv 5.0 Tf 432.66 668.98 Td (Fortbildungsreise=) Tj ET
+BT /Helv 5.0 Tf 475.86 668.98 Td (AFR) Tj ET
+BT /Helv 5.0 Tf 415.36 662.58 Td (Reise) Tj ET
+BT /Helv 5.0 Tf 429.66 662.58 Td (d.) Tj ET
+BT /Helv 5.0 Tf 435.26 662.58 Td (Personalrats=) Tj ET
+BT /Helv 5.0 Tf 467.86 662.58 Td (RPR) Tj ET
+BT /Helv 5.0 Tf 415.36 656.18 Td (Reise) Tj ET
+BT /Helv 5.0 Tf 429.66 656.18 Td (in) Tj ET
+BT /Helv 5.0 Tf 435.06 656.18 Td (einer) Tj ET
+BT /Helv 5.0 Tf 447.76 656.18 Td (Rechtssache:) Tj ET
+BT /Helv 5.0 Tf 479.56 656.18 Td (RRS) Tj ET
+BT /Helv 5.0 Tf 415.36 649.78 Td (Genehmigungsfreie) Tj ET
+BT /Helv 5.0 Tf 460.66 649.78 Td (Reise=) Tj ET
+BT /Helv 5.0 Tf 477.86 649.78 Td (GNE) Tj ET
+BT /Helv 5.0 Tf 415.36 643.38 Td (Sonstige) Tj ET
+BT /Helv 5.0 Tf 436.36 643.38 Td (Reise=) Tj ET
+BT /Helv 5.0 Tf 453.56 643.38 Td (Bitte) Tj ET
+BT /Helv 5.0 Tf 465.06 643.38 Td (ohne) Tj ET
+BT /Helv 5.0 Tf 477.66 643.38 Td (Abkürzung) Tj ET
+BT /Helv 5.0 Tf 503.06 643.38 Td (erläutern) Tj ET
+ 411.38 683.71 m
+ 411.38 674.04 l
+ 401.71 678.88 l
+ 411.38 683.71 l
+ f
+BT /Helv 8.0 Tf 372.69 606.0 Td (Business) Tj ET
+BT /Helv 8.0 Tf 407.19 606.0 Td (100) Tj ET
+2 J [] 0 d 0.5 w 68.28 600.07 m 568.99 600.07 l S
+BT /Helv 8.0 Tf 71.12 591.78 Td (Geschäftskundenrabatt) Tj ET
+BT /Helv 8.0 Tf 85.35 577.55 Td (Ja) Tj ET
+BT /Helv 8.0 Tf 85.35 559.92 Td (Nein) Tj ET
+BT /Helv 8.0 Tf 103.95 559.92 Td (\(bitte) Tj ET
+BT /Helv 8.0 Tf 123.85 559.92 Td () Tj ET
+BT /HeBo 8.0 Tf 123.85 559.92 Td (Begründung) Tj ET
+BT /HeBo 8.0 Tf 173.65 559.92 Td (bei) Tj ET
+BT /HeBo 8.0 Tf 187.35 559.92 Td (nein) Tj ET
+BT /Helv 8.0 Tf 203.75 559.92 Td () Tj ET
+BT /Helv 8.0 Tf 205.95 559.92 Td (angeben,) Tj ET
+BT /Helv 8.0 Tf 241.15 559.92 Td (wenn) Tj ET
+BT /Helv 8.0 Tf 262.25 559.92 Td (Sie) Tj ET
+BT /Helv 8.0 Tf 275.95 559.92 Td (keine) Tj ET
+BT /Helv 8.0 Tf 297.15 559.92 Td (BahnCard) Tj ET
+BT /Helv 8.0 Tf 335.15 559.92 Td (haben) Tj ET
+BT /Helv 8.0 Tf 359.35 559.92 Td (oder) Tj ET
+BT /Helv 8.0 Tf 377.45 559.92 Td (aber) Tj ET
+BT /Helv 8.0 Tf 395.55 559.92 Td (die) Tj ET
+BT /Helv 8.0 Tf 408.35 559.92 Td (BahnCard) Tj ET
+BT /Helv 8.0 Tf 446.35 559.92 Td (Business) Tj ET
+BT /Helv 8.0 Tf 480.85 559.92 Td (besitzen\)) Tj ET
+68.28 540.33 m 568.99 540.33 l S
+BT /Helv 8.0 Tf 71.12 532.04 Td (Ich) Tj ET
+BT /Helv 8.0 Tf 83.92 532.04 Td (besitze) Tj ET
+BT /Helv 8.0 Tf 111.22 532.04 Td (eine) Tj ET
+BT /Helv 8.0 Tf 128.42 532.04 Td (Ermäßigungskarte) Tj ET
+BT /Helv 8.0 Tf 195.72 532.04 Td (\(z.) Tj ET
+BT /Helv 8.0 Tf 206.72 532.04 Td (B.) Tj ET
+BT /Helv 8.0 Tf 216.42 532.04 Td (Monatskarte,) Tj ET
+BT /Helv 8.0 Tf 264.62 532.04 Td (Jobticket) Tj ET
+BT /Helv 8.0 Tf 298.22 532.04 Td (etc.\)) Tj ET
+BT /Helv 8.0 Tf 85.35 517.81 Td (Nein) Tj ET
+BT /Helv 8.0 Tf 156.47 517.24 Td (Ja,) Tj ET
+BT /Helv 8.0 Tf 169.27 517.24 Td (und) Tj ET
+BT /Helv 8.0 Tf 184.67 517.24 Td (zwar) Tj ET
+BT /Helv 8.0 Tf 203.57 517.24 Td (für) Tj ET
+BT /Helv 8.0 Tf 215.17 517.24 Td (die) Tj ET
+BT /Helv 8.0 Tf 227.97 517.24 Td (Strecke:) Tj ET
+68.28 497.65 m 568.99 497.65 l S
+BT /Helv 8.0 Tf 71.12 489.36 Td (Das) Tj ET
+BT /Helv 8.0 Tf 87.52 489.36 Td (Dienstgeschäft) Tj ET
+BT /Helv 8.0 Tf 142.42 489.36 Td (fand) Tj ET
+BT /Helv 8.0 Tf 160.12 489.36 Td (im) Tj ET
+BT /Helv 8.0 Tf 170.82 489.36 Td (Umkreis) Tj ET
+BT /Helv 8.0 Tf 202.42 489.36 Td (von) Tj ET
+BT /Helv 8.0 Tf 217.52 489.36 Td (zwei) Tj ET
+BT /Helv 8.0 Tf 235.52 489.36 Td (Kilometern) Tj ET
+BT /Helv 8.0 Tf 275.82 489.36 Td (zur) Tj ET
+BT /Helv 8.0 Tf 289.02 489.36 Td (Dienststätte) Tj ET
+BT /Helv 8.0 Tf 333.22 489.36 Td (oder) Tj ET
+BT /Helv 8.0 Tf 351.32 489.36 Td (Wohnung) Tj ET
+BT /Helv 8.0 Tf 387.82 489.36 Td (statt.) Tj ET
+BT /Helv 8.0 Tf 85.35 475.14 Td (Nein) Tj ET
+BT /Helv 8.0 Tf 156.47 475.14 Td (Ja) Tj ET
+68.28 469.2 m 568.99 469.2 l S
+BT /Helv 8.0 Tf 71.12 460.91 Td (Mir) Tj ET
+BT /Helv 8.0 Tf 84.52 460.91 Td (wurde) Tj ET
+BT /Helv 8.0 Tf 108.32 460.91 Td (des) Tj ET
+BT /Helv 8.0 Tf 123.32 460.91 Td (Amtes) Tj ET
+BT /Helv 8.0 Tf 148.12 460.91 Td (wegen) Tj ET
+BT /Helv 8.0 Tf 173.62 460.91 Td (unentgeltliche) Tj ET
+BT /Helv 8.0 Tf 224.82 460.91 Td (Verpflegung/Teilverpflegung/Unterkunft) Tj ET
+BT /Helv 8.0 Tf 365.82 460.91 Td (bereitgestellt?) Tj ET
+BT /Helv 8.0 Tf 85.35 446.12 Td (Ja) Tj ET
+BT /Helv 8.0 Tf 95.95 446.12 Td (\(Bitte) Tj ET
+BT /Helv 8.0 Tf 116.75 446.12 Td (Tage/Mahlzeiten/Nächte) Tj ET
+BT /Helv 8.0 Tf 205.15 446.12 Td (angeben\)) Tj ET
+BT /Helv 8.0 Tf 523.47 446.12 Td (Nein) Tj ET
+68.28 440.75 m 568.99 440.75 l S
+BT /Helv 8.0 Tf 71.12 432.46 Td (Im) Tj ET
+BT /Helv 8.0 Tf 82.22 432.46 Td (Zusammenhang) Tj ET
+BT /Helv 8.0 Tf 141.92 432.46 Td (mit) Tj ET
+BT /Helv 8.0 Tf 154.82 432.46 Td (dieser) Tj ET
+BT /Helv 8.0 Tf 178.72 432.46 Td (Reise) Tj ET
+BT /Helv 8.0 Tf 201.32 432.46 Td (besteht) Tj ET
+BT /Helv 8.0 Tf 229.52 432.46 Td (ein) Tj ET
+BT /Helv 8.0 Tf 242.32 432.46 Td (Anspruch) Tj ET
+BT /Helv 8.0 Tf 278.12 432.46 Td (auf) Tj ET
+BT /Helv 8.0 Tf 291.42 432.46 Td (Trennungsgeld) Tj ET
+BT /Helv 8.0 Tf 346.72 432.46 Td (\(Ein) Tj ET
+BT /Helv 8.0 Tf 363.12 432.46 Td (Anspruch) Tj ET
+BT /Helv 8.0 Tf 398.92 432.46 Td (auf) Tj ET
+BT /Helv 8.0 Tf 412.22 432.46 Td (Trennungsgeld) Tj ET
+BT /Helv 8.0 Tf 467.52 432.46 Td (besteht) Tj ET
+BT /Helv 8.0 Tf 495.72 432.46 Td (auch,) Tj ET
+BT /Helv 8.0 Tf 517.32 432.46 Td (wenn) Tj ET
+BT /Helv 8.0 Tf 538.42 432.46 Td (es) Tj ET
+BT /Helv 8.0 Tf 71.12 422.27 Td (durch) Tj ET
+BT /Helv 8.0 Tf 93.22 422.27 Td (Kürzungen) Tj ET
+BT /Helv 8.0 Tf 133.72 422.27 Td (zu) Tj ET
+BT /Helv 8.0 Tf 144.22 422.27 Td (keinem) Tj ET
+BT /Helv 8.0 Tf 172.12 422.27 Td (Auszahlungsbetrag) Tj ET
+BT /Helv 8.0 Tf 242.22 422.27 Td (kommen) Tj ET
+BT /Helv 8.0 Tf 275.02 422.27 Td (würde\).) Tj ET
+BT /Helv 8.0 Tf 85.35 409.7 Td (Nein) Tj ET
+BT /Helv 8.0 Tf 156.47 409.7 Td (Ja) Tj ET
+68.28 403.77 m 568.99 403.77 l S
+BT /Helv 8.0 Tf 71.12 395.48 Td (Die) Tj ET
+BT /Helv 8.0 Tf 85.32 395.48 Td (Dienstreise) Tj ET
+BT /Helv 8.0 Tf 127.42 395.48 Td (wurde) Tj ET
+BT /Helv 8.0 Tf 151.22 395.48 Td (mit) Tj ET
+BT /Helv 8.0 Tf 164.12 395.48 Td (Urlaub,) Tj ET
+BT /Helv 8.0 Tf 192.02 395.48 Td (Zeitausgleich) Tj ET
+BT /Helv 8.0 Tf 241.12 395.48 Td (pp.) Tj ET
+BT /Helv 8.0 Tf 254.32 395.48 Td (von) Tj ET
+BT /Helv 8.0 Tf 269.42 395.48 Td (mehr) Tj ET
+BT /Helv 8.0 Tf 289.82 395.48 Td (als) Tj ET
+BT /Helv 8.0 Tf 302.22 395.48 Td (5) Tj ET
+BT /Helv 8.0 Tf 308.82 395.48 Td (Tagen) Tj ET
+BT /Helv 8.0 Tf 333.62 395.48 Td (verbunden) Tj ET
+BT /Helv 8.0 Tf 85.35 381.25 Td (Nein) Tj ET
+BT /Helv 8.0 Tf 156.47 381.25 Td (Ja;) Tj ET
+BT /Helv 8.0 Tf 169.27 381.25 Td (eine) Tj ET
+BT /Helv 8.0 Tf 186.47 381.25 Td (detaillierte) Tj ET
+BT /Helv 8.0 Tf 224.97 381.25 Td (Darstellung) Tj ET
+BT /Helv 8.0 Tf 267.47 381.25 Td (d.) Tj ET
+BT /Helv 8.0 Tf 276.27 381.25 Td (Reiseablaufs) Tj ET
+BT /Helv 8.0 Tf 324.57 381.25 Td (ist) Tj ET
+BT /Helv 8.0 Tf 334.77 381.25 Td (beigefügt) Tj ET
+68.28 375.32 m 568.99 375.32 l S
+BT /Helv 8.0 Tf 71.12 367.03 Td (Es) Tj ET
+BT /Helv 8.0 Tf 82.62 367.03 Td (liegt) Tj ET
+BT /Helv 8.0 Tf 99.42 367.03 Td (eine) Tj ET
+BT /Helv 8.0 Tf 116.62 367.03 Td (Auslandsdienstreise) Tj ET
+BT /Helv 8.0 Tf 190.02 367.03 Td (vor.) Tj ET
+BT /Helv 8.0 Tf 85.35 352.8 Td (Nein) Tj ET
+BT /Helv 8.0 Tf 156.47 352.8 Td (Ja;) Tj ET
+BT /Helv 8.0 Tf 169.27 352.8 Td (detaillierte) Tj ET
+BT /Helv 8.0 Tf 207.77 352.8 Td (Angaben) Tj ET
+BT /Helv 8.0 Tf 241.67 352.8 Td (hierzu) Tj ET
+BT /Helv 8.0 Tf 265.47 352.8 Td (sind) Tj ET
+BT /Helv 8.0 Tf 282.27 352.8 Td (beigefügt) Tj ET
+BT /Helv 6.0 Tf 156.47 343.41 Td (\(§§) Tj ET
+BT /Helv 6.0 Tf 166.77 343.41 Td (15) Tj ET
+BT /Helv 6.0 Tf 175.07 343.41 Td (bis) Tj ET
+BT /Helv 6.0 Tf 184.37 343.41 Td (18) Tj ET
+BT /Helv 6.0 Tf 192.67 343.41 Td (NRKVO) Tj ET
+BT /Helv 6.0 Tf 215.67 343.41 Td (sind) Tj ET
+BT /Helv 6.0 Tf 228.27 343.41 Td (zu) Tj ET
+BT /Helv 6.0 Tf 236.17 343.41 Td (beachten\)) Tj ET
+ 517.78 244.45 m
+ 1.0 0.0 0.0 RG 1.0 0.0 0.0 rg 568.99 244.45 l
+ 568.99 244.45 l
+ 517.78 244.45 l
+ 517.78 244.45 l
+ f
+517.78 244.45 m 568.99 244.45 l S
+568.99 244.45 m 568.99 244.45 l S
+568.99 244.45 m 517.78 244.45 l S
+517.78 244.45 m 517.78 244.45 l S
+0.0 0.0 0.0 RG 0.0 0.0 0.0 rg 68.28 321.26 m 463.16 321.26 l S
+68.28 295.66 m 463.16 295.66 l S
+233.29 270.06 m 233.29 196.09 l S
+68.28 270.06 m 463.16 270.06 l S
+68.28 244.45 m 463.16 244.45 l S
+BT /Helv 8.0 Tf 426.61 274.85 Td (X) Tj ET
+BT /Helv 8.0 Tf 426.61 249.25 Td (X) Tj ET
+ 518.35 244.45 m
+ 1.0 0.0 0.0 RG 1.0 0.0 0.0 rg 518.35 244.45 l
+ 518.35 19.7 l
+ 518.35 19.7 l
+ 518.35 244.45 l
+ f
+2 J [] 0 d 1.5 w 518.35 244.45 m 518.35 244.45 l S
+518.35 244.45 m 518.35 19.7 l S
+518.35 19.7 m 518.35 19.7 l S
+518.35 19.7 m 518.35 244.45 l S
+ 518.35 19.7 m
+ 569.56 19.7 l
+ 569.56 19.7 l
+ 518.35 19.7 l
+ 518.35 19.7 l
+ f
+518.35 19.7 m 569.56 19.7 l S
+569.56 19.7 m 569.56 19.7 l S
+569.56 19.7 m 518.35 19.7 l S
+518.35 19.7 m 518.35 19.7 l S
+0.0 0.0 0.0 RG 0.0 0.0 0.0 rg 2 J [] 0 d 0.5 w 68.28 196.09 m 517.21 196.09 l S
+68.28 244.45 m 463.16 244.45 l S
+68.28 221.69 m 398.86 221.69 l S
+ 517.78 196.09 m
+ 1.0 0.0 0.0 RG 1.0 0.0 0.0 rg 568.99 196.09 l
+ 568.99 196.09 l
+ 517.78 196.09 l
+ 517.78 196.09 l
+ f
+517.78 196.09 m 568.99 196.09 l S
+568.99 196.09 m 568.99 196.09 l S
+568.99 196.09 m 517.78 196.09 l S
+517.78 196.09 m 517.78 196.09 l S
+ 517.78 150.57 m
+ 568.99 150.57 l
+ 568.99 150.57 l
+ 517.78 150.57 l
+ 517.78 150.57 l
+ f
+517.78 150.57 m 568.99 150.57 l S
+568.99 150.57 m 568.99 150.57 l S
+568.99 150.57 m 517.78 150.57 l S
+517.78 150.57 m 517.78 150.57 l S
+ 517.78 105.05 m
+ 568.99 105.05 l
+ 568.99 105.05 l
+ 517.78 105.05 l
+ 517.78 105.05 l
+ f
+517.78 105.05 m 568.99 105.05 l S
+568.99 105.05 m 568.99 105.05 l S
+568.99 105.05 m 517.78 105.05 l S
+517.78 105.05 m 517.78 105.05 l S
+0.0 0.0 0.0 RG 0.0 0.0 0.0 rg 2 J [] 0 d 1.0 w 68.28 19.7 m 517.21 19.7 l S
+2 J [] 0 d 0.5 w 68.28 173.33 m 378.38 173.33 l S
+BT /Helv 8.0 Tf 426.61 20.51 Td (X) Tj ET
+BT /Helv 7.0 Tf 483.31 188.79 Td (EUR) Tj ET
+BT /Helv 7.0 Tf 400.57 188.79 Td (Erstattung) Tj ET
+BT /Helv 7.0 Tf 434.27 188.79 Td (der) Tj ET
+BT /Helv 7.0 Tf 400.57 181.67 Td (Übernachtungs-) Tj ET
+BT /Helv 7.0 Tf 400.57 174.55 Td (kosten) Tj ET
+463.73 127.81 m 517.78 127.81 l S
+398.29 105.05 m 517.78 105.05 l S
+BT /Helv 7.0 Tf 400.57 143.27 Td (Erstattung) Tj ET
+BT /Helv 7.0 Tf 434.27 143.27 Td (der) Tj ET
+BT /Helv 7.0 Tf 400.57 136.15 Td (Fahrt-) Tj ET
+BT /Helv 7.0 Tf 421.07 136.15 Td (und) Tj ET
+BT /Helv 7.0 Tf 400.57 129.03 Td (Flugkosten) Tj ET
+398.29 76.6 m 517.78 76.6 l S
+BT /Helv 6.0 Tf 399.43 98.75 Td (Sonstige) Tj ET
+BT /Helv 6.0 Tf 424.33 98.75 Td (Fahrtkosten) Tj ET
+BT /Helv 6.0 Tf 400.57 90.21 Td (\(z.) Tj ET
+BT /Helv 6.0 Tf 408.87 90.21 Td (B.) Tj ET
+BT /Helv 6.0 Tf 416.27 90.21 Td (Zu-) Tj ET
+BT /Helv 6.0 Tf 426.97 90.21 Td (und) Tj ET
+BT /Helv 6.0 Tf 438.57 90.21 Td (Abgang) Tj ET
+BT /Helv 6.0 Tf 400.57 84.05 Td (erläutern) Tj ET
+BT /Helv 6.0 Tf 425.77 84.05 Td (und) Tj ET
+BT /Helv 6.0 Tf 437.37 84.05 Td (belegen\)) Tj ET
+BT /Helv 6.0 Tf 400.57 168.16 Td (\(Bitte) Tj ET
+BT /Helv 6.0 Tf 416.27 168.16 Td (belegen) Tj ET
+BT /Helv 6.0 Tf 439.07 168.16 Td (und) Tj ET
+BT /Helv 6.0 Tf 450.67 168.16 Td (bei) Tj ET
+BT /Helv 6.0 Tf 400.57 162.77 Td (Kosten) Tj ET
+BT /Helv 6.0 Tf 420.87 162.77 Td (über) Tj ET
+BT /Helv 6.0 Tf 434.47 162.77 Td (100) Tj ET
+BT /Helv 6.0 Tf 446.07 162.77 Td (EUR) Tj ET
+BT /Helv 6.0 Tf 400.57 157.38 Td (je) Tj ET
+BT /Helv 6.0 Tf 406.87 157.38 Td (Übernachtung) Tj ET
+BT /Helv 6.0 Tf 400.57 151.99 Td (begründen\)) Tj ET
+BT /Helv 6.0 Tf 400.57 121.51 Td (\(Bitte) Tj ET
+BT /Helv 6.0 Tf 416.27 121.51 Td (belegen\)) Tj ET
+BT /Helv 6.0 Tf 400.57 115.35 Td (Wagenklasse) Tj ET
+BT /Helv 7.0 Tf 400.0 69.3 Td (Wegstreckenentschädigung) Tj ET
+398.29 42.46 m 517.78 42.46 l S
+BT /Helv 6.0 Tf 467.34 144.27 Td (Fahrkarte) Tj ET
+BT /Helv 6.0 Tf 494.74 144.27 Td (-EUR-) Tj ET
+BT /Helv 6.0 Tf 466.44 121.51 Td (Zuschläge) Tj ET
+BT /Helv 6.0 Tf 495.64 121.51 Td (-EUR-) Tj ET
+BT /Helv 7.0 Tf 483.31 97.75 Td (EUR) Tj ET
+BT /Helv 7.0 Tf 407.82 55.64 Td (km) Tj ET
+BT /Helv 7.0 Tf 446.04 55.64 Td (EUR) Tj ET
+BT /Helv 7.0 Tf 464.81 55.64 Td (EUR) Tj ET
+BT /Helv 8.0 Tf 426.61 43.27 Td (X) Tj ET
+68.28 150.57 m 517.78 150.57 l S
+68.28 116.43 m 398.29 116.43 l S
+BT /HeBo 8.0 Tf 71.12 139.43 Td (Beförderungsmittel) Tj ET
+BT /HeBo 8.0 Tf 85.35 125.78 Td (Bahn/) Tj ET
+BT /HeBo 8.0 Tf 85.35 117.63 Td (Bus) Tj ET
+BT /Helv 8.0 Tf 129.16 125.78 Td (Dienst-) Tj ET
+BT /Helv 8.0 Tf 129.16 117.63 Td (Kfz) Tj ET
+BT /HeBo 8.0 Tf 176.39 125.78 Td (Privates) Tj ET
+BT /HeBo 8.0 Tf 209.39 125.78 Td (Kfz) Tj ET
+BT /Helv 8.0 Tf 242.96 131.47 Td (Privater) Tj ET
+BT /Helv 8.0 Tf 272.76 131.47 Td (Pkw) Tj ET
+BT /Helv 7.0 Tf 328.88 139.28 Td (sonstiges) Tj ET
+BT /Helv 7.0 Tf 360.38 139.28 Td (Be-) Tj ET
+BT /Helv 7.0 Tf 328.88 132.6 Td (förderungsmittel) Tj ET
+BT /Helv 7.0 Tf 381.08 132.6 Td (oder) Tj ET
+BT /Helv 7.0 Tf 328.88 125.93 Td (Mitnahme) Tj ET
+BT /Helv 7.0 Tf 361.48 125.93 Td (Anhänger) Tj ET
+BT /Helv 8.0 Tf 71.12 165.04 Td (Reiseziel/Reiseweg) Tj ET
+BT /Helv 7.0 Tf 71.12 108.56 Td (Erläuterungen) Tj ET
+BT /Helv 7.0 Tf 117.02 108.56 Td (\(z.) Tj ET
+BT /Helv 7.0 Tf 126.62 108.56 Td (B.) Tj ET
+BT /Helv 7.0 Tf 135.12 108.56 Td (Reisezweck,) Tj ET
+BT /Helv 7.0 Tf 176.22 108.56 Td (Begründung) Tj ET
+BT /Helv 7.0 Tf 216.32 108.56 Td (bei) Tj ET
+BT /Helv 7.0 Tf 227.62 108.56 Td (Benutzung) Tj ET
+BT /Helv 7.0 Tf 263.02 108.56 Td (des) Tj ET
+BT /Helv 7.0 Tf 276.22 108.56 Td (privaten) Tj ET
+BT /Helv 7.0 Tf 303.02 108.56 Td (Pkw) Tj ET
+BT /Helv 7.0 Tf 318.02 108.56 Td (in) Tj ET
+BT /Helv 7.0 Tf 325.42 108.56 Td (Sonderfällen) Tj ET
+BT /Helv 7.0 Tf 366.82 108.56 Td () Tj ET
+BT /Helv 7.0 Tf 71.12 101.44 Td (oder) Tj ET
+BT /Helv 7.0 Tf 87.02 101.44 Td (des) Tj ET
+BT /Helv 7.0 Tf 100.22 101.44 Td (sonstigen) Tj ET
+BT /Helv 7.0 Tf 132.12 101.44 Td (Beförderungsmittels,) Tj ET
+BT /Helv 7.0 Tf 198.32 101.44 Td (Namen) Tj ET
+BT /Helv 7.0 Tf 222.92 101.44 Td (von) Tj ET
+BT /Helv 7.0 Tf 236.12 101.44 Td (mitfahrenden) Tj ET
+BT /Helv 7.0 Tf 279.02 101.44 Td (Personen,) Tj ET
+BT /Helv 7.0 Tf 312.82 101.44 Td (Begründung) Tj ET
+BT /Helv 7.0 Tf 71.12 94.32 Td (Übernachtungskosten) Tj ET
+BT /Helv 7.0 Tf 141.12 94.32 Td (und) Tj ET
+BT /Helv 7.0 Tf 154.72 94.32 Td (Nebenkosten,) Tj ET
+BT /Helv 7.0 Tf 199.82 94.32 Td (bei) Tj ET
+BT /Helv 7.0 Tf 211.12 94.32 Td (Auslandsdienstreisen;) Tj ET
+BT /Helv 7.0 Tf 281.62 94.32 Td (Ort,) Tj ET
+BT /Helv 7.0 Tf 295.02 94.32 Td (Datum) Tj ET
+BT /Helv 7.0 Tf 317.62 94.32 Td (und) Tj ET
+BT /Helv 7.0 Tf 331.22 94.32 Td (Zeit) Tj ET
+BT /Helv 7.0 Tf 344.82 94.32 Td (des) Tj ET
+BT /Helv 7.0 Tf 358.02 94.32 Td () Tj ET
+BT /Helv 7.0 Tf 71.12 87.2 Td (Grenzübertritts) Tj ET
+BT /Helv 7.0 Tf 119.12 87.2 Td (und) Tj ET
+BT /Helv 7.0 Tf 132.72 87.2 Td (Angabe) Tj ET
+BT /Helv 7.0 Tf 158.82 87.2 Td (der) Tj ET
+BT /Helv 7.0 Tf 170.82 87.2 Td (Zwischenheimfahrten) Tj ET
+BT /Helv 7.0 Tf 239.32 87.2 Td (bei) Tj ET
+BT /Helv 7.0 Tf 250.62 87.2 Td (einer) Tj ET
+BT /Helv 7.0 Tf 268.12 87.2 Td (mehrtägigen) Tj ET
+BT /Helv 7.0 Tf 309.02 87.2 Td (DR\)) Tj ET
+68.28 173.33 m 398.29 173.33 l S
+BT /Helv 7.0 Tf 105.22 188.79 Td (Das) Tj ET
+BT /Helv 7.0 Tf 119.62 188.79 Td (grau) Tj ET
+BT /Helv 7.0 Tf 135.53 188.79 Td (unterlegte) Tj ET
+BT /Helv 7.0 Tf 168.53 188.79 Td (Feld) Tj ET
+BT /Helv 7.0 Tf 184.13 188.79 Td (ist) Tj ET
+BT /Helv 7.0 Tf 193.03 188.79 Td (nur) Tj ET
+BT /Helv 7.0 Tf 205.03 188.79 Td (auszufüllen,) Tj ET
+BT /Helv 7.0 Tf 244.43 188.79 Td (wenn) Tj ET
+BT /Helv 7.0 Tf 262.93 188.79 Td (der) Tj ET
+BT /Helv 7.0 Tf 274.93 188.79 Td (Dienstreiseantrag) Tj ET
+BT /Helv 7.0 Tf 331.73 188.79 Td (\(035_001\)) Tj ET
+BT /Helv 7.0 Tf 116.88 181.67 Td (nicht) Tj ET
+BT /Helv 7.0 Tf 133.58 181.67 Td (beigefügt) Tj ET
+BT /Helv 7.0 Tf 164.38 181.67 Td (zu) Tj ET
+BT /Helv 7.0 Tf 173.68 181.67 Td (sein) Tj ET
+BT /Helv 7.0 Tf 188.48 181.67 Td (braucht,) Tj ET
+BT /Helv 7.0 Tf 215.58 181.67 Td (wenn) Tj ET
+BT /Helv 7.0 Tf 234.08 181.67 Td (Abweichungen) Tj ET
+BT /Helv 7.0 Tf 281.88 181.67 Td (zum) Tj ET
+BT /Helv 7.0 Tf 297.08 181.67 Td (Dienstreiseantrag) Tj ET
+BT /Helv 7.0 Tf 150.47 174.55 Td (anzugeben) Tj ET
+BT /Helv 7.0 Tf 187.07 174.55 Td (oder) Tj ET
+BT /Helv 7.0 Tf 202.97 174.55 Td (wenn) Tj ET
+BT /Helv 7.0 Tf 221.47 174.55 Td (Erläuterungen) Tj ET
+BT /Helv 7.0 Tf 267.37 174.55 Td (zu) Tj ET
+BT /Helv 7.0 Tf 276.67 174.55 Td (machen) Tj ET
+BT /Helv 7.0 Tf 303.57 174.55 Td (sind.) Tj ET
+ 387.48 184.71 m
+ 395.45 184.71 l
+ 391.47 176.74 l
+ 387.48 184.71 l
+ f
+ 72.83 184.71 m
+ 80.8 184.71 l
+ 76.82 176.74 l
+ 72.83 184.71 l
+ f
+BT /Helv 6.0 Tf 242.96 124.35 Td (-Begründungspflicht-) Tj ET
+BT /Helv 6.0 Tf 242.96 118.19 Td (\(§) Tj ET
+BT /Helv 6.0 Tf 249.96 118.19 Td (5) Tj ET
+BT /Helv 6.0 Tf 254.96 118.19 Td (III) Tj ET
+BT /Helv 6.0 Tf 261.46 118.19 Td (NRKVO\)) Tj ET
+BT /Helv 6.0 Tf 176.39 118.09 Td (\(§) Tj ET
+BT /Helv 6.0 Tf 183.39 118.09 Td (5) Tj ET
+BT /Helv 6.0 Tf 188.39 118.09 Td (II) Tj ET
+BT /Helv 6.0 Tf 193.29 118.09 Td (NRKVO\)) Tj ET
+2 J [] 0 d 0.5 w 463.73 65.22 m 463.73 19.7 l S
+BT /Helv 6.0 Tf 401.14 220.51 Td (\(ohne) Tj ET
+BT /Helv 6.0 Tf 418.04 220.51 Td (Beleg\)) Tj ET
+BT /Helv 6.0 Tf 328.88 118.66 Td (-) Tj ET
+BT /Helv 6.0 Tf 332.58 118.66 Td (Begründungspflicht) Tj ET
+BT /Helv 6.0 Tf 328.88 112.89 Td (-) Tj ET
+71.62 719.43 m 80.3 719.43 l S
+83.0 719.43 m 91.68 719.43 l S
+94.38 719.43 m 103.06 719.43 l S
+105.76 719.43 m 114.44 719.43 l S
+119.99 719.43 m 128.66 719.43 l S
+131.37 719.43 m 140.04 719.43 l S
+142.75 719.43 m 151.42 719.43 l S
+154.13 719.43 m 162.8 719.43 l S
+168.35 719.43 m 177.02 719.43 l S
+179.73 719.43 m 188.4 719.43 l S
+191.11 719.43 m 199.78 719.43 l S
+202.49 719.43 m 211.16 719.43 l S
+216.72 719.43 m 225.39 719.43 l S
+228.1 719.43 m 236.77 719.43 l S
+239.48 719.43 m 248.15 719.43 l S
+250.86 719.43 m 259.53 719.43 l S
+265.08 719.43 m 273.75 719.43 l S
+276.46 719.43 m 285.13 719.43 l S
+287.84 719.43 m 296.51 719.43 l S
+299.22 719.43 m 307.89 719.43 l S
+313.44 719.43 m 322.12 719.43 l S
+324.82 719.43 m 333.5 719.43 l S
+endstream
+endobj
+6 0 obj
+[
+11 0 R
+13 0 R
+15 0 R
+17 0 R
+19 0 R
+21 0 R
+23 0 R
+25 0 R
+27 0 R
+29 0 R
+31 0 R
+33 0 R
+35 0 R
+37 0 R
+39 0 R
+41 0 R
+43 0 R
+45 0 R
+47 0 R
+49 0 R
+51 0 R
+53 0 R
+55 0 R
+57 0 R
+59 0 R
+61 0 R
+63 0 R
+65 0 R
+67 0 R
+69 0 R
+72 0 R
+73 0 R
+76 0 R
+79 0 R
+82 0 R
+85 0 R
+88 0 R
+91 0 R
+94 0 R
+97 0 R
+100 0 R
+102 0 R
+105 0 R
+108 0 R
+110 0 R
+113 0 R
+116 0 R
+119 0 R
+121 0 R
+124 0 R
+127 0 R
+130 0 R
+133 0 R
+136 0 R
+139 0 R
+142 0 R
+144 0 R
+146 0 R
+148 0 R
+151 0 R
+154 0 R
+156 0 R
+158 0 R
+160 0 R
+162 0 R
+164 0 R
+166 0 R
+168 0 R
+170 0 R
+173 0 R
+175 0 R
+177 0 R
+179 0 R
+182 0 R
+185 0 R
+188 0 R
+191 0 R
+194 0 R
+196 0 R
+198 0 R
+200 0 R
+202 0 R
+204 0 R
+206 0 R
+208 0 R
+210 0 R
+212 0 R
+214 0 R
+]
+endobj
+7 0 obj
+<< /Type /Page
+/Parent 3 0 R
+/Annots 9 0 R
+/MediaBox [ 0 0 595.28 841.89 ]
+/Contents [ 8 0 R ]
+/AA << /O << /S /JavaScript /JS (
+SYS_RESET_BG_COLORS_UPON_ALL_PAGES\(\);) >>
+ >>
+/Resources
+<< /ProcSet [ /PDF /ImageC ] 
+ /Font << /Helv 350 0 R
+/HeBo 351 0 R
+>>>>
+>>
+endobj
+8 0 obj
+<< /Length 10611 >>
+stream
+0.0 0.0 0.0 RG 0.0 0.0 0.0 rg 2 J [] 0 d 0.5 w 463.73 813.44 m 463.73 782.15 l S
+BT /Helv 8.0 Tf 71.12 460.91 Td (*=) Tj ET
+BT /Helv 8.0 Tf 81.12 460.91 Td (Hinweis) Tj ET
+BT /Helv 8.0 Tf 111.22 460.91 Td (auf) Tj ET
+BT /Helv 8.0 Tf 124.52 460.91 Td (das) Tj ET
+BT /Helv 8.0 Tf 139.52 460.91 Td (BMF-Schreiben) Tj ET
+BT /Helv 8.0 Tf 197.12 460.91 Td (zur) Tj ET
+BT /Helv 8.0 Tf 210.32 460.91 Td (steuerlichen) Tj ET
+BT /Helv 8.0 Tf 255.42 460.91 Td (Behandlung) Tj ET
+BT /Helv 8.0 Tf 299.92 460.91 Td (der) Tj ET
+BT /Helv 8.0 Tf 313.62 460.91 Td (Reisekosten) Tj ET
+BT /Helv 8.0 Tf 359.62 460.91 Td (von) Tj ET
+BT /Helv 8.0 Tf 374.72 460.91 Td (Arbeitnehmern) Tj ET
+BT /Helv 8.0 Tf 429.12 460.91 Td (vom) Tj ET
+BT /Helv 8.0 Tf 446.52 460.91 Td (25.11.2020) Tj ET
+BT /Helv 8.0 Tf 488.32 460.91 Td (\(BStBl) Tj ET
+BT /Helv 8.0 Tf 513.12 460.91 Td (I) Tj ET
+BT /Helv 8.0 Tf 517.52 460.91 Td (S.) Tj ET
+BT /Helv 8.0 Tf 527.22 460.91 Td (1228\)) Tj ET
+ 517.78 813.44 m
+ 1.0 0.0 0.0 RG 1.0 0.0 0.0 rg 569.56 813.44 l
+ 569.56 813.44 l
+ 517.78 813.44 l
+ 517.78 813.44 l
+ f
+2 J [] 0 d 1.5 w 517.78 813.44 m 569.56 813.44 l S
+569.56 813.44 m 569.56 813.44 l S
+569.56 813.44 m 517.78 813.44 l S
+517.78 813.44 m 517.78 813.44 l S
+ 518.35 812.87 m
+ 0.99 0.84 0.84 RG 0.99 0.84 0.84 rg 569.56 812.87 l
+ 569.56 781.58 l
+ 518.35 781.58 l
+ 518.35 812.87 l
+ f
+ 68.85 813.44 m
+ 0.75 0.75 0.75 RG 0.75 0.75 0.75 rg 398.29 813.44 l
+ 398.29 759.39 l
+ 68.85 759.39 l
+ 68.85 813.44 l
+ f
+0.0 0.0 0.0 RG 0.0 0.0 0.0 rg 2 J [] 0 d 1.0 w 68.28 813.44 m 517.78 813.44 l S
+68.28 813.44 m 68.28 613.73 l S
+ 398.86 781.58 m
+ 0.99 0.84 0.84 RG 0.99 0.84 0.84 rg 569.56 781.58 l
+ 569.56 642.74 l
+ 398.86 642.74 l
+ 398.86 781.58 l
+ f
+ 518.35 813.44 m
+ 1.0 0.0 0.0 RG 1.0 0.0 0.0 rg 518.35 813.44 l
+ 518.35 782.15 l
+ 518.35 782.15 l
+ 518.35 813.44 l
+ f
+2 J [] 0 d 1.5 w 518.35 813.44 m 518.35 813.44 l S
+518.35 813.44 m 518.35 782.15 l S
+518.35 782.15 m 518.35 782.15 l S
+518.35 782.15 m 518.35 813.44 l S
+0.0 0.0 0.0 RG 0.0 0.0 0.0 rg BT /Helv 8.0 Tf 399.43 805.15 Td (Erstattung) Tj ET
+BT /Helv 8.0 Tf 399.43 797.0 Td (sonstiger) Tj ET
+BT /Helv 8.0 Tf 433.93 797.0 Td (Kosten) Tj ET
+ 68.28 585.84 m
+ 0.99 0.84 0.84 RG 0.99 0.84 0.84 rg 568.99 585.84 l
+ 568.99 472.05 l
+ 68.28 472.05 l
+ 68.28 585.84 l
+ f
+0.0 0.0 0.0 RG 0.0 0.0 0.0 rg BT /Helv 8.0 Tf 71.12 577.55 Td (In) Tj ET
+BT /Helv 8.0 Tf 79.92 577.55 Td (der) Tj ET
+BT /Helv 8.0 Tf 93.62 577.55 Td (Reisekostenvergütung) Tj ET
+BT /Helv 8.0 Tf 175.02 577.55 Td (enthaltene) Tj ET
+BT /Helv 8.0 Tf 214.22 577.55 Td (steuerpflichtige) Tj ET
+BT /Helv 8.0 Tf 270.02 577.55 Td (Bestandteile*:) Tj ET
+BT /Helv 6.0 Tf 71.12 569.87 Td (\(Beträge) Tj ET
+BT /Helv 6.0 Tf 95.72 569.87 Td (sind) Tj ET
+BT /Helv 6.0 Tf 108.32 569.87 Td (der) Tj ET
+BT /Helv 6.0 Tf 118.62 569.87 Td (Bezügestelle) Tj ET
+BT /Helv 6.0 Tf 154.32 569.87 Td (zu) Tj ET
+BT /Helv 6.0 Tf 162.22 569.87 Td (melden\)) Tj ET
+1.0 0.0 0.0 RG 1.0 0.0 0.0 rg 2 J [] 0 d 0.5 w 483.64 585.84 m 483.64 472.05 l S
+1.0 0.0 0.0 RG 1.0 0.0 0.0 rg 275.96 528.95 m 275.96 472.05 l S
+0.0 0.0 0.0 RG 0.0 0.0 0.0 rg BT /Helv 6.0 Tf 400.57 790.07 Td (\(Bitte) Tj ET
+BT /Helv 6.0 Tf 416.27 790.07 Td (erläutern) Tj ET
+BT /Helv 6.0 Tf 441.47 790.07 Td (und) Tj ET
+BT /Helv 6.0 Tf 400.57 783.91 Td (belegen\)) Tj ET
+BT /Helv 7.0 Tf 514.67 577.41 Td (-) Tj ET
+BT /Helv 7.0 Tf 518.87 577.41 Td (EUR) Tj ET
+BT /Helv 7.0 Tf 535.67 577.41 Td (-) Tj ET
+ 483.64 557.4 m
+ 1.0 0.0 0.0 RG 1.0 0.0 0.0 rg 568.99 557.4 l
+ 568.99 557.4 l
+ 483.64 557.4 l
+ 483.64 557.4 l
+ f
+0.0 0.0 0.0 RG 0.0 0.0 0.0 rg BT /Helv 7.0 Tf 514.67 548.96 Td (-) Tj ET
+BT /Helv 7.0 Tf 518.87 548.96 Td (EUR) Tj ET
+BT /Helv 7.0 Tf 535.67 548.96 Td (-) Tj ET
+BT /Helv 8.0 Tf 86.49 517.81 Td (Sachlich) Tj ET
+BT /Helv 8.0 Tf 118.79 517.81 Td (richtig) Tj ET
+BT /Helv 7.0 Tf 483.31 805.0 Td (EUR) Tj ET
+BT /Helv 8.0 Tf 294.17 517.81 Td (Sachlich) Tj ET
+BT /Helv 8.0 Tf 326.47 517.81 Td (und) Tj ET
+BT /Helv 8.0 Tf 341.87 517.81 Td (rechnerisch) Tj ET
+BT /Helv 8.0 Tf 385.27 517.81 Td (richtig) Tj ET
+BT /Helv 8.0 Tf 487.62 517.81 Td (Rechnerisch) Tj ET
+BT /Helv 8.0 Tf 534.12 517.81 Td (richtig) Tj ET
+ 569.56 813.44 m
+ 1.0 0.0 0.0 RG 1.0 0.0 0.0 rg 569.56 813.44 l
+ 569.56 642.74 l
+ 569.56 642.74 l
+ 569.56 813.44 l
+ f
+2 J [] 0 d 1.5 w 569.56 813.44 m 569.56 813.44 l S
+569.56 813.44 m 569.56 642.74 l S
+569.56 642.74 m 569.56 642.74 l S
+569.56 642.74 m 569.56 813.44 l S
+0.0 0.0 0.0 RG 0.0 0.0 0.0 rg 2 J [] 0 d 0.5 w 68.28 759.39 m 398.86 759.39 l S
+ 398.86 782.15 m
+ 1.0 0.0 0.0 RG 1.0 0.0 0.0 rg 518.35 782.15 l
+ 518.35 782.15 l
+ 398.86 782.15 l
+ 398.86 782.15 l
+ f
+2 J [] 0 d 1.5 w 398.86 782.15 m 518.35 782.15 l S
+518.35 782.15 m 518.35 782.15 l S
+518.35 782.15 m 398.86 782.15 l S
+398.86 782.15 m 398.86 782.15 l S
+0.0 0.0 0.0 RG 0.0 0.0 0.0 rg 2 J [] 0 d 0.5 w 398.29 813.44 m 398.29 782.15 l S
+ 398.29 782.15 m
+ 1.0 0.0 0.0 RG 1.0 0.0 0.0 rg 398.29 782.15 l
+ 398.29 642.74 l
+ 398.29 642.74 l
+ 398.29 782.15 l
+ f
+2 J [] 0 d 1.5 w 398.29 782.15 m 398.29 782.15 l S
+398.29 782.15 m 398.29 642.74 l S
+398.29 642.74 m 398.29 642.74 l S
+398.29 642.74 m 398.29 782.15 l S
+1.0 0.0 0.0 RG 1.0 0.0 0.0 rg 2 J [] 0 d 0.5 w 463.73 782.15 m 463.73 759.39 l S
+2 J [] 0 d 1.0 w 68.28 585.84 m 568.99 585.84 l S
+568.99 585.84 m 568.99 472.05 l S
+568.99 472.05 m 68.28 472.05 l S
+68.28 472.05 m 68.28 585.84 l S
+0.0 0.0 0.0 RG 0.0 0.0 0.0 rg 398.29 642.74 m 398.29 613.73 l S
+BT /Helv 8.0 Tf 84.78 738.01 Td (Nein) Tj ET
+BT /Helv 8.0 Tf 166.15 738.01 Td (Ja,) Tj ET
+BT /Helv 8.0 Tf 178.95 738.01 Td (und) Tj ET
+BT /Helv 8.0 Tf 194.35 738.01 Td (zwar) Tj ET
+BT /Helv 8.0 Tf 213.25 738.01 Td (in) Tj ET
+BT /Helv 8.0 Tf 221.65 738.01 Td (Höhe) Tj ET
+BT /Helv 8.0 Tf 242.85 738.01 Td (von) Tj ET
+BT /HeBo 8.0 Tf 71.12 660.06 Td (Ich) Tj ET
+BT /HeBo 8.0 Tf 84.82 660.06 Td (versichere) Tj ET
+BT /HeBo 8.0 Tf 126.62 660.06 Td (pflichtgemäß) Tj ET
+BT /HeBo 8.0 Tf 178.52 660.06 Td (die) Tj ET
+BT /HeBo 8.0 Tf 192.22 660.06 Td (Richtigkeit) Tj ET
+BT /HeBo 8.0 Tf 235.22 660.06 Td (und) Tj ET
+BT /HeBo 8.0 Tf 252.12 660.06 Td (Vollständigkeit) Tj ET
+BT /HeBo 8.0 Tf 311.02 660.06 Td (vorstehender) Tj ET
+BT /HeBo 8.0 Tf 71.12 651.91 Td (Angaben) Tj ET
+BT /Helv 8.0 Tf 71.12 751.1 Td (Ich) Tj ET
+BT /Helv 8.0 Tf 83.92 751.1 Td (habe) Tj ET
+BT /Helv 8.0 Tf 103.72 751.1 Td (Zuwendungen) Tj ET
+BT /Helv 8.0 Tf 156.12 751.1 Td (von) Tj ET
+BT /Helv 8.0 Tf 171.22 751.1 Td (einer) Tj ET
+BT /Helv 8.0 Tf 191.12 751.1 Td (anderen) Tj ET
+BT /Helv 8.0 Tf 222.42 751.1 Td (Person) Tj ET
+BT /Helv 8.0 Tf 249.82 751.1 Td (oder) Tj ET
+BT /Helv 8.0 Tf 267.92 751.1 Td (Stelle) Tj ET
+BT /Helv 8.0 Tf 290.02 751.1 Td (erhalten.) Tj ET
+ 517.78 782.15 m
+ 1.0 0.0 0.0 RG 1.0 0.0 0.0 rg 568.99 782.15 l
+ 568.99 782.15 l
+ 517.78 782.15 l
+ 517.78 782.15 l
+ f
+2 J [] 0 d 0.5 w 517.78 782.15 m 568.99 782.15 l S
+568.99 782.15 m 568.99 782.15 l S
+568.99 782.15 m 517.78 782.15 l S
+517.78 782.15 m 517.78 782.15 l S
+0.0 0.0 0.0 RG 0.0 0.0 0.0 rg BT /Helv 8.0 Tf 399.43 768.17 Td (Zwischensumme) Tj ET
+ 398.86 759.39 m
+ 1.0 0.0 0.0 RG 1.0 0.0 0.0 rg 569.56 759.39 l
+ 569.56 759.39 l
+ 398.86 759.39 l
+ 398.86 759.39 l
+ f
+398.86 759.39 m 569.56 759.39 l S
+569.56 759.39 m 569.56 759.39 l S
+569.56 759.39 m 398.86 759.39 l S
+398.86 759.39 m 398.86 759.39 l S
+0.0 0.0 0.0 RG 0.0 0.0 0.0 rg BT /Helv 8.0 Tf 341.96 738.01 Td (EUR) Tj ET
+68.28 733.78 m 398.86 733.78 l S
+BT /Helv 8.0 Tf 71.12 725.49 Td (Ich) Tj ET
+BT /Helv 8.0 Tf 83.92 725.49 Td (habe) Tj ET
+BT /Helv 8.0 Tf 103.72 725.49 Td (einen) Tj ET
+BT /Helv 8.0 Tf 125.32 725.49 Td (Reisekostenabschlag) Tj ET
+BT /Helv 8.0 Tf 203.12 725.49 Td (erhalten) Tj ET
+BT /Helv 8.0 Tf 84.78 712.41 Td (Nein) Tj ET
+BT /Helv 8.0 Tf 166.15 712.41 Td (Ja,) Tj ET
+BT /Helv 8.0 Tf 178.95 712.41 Td (und) Tj ET
+BT /Helv 8.0 Tf 194.35 712.41 Td (zwar) Tj ET
+BT /Helv 8.0 Tf 213.25 712.41 Td (in) Tj ET
+BT /Helv 8.0 Tf 221.65 712.41 Td (Höhe) Tj ET
+BT /Helv 8.0 Tf 242.85 712.41 Td (von) Tj ET
+BT /Helv 8.0 Tf 341.96 712.41 Td (EUR) Tj ET
+68.28 708.18 m 398.86 708.18 l S
+BT /Helv 8.0 Tf 71.12 699.89 Td (Es) Tj ET
+BT /Helv 8.0 Tf 82.62 699.89 Td (sind) Tj ET
+BT /Helv 8.0 Tf 99.42 699.89 Td (Eigenanteile) Tj ET
+BT /Helv 8.0 Tf 145.32 699.89 Td (für) Tj ET
+BT /Helv 8.0 Tf 156.92 699.89 Td (diese) Tj ET
+BT /Helv 8.0 Tf 178.12 699.89 Td (Reise) Tj ET
+BT /Helv 8.0 Tf 200.72 699.89 Td (zu) Tj ET
+BT /Helv 8.0 Tf 211.22 699.89 Td (leisten.) Tj ET
+BT /Helv 8.0 Tf 84.78 686.8 Td (Nein) Tj ET
+BT /Helv 8.0 Tf 166.15 686.8 Td (Ja) Tj ET
+BT /Helv 8.0 Tf 176.75 686.8 Td (\(Bitte) Tj ET
+BT /Helv 8.0 Tf 197.55 686.8 Td (Hinweise) Tj ET
+BT /Helv 8.0 Tf 232.05 686.8 Td (zu) Tj ET
+BT /Helv 8.0 Tf 242.55 686.8 Td (Art) Tj ET
+BT /Helv 8.0 Tf 254.95 686.8 Td (und) Tj ET
+BT /Helv 8.0 Tf 270.35 686.8 Td (Höhe) Tj ET
+BT /Helv 8.0 Tf 291.55 686.8 Td (angeben\)) Tj ET
+ 68.28 528.95 m
+ 1.0 0.0 0.0 RG 1.0 0.0 0.0 rg 568.99 528.95 l
+ 568.99 528.95 l
+ 68.28 528.95 l
+ 68.28 528.95 l
+ f
+ 398.86 733.78 m
+ 569.56 733.78 l
+ 569.56 733.78 l
+ 398.86 733.78 l
+ 398.86 733.78 l
+ f
+2 J [] 0 d 0.5 w 398.86 733.78 m 569.56 733.78 l S
+569.56 733.78 m 569.56 733.78 l S
+569.56 733.78 m 398.86 733.78 l S
+398.86 733.78 m 398.86 733.78 l S
+ 398.86 708.18 m
+ 569.56 708.18 l
+ 569.56 708.18 l
+ 398.86 708.18 l
+ 398.86 708.18 l
+ f
+398.86 708.18 m 569.56 708.18 l S
+569.56 708.18 m 569.56 708.18 l S
+569.56 708.18 m 398.86 708.18 l S
+398.86 708.18 m 398.86 708.18 l S
+ 398.86 642.74 m
+ 569.56 642.74 l
+ 569.56 642.74 l
+ 398.86 642.74 l
+ 398.86 642.74 l
+ f
+2 J [] 0 d 1.5 w 398.86 642.74 m 569.56 642.74 l S
+569.56 642.74 m 569.56 642.74 l S
+569.56 642.74 m 398.86 642.74 l S
+398.86 642.74 m 398.86 642.74 l S
+1.0 0.0 0.0 RG 1.0 0.0 0.0 rg 2 J [] 0 d 0.5 w 517.78 759.39 m 517.78 642.74 l S
+0.0 0.0 0.0 RG 0.0 0.0 0.0 rg BT /Helv 8.0 Tf 399.43 742.56 Td (Absetzung) Tj ET
+BT /Helv 8.0 Tf 439.03 742.56 Td (Zuwendungen) Tj ET
+BT /Helv 8.0 Tf 399.43 716.96 Td (Absetzung) Tj ET
+BT /Helv 8.0 Tf 439.03 716.96 Td (Reisekostenabschlag) Tj ET
+BT /Helv 8.0 Tf 399.43 685.66 Td (Absetzung) Tj ET
+BT /Helv 8.0 Tf 439.03 685.66 Td (Eigenanteile) Tj ET
+ 398.86 668.35 m
+ 1.0 0.0 0.0 RG 1.0 0.0 0.0 rg 569.56 668.35 l
+ 569.56 668.35 l
+ 398.86 668.35 l
+ 398.86 668.35 l
+ f
+398.86 668.35 m 569.56 668.35 l S
+569.56 668.35 m 569.56 668.35 l S
+569.56 668.35 m 398.86 668.35 l S
+398.86 668.35 m 398.86 668.35 l S
+0.0 0.0 0.0 RG 0.0 0.0 0.0 rg BT /Helv 6.0 Tf 71.12 643.27 Td (Unterschrift,) Tj ET
+BT /Helv 6.0 Tf 105.12 643.27 Td (Amtsbez./Datum) Tj ET
+BT /Helv 8.0 Tf 416.5 654.37 Td (Auszuzahlen) Tj ET
+BT /Helv 8.0 Tf 481.93 654.37 Td (Zurück-) Tj ET
+BT /Helv 8.0 Tf 481.93 646.22 Td (zuzahlen) Tj ET
+2 J [] 0 d 1.0 w 68.28 614.29 m 398.29 614.29 l S
+endstream
+endobj
+9 0 obj
+[
+216 0 R
+219 0 R
+222 0 R
+224 0 R
+227 0 R
+230 0 R
+232 0 R
+235 0 R
+238 0 R
+240 0 R
+243 0 R
+246 0 R
+248 0 R
+251 0 R
+254 0 R
+]
+endobj
+10 0 obj
+<< /Fields [ 11 0 R 13 0 R 15 0 R 17 0 R 19 0 R 21 0 R 23 0 R 25 0 R 27 0 R 29 0 R 31 0 R 33 0 R 35 0 R 37 0 R 39 0 R 41 0 R 43 0 R 45 0 R 47 0 R 49 0 R 51 0 R 53 0 R 55 0 R 57 0 R 59 0 R 61 0 R 63 0 R 65 0 R 67 0 R 69 0 R 72 0 R 73 0 R 76 0 R 79 0 R 82 0 R 85 0 R 88 0 R 91 0 R 94 0 R 97 0 R 100 0 R 102 0 R 105 0 R 108 0 R 110 0 R 113 0 R 116 0 R 119 0 R 121 0 R 124 0 R 127 0 R 130 0 R 133 0 R 136 0 R 139 0 R 142 0 R 144 0 R 146 0 R 148 0 R 151 0 R 154 0 R 156 0 R 158 0 R 160 0 R 162 0 R 164 0 R 166 0 R 168 0 R 170 0 R 173 0 R 175 0 R 177 0 R 179 0 R 182 0 R 185 0 R 188 0 R 191 0 R 194 0 R 196 0 R 198 0 R 200 0 R 202 0 R 204 0 R 206 0 R 208 0 R 210 0 R 212 0 R 214 0 R 216 0 R 219 0 R 222 0 R 224 0 R 227 0 R 230 0 R 232 0 R 235 0 R 238 0 R 240 0 R 243 0 R 246 0 R 248 0 R 251 0 R 254 0 R ]
+/DR << /Font << /Helv 350 0 R /Cour 353 0 R /ZaDb 0 0 R >> >>
+/DA (/Helv 0 Tf 0 g )
+/CO [ 72 0 R ] 
+>>
+endobj
+11 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 71.12 765.65 393.17 774.75 ]
+/F 4
+/P 4 0 R
+/T (Beschaeftigungsstelle)
+/Ff 12582912
+/FT /Tx 
+/DA (/Cour 8.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (Beschäftigungsstelle \(z. B. Schule und Schul-Nr., Amt\), Dienstort)
+/AP << /N 12 0 R >>
+/MaxLen 199
+>>
+endobj
+12 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 322.05 9.1 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 322.05 9.1 re W n 0 g BT /Cour 8.0 Tf 2 1.3499999999999996 Td () Tj ET Q EMC 
+endstream
+endobj
+13 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 71.12 742.37 392.6 752.56 ]
+/F 4
+/P 4 0 R
+/T (Name__Vorname)
+/Ff 12582912
+/FT /Tx 
+/DA (/Cour 9.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (Name und Vorname des Antragstellers)
+/AP << /N 14 0 R >>
+/MaxLen 199
+>>
+endobj
+14 0 obj
+<< /Length 94 /Subtype /Form /BBox [ 0 0 321.48 10.19 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 321.48 10.19 re W n 0 g BT /Cour 9.0 Tf 2 1.4949999999999997 Td () Tj ET Q EMC 
+endstream
+endobj
+15 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 71.12 719.05 80.8 729.23 ]
+/F 4
+/P 4 0 R
+/T (IBAN1)
+/Ff 12582912
+/FT /Tx 
+/DA (/Cour 9.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (IBAN Ziffer 1)
+/AP << /N 16 0 R >>
+/MaxLen 1
+/AA << /K << /S /JavaScript /JS (
+if\( \(event.change!=""\) && \(true==event.rc\) \) {
+  var strGB=new String\("ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜ"\);
+   var strKB=new String\("abcdefghijklmnopqrstuvwxyzäöü"\); // Reihenfolge synchron zu <strGB>
+
+   if\(-1 != strKB.indexOf\(event.change\)\)
+   {       for\(var i=0;i<strKB.length;i++\)
+           {       if\(event.change==strKB.substring\(i,i+1\)\)
+                   {       event.change=strGB.substring\(i,i+1\);
+                   }
+           }
+   }
+   if\(-1 == strGB.indexOf\(event.change\)\)
+   {       app.beep\(0\);event.rc=false;
+   }
+}) >>
+ >>
+>>
+endobj
+16 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 9.68 10.18 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 9.68 10.18 re W n 0 g BT /Cour 9.0 Tf 2 1.4899999999999998 Td () Tj ET Q EMC 
+endstream
+endobj
+17 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 82.5 719.05 92.18 729.23 ]
+/F 4
+/P 4 0 R
+/T (IBAN2)
+/Ff 12582912
+/FT /Tx 
+/DA (/Cour 9.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (IBAN Ziffer 2)
+/AP << /N 18 0 R >>
+/MaxLen 1
+/AA << /K << /S /JavaScript /JS (
+if\( \(event.change!=""\) && \(true==event.rc\) \) {
+  var strGB=new String\("ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜ"\);
+   var strKB=new String\("abcdefghijklmnopqrstuvwxyzäöü"\); // Reihenfolge synchron zu <strGB>
+
+   if\(-1 != strKB.indexOf\(event.change\)\)
+   {       for\(var i=0;i<strKB.length;i++\)
+           {       if\(event.change==strKB.substring\(i,i+1\)\)
+                   {       event.change=strGB.substring\(i,i+1\);
+                   }
+           }
+   }
+   if\(-1 == strGB.indexOf\(event.change\)\)
+   {       app.beep\(0\);event.rc=false;
+   }
+}) >>
+ >>
+>>
+endobj
+18 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 9.68 10.18 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 9.68 10.18 re W n 0 g BT /Cour 9.0 Tf 2 1.4899999999999998 Td () Tj ET Q EMC 
+endstream
+endobj
+19 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 93.88 719.05 103.56 729.23 ]
+/F 4
+/P 4 0 R
+/T (IBAN3)
+/Ff 12582912
+/FT /Tx 
+/DA (/Cour 9.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (IBAN Ziffer 3)
+/AP << /N 20 0 R >>
+/MaxLen 1
+/AA << /K << /S /JavaScript /JS (
+if\( \(event.change!=""\) && \(true==event.rc\) \) {
+  var strZiffern="0123456789";  
+   if\(-1 == strZiffern.indexOf\(event.change\)\)
+   {       app.beep\(0\);event.rc=false;
+   }
+}) >>
+ >>
+>>
+endobj
+20 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 9.68 10.18 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 9.68 10.18 re W n 0 g BT /Cour 9.0 Tf 2 1.4899999999999998 Td () Tj ET Q EMC 
+endstream
+endobj
+21 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 105.26 719.05 114.94 729.23 ]
+/F 4
+/P 4 0 R
+/T (IBAN4)
+/Ff 12582912
+/FT /Tx 
+/DA (/Cour 9.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (IBAN Ziffer 4)
+/AP << /N 22 0 R >>
+/MaxLen 1
+/AA << /K << /S /JavaScript /JS (
+if\( \(event.change!=""\) && \(true==event.rc\) \) {
+  var strZiffern="0123456789";  
+   if\(-1 == strZiffern.indexOf\(event.change\)\)
+   {       app.beep\(0\);event.rc=false;
+   }
+}) >>
+ >>
+>>
+endobj
+22 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 9.68 10.18 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 9.68 10.18 re W n 0 g BT /Cour 9.0 Tf 2 1.4899999999999998 Td () Tj ET Q EMC 
+endstream
+endobj
+23 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 119.49 719.05 129.16 729.23 ]
+/F 4
+/P 4 0 R
+/T (IBAN5)
+/Ff 12582912
+/FT /Tx 
+/DA (/Cour 9.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (IBAN Ziffer 5)
+/AP << /N 24 0 R >>
+/MaxLen 1
+/AA << /K << /S /JavaScript /JS (
+if\( \(event.change!=""\) && \(true==event.rc\) \) {
+  var strZiffern="0123456789";  
+   if\(-1 == strZiffern.indexOf\(event.change\)\)
+   {       app.beep\(0\);event.rc=false;
+   }
+}) >>
+ >>
+>>
+endobj
+24 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 9.67 10.18 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 9.67 10.18 re W n 0 g BT /Cour 9.0 Tf 2 1.4899999999999998 Td () Tj ET Q EMC 
+endstream
+endobj
+25 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 130.87 719.05 140.54 729.23 ]
+/F 4
+/P 4 0 R
+/T (IBAN6)
+/Ff 12582912
+/FT /Tx 
+/DA (/Cour 9.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (IBAN Ziffer 6)
+/AP << /N 26 0 R >>
+/MaxLen 1
+/AA << /K << /S /JavaScript /JS (
+if\( \(event.change!=""\) && \(true==event.rc\) \) {
+  var strZiffern="0123456789";  
+   if\(-1 == strZiffern.indexOf\(event.change\)\)
+   {       app.beep\(0\);event.rc=false;
+   }
+}) >>
+ >>
+>>
+endobj
+26 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 9.67 10.18 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 9.67 10.18 re W n 0 g BT /Cour 9.0 Tf 2 1.4899999999999998 Td () Tj ET Q EMC 
+endstream
+endobj
+27 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 142.25 719.05 151.92 729.23 ]
+/F 4
+/P 4 0 R
+/T (IBAN7)
+/Ff 12582912
+/FT /Tx 
+/DA (/Cour 9.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (IBAN Ziffer 7)
+/AP << /N 28 0 R >>
+/MaxLen 1
+/AA << /K << /S /JavaScript /JS (
+if\( \(event.change!=""\) && \(true==event.rc\) \) {
+  var strZiffern="0123456789";  
+   if\(-1 == strZiffern.indexOf\(event.change\)\)
+   {       app.beep\(0\);event.rc=false;
+   }
+}) >>
+ >>
+>>
+endobj
+28 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 9.67 10.18 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 9.67 10.18 re W n 0 g BT /Cour 9.0 Tf 2 1.4899999999999998 Td () Tj ET Q EMC 
+endstream
+endobj
+29 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 153.63 719.05 163.3 729.23 ]
+/F 4
+/P 4 0 R
+/T (IBAN8)
+/Ff 12582912
+/FT /Tx 
+/DA (/Cour 9.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (IBAN Ziffer 8)
+/AP << /N 30 0 R >>
+/MaxLen 1
+/AA << /K << /S /JavaScript /JS (
+if\( \(event.change!=""\) && \(true==event.rc\) \) {
+  var strZiffern="0123456789";  
+   if\(-1 == strZiffern.indexOf\(event.change\)\)
+   {       app.beep\(0\);event.rc=false;
+   }
+}) >>
+ >>
+>>
+endobj
+30 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 9.67 10.18 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 9.67 10.18 re W n 0 g BT /Cour 9.0 Tf 2 1.4899999999999998 Td () Tj ET Q EMC 
+endstream
+endobj
+31 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 167.85 719.05 177.52 729.23 ]
+/F 4
+/P 4 0 R
+/T (IBAN9)
+/Ff 12582912
+/FT /Tx 
+/DA (/Cour 9.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (IBAN Ziffer 9)
+/AP << /N 32 0 R >>
+/MaxLen 1
+/AA << /K << /S /JavaScript /JS (
+if\( \(event.change!=""\) && \(true==event.rc\) \) {
+  var strZiffern="0123456789";  
+   if\(-1 == strZiffern.indexOf\(event.change\)\)
+   {       app.beep\(0\);event.rc=false;
+   }
+}) >>
+ >>
+>>
+endobj
+32 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 9.67 10.18 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 9.67 10.18 re W n 0 g BT /Cour 9.0 Tf 2 1.4899999999999998 Td () Tj ET Q EMC 
+endstream
+endobj
+33 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 179.23 719.05 188.9 729.23 ]
+/F 4
+/P 4 0 R
+/T (IBAN10)
+/Ff 12582912
+/FT /Tx 
+/DA (/Cour 9.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (IBAN Ziffer 10)
+/AP << /N 34 0 R >>
+/MaxLen 1
+/AA << /K << /S /JavaScript /JS (
+if\( \(event.change!=""\) && \(true==event.rc\) \) {
+  var strZiffern="0123456789";  
+   if\(-1 == strZiffern.indexOf\(event.change\)\)
+   {       app.beep\(0\);event.rc=false;
+   }
+}) >>
+ >>
+>>
+endobj
+34 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 9.67 10.18 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 9.67 10.18 re W n 0 g BT /Cour 9.0 Tf 2 1.4899999999999998 Td () Tj ET Q EMC 
+endstream
+endobj
+35 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 190.61 719.05 200.28 729.23 ]
+/F 4
+/P 4 0 R
+/T (IBAN11)
+/Ff 12582912
+/FT /Tx 
+/DA (/Cour 9.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (IBAN Ziffer 11)
+/AP << /N 36 0 R >>
+/MaxLen 1
+/AA << /K << /S /JavaScript /JS (
+if\( \(event.change!=""\) && \(true==event.rc\) \) {
+  var strZiffern="0123456789";  
+   if\(-1 == strZiffern.indexOf\(event.change\)\)
+   {       app.beep\(0\);event.rc=false;
+   }
+}) >>
+ >>
+>>
+endobj
+36 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 9.67 10.18 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 9.67 10.18 re W n 0 g BT /Cour 9.0 Tf 2 1.4899999999999998 Td () Tj ET Q EMC 
+endstream
+endobj
+37 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 201.99 719.05 211.66 729.23 ]
+/F 4
+/P 4 0 R
+/T (IBAN12)
+/Ff 12582912
+/FT /Tx 
+/DA (/Cour 9.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (IBAN Ziffer 12)
+/AP << /N 38 0 R >>
+/MaxLen 1
+/AA << /K << /S /JavaScript /JS (
+if\( \(event.change!=""\) && \(true==event.rc\) \) {
+  var strZiffern="0123456789";  
+   if\(-1 == strZiffern.indexOf\(event.change\)\)
+   {       app.beep\(0\);event.rc=false;
+   }
+}) >>
+ >>
+>>
+endobj
+38 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 9.67 10.18 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 9.67 10.18 re W n 0 g BT /Cour 9.0 Tf 2 1.4899999999999998 Td () Tj ET Q EMC 
+endstream
+endobj
+39 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 216.22 719.05 225.89 729.23 ]
+/F 4
+/P 4 0 R
+/T (IBAN13)
+/Ff 12582912
+/FT /Tx 
+/DA (/Cour 9.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (IBAN Ziffer 13)
+/AP << /N 40 0 R >>
+/MaxLen 1
+/AA << /K << /S /JavaScript /JS (
+if\( \(event.change!=""\) && \(true==event.rc\) \) {
+  var strZiffern="0123456789";  
+   if\(-1 == strZiffern.indexOf\(event.change\)\)
+   {       app.beep\(0\);event.rc=false;
+   }
+}) >>
+ >>
+>>
+endobj
+40 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 9.67 10.18 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 9.67 10.18 re W n 0 g BT /Cour 9.0 Tf 2 1.4899999999999998 Td () Tj ET Q EMC 
+endstream
+endobj
+41 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 227.6 719.05 237.27 729.23 ]
+/F 4
+/P 4 0 R
+/T (IBAN14)
+/Ff 12582912
+/FT /Tx 
+/DA (/Cour 9.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (IBAN Ziffer 14)
+/AP << /N 42 0 R >>
+/MaxLen 1
+/AA << /K << /S /JavaScript /JS (
+if\( \(event.change!=""\) && \(true==event.rc\) \) {
+  var strZiffern="0123456789";  
+   if\(-1 == strZiffern.indexOf\(event.change\)\)
+   {       app.beep\(0\);event.rc=false;
+   }
+}) >>
+ >>
+>>
+endobj
+42 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 9.67 10.18 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 9.67 10.18 re W n 0 g BT /Cour 9.0 Tf 2 1.4899999999999998 Td () Tj ET Q EMC 
+endstream
+endobj
+43 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 238.98 719.05 248.65 729.23 ]
+/F 4
+/P 4 0 R
+/T (IBAN15)
+/Ff 12582912
+/FT /Tx 
+/DA (/Cour 9.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (IBAN Ziffer 15)
+/AP << /N 44 0 R >>
+/MaxLen 1
+/AA << /K << /S /JavaScript /JS (
+if\( \(event.change!=""\) && \(true==event.rc\) \) {
+  var strZiffern="0123456789";  
+   if\(-1 == strZiffern.indexOf\(event.change\)\)
+   {       app.beep\(0\);event.rc=false;
+   }
+}) >>
+ >>
+>>
+endobj
+44 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 9.67 10.18 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 9.67 10.18 re W n 0 g BT /Cour 9.0 Tf 2 1.4899999999999998 Td () Tj ET Q EMC 
+endstream
+endobj
+45 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 250.36 719.05 260.03 729.23 ]
+/F 4
+/P 4 0 R
+/T (IBAN16)
+/Ff 12582912
+/FT /Tx 
+/DA (/Cour 9.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (IBAN Ziffer 16)
+/AP << /N 46 0 R >>
+/MaxLen 1
+/AA << /K << /S /JavaScript /JS (
+if\( \(event.change!=""\) && \(true==event.rc\) \) {
+  var strZiffern="0123456789";  
+   if\(-1 == strZiffern.indexOf\(event.change\)\)
+   {       app.beep\(0\);event.rc=false;
+   }
+}) >>
+ >>
+>>
+endobj
+46 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 9.67 10.18 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 9.67 10.18 re W n 0 g BT /Cour 9.0 Tf 2 1.4899999999999998 Td () Tj ET Q EMC 
+endstream
+endobj
+47 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 264.58 719.05 274.25 729.23 ]
+/F 4
+/P 4 0 R
+/T (IBAN17)
+/Ff 12582912
+/FT /Tx 
+/DA (/Cour 9.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (IBAN Ziffer 17)
+/AP << /N 48 0 R >>
+/MaxLen 1
+/AA << /K << /S /JavaScript /JS (
+if\( \(event.change!=""\) && \(true==event.rc\) \) {
+  var strZiffern="0123456789";  
+   if\(-1 == strZiffern.indexOf\(event.change\)\)
+   {       app.beep\(0\);event.rc=false;
+   }
+}) >>
+ >>
+>>
+endobj
+48 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 9.67 10.18 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 9.67 10.18 re W n 0 g BT /Cour 9.0 Tf 2 1.4899999999999998 Td () Tj ET Q EMC 
+endstream
+endobj
+49 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 275.96 719.05 285.63 729.23 ]
+/F 4
+/P 4 0 R
+/T (IBAN18)
+/Ff 12582912
+/FT /Tx 
+/DA (/Cour 9.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (IBAN Ziffer 18)
+/AP << /N 50 0 R >>
+/MaxLen 1
+/AA << /K << /S /JavaScript /JS (
+if\( \(event.change!=""\) && \(true==event.rc\) \) {
+  var strZiffern="0123456789";  
+   if\(-1 == strZiffern.indexOf\(event.change\)\)
+   {       app.beep\(0\);event.rc=false;
+   }
+}) >>
+ >>
+>>
+endobj
+50 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 9.67 10.18 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 9.67 10.18 re W n 0 g BT /Cour 9.0 Tf 2 1.4899999999999998 Td () Tj ET Q EMC 
+endstream
+endobj
+51 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 287.34 719.05 297.01 729.23 ]
+/F 4
+/P 4 0 R
+/T (IBAN19)
+/Ff 12582912
+/FT /Tx 
+/DA (/Cour 9.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (IBAN Ziffer 19)
+/AP << /N 52 0 R >>
+/MaxLen 1
+/AA << /K << /S /JavaScript /JS (
+if\( \(event.change!=""\) && \(true==event.rc\) \) {
+  var strZiffern="0123456789";  
+   if\(-1 == strZiffern.indexOf\(event.change\)\)
+   {       app.beep\(0\);event.rc=false;
+   }
+}) >>
+ >>
+>>
+endobj
+52 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 9.67 10.18 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 9.67 10.18 re W n 0 g BT /Cour 9.0 Tf 2 1.4899999999999998 Td () Tj ET Q EMC 
+endstream
+endobj
+53 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 298.72 719.05 308.39 729.23 ]
+/F 4
+/P 4 0 R
+/T (IBAN20)
+/Ff 12582912
+/FT /Tx 
+/DA (/Cour 9.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (IBAN Ziffer 20)
+/AP << /N 54 0 R >>
+/MaxLen 1
+/AA << /K << /S /JavaScript /JS (
+if\( \(event.change!=""\) && \(true==event.rc\) \) {
+  var strZiffern="0123456789";  
+   if\(-1 == strZiffern.indexOf\(event.change\)\)
+   {       app.beep\(0\);event.rc=false;
+   }
+}) >>
+ >>
+>>
+endobj
+54 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 9.67 10.18 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 9.67 10.18 re W n 0 g BT /Cour 9.0 Tf 2 1.4899999999999998 Td () Tj ET Q EMC 
+endstream
+endobj
+55 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 312.94 719.05 322.62 729.23 ]
+/F 4
+/P 4 0 R
+/T (IBAN21)
+/Ff 12582912
+/FT /Tx 
+/DA (/Cour 9.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (IBAN Ziffer 21)
+/AP << /N 56 0 R >>
+/MaxLen 1
+/AA << /K << /S /JavaScript /JS (
+if\( \(event.change!=""\) && \(true==event.rc\) \) {
+  var strZiffern="0123456789";  
+   if\(-1 == strZiffern.indexOf\(event.change\)\)
+   {       app.beep\(0\);event.rc=false;
+   }
+}) >>
+ >>
+>>
+endobj
+56 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 9.68 10.18 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 9.68 10.18 re W n 0 g BT /Cour 9.0 Tf 2 1.4899999999999998 Td () Tj ET Q EMC 
+endstream
+endobj
+57 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 324.32 719.05 334.0 729.23 ]
+/F 4
+/P 4 0 R
+/T (IBAN22)
+/Ff 12582912
+/FT /Tx 
+/DA (/Cour 9.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (IBAN Ziffer 22)
+/AP << /N 58 0 R >>
+/MaxLen 1
+/AA << /K << /S /JavaScript /JS (
+if\( \(event.change!=""\) && \(true==event.rc\) \) {
+  var strZiffern="0123456789";  
+   if\(-1 == strZiffern.indexOf\(event.change\)\)
+   {       app.beep\(0\);event.rc=false;
+   }
+}) >>
+ >>
+>>
+endobj
+58 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 9.68 10.18 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 9.68 10.18 re W n 0 g BT /Cour 9.0 Tf 2 1.4899999999999998 Td () Tj ET Q EMC 
+endstream
+endobj
+59 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 71.12 696.29 139.4 706.47 ]
+/F 4
+/P 4 0 R
+/T (BIC)
+/Ff 12582912
+/FT /Tx 
+/DA (/Cour 9.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (IBAN Ziffer 1)
+/AP << /N 60 0 R >>
+/MaxLen 11
+/AA << /K << /S /JavaScript /JS (
+if\( \(event.change!=""\) && \(true==event.rc\) \) {
+  var strGB=new String\("ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜ"\);
+   var strKB=new String\("abcdefghijklmnopqrstuvwxyzäöü"\); // Reihenfolge synchron zu <strGB>
+
+   if\(-1 != strKB.indexOf\(event.change\)\)
+   {       for\(var i=0;i<strKB.length;i++\)
+           {       if\(event.change==strKB.substring\(i,i+1\)\)
+                   {       event.change=strGB.substring\(i,i+1\);
+                   }
+           }
+   }       
+}) >>
+ >>
+>>
+endobj
+60 0 obj
+<< /Length 93 /Subtype /Form /BBox [ 0 0 68.28 10.18 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 68.28 10.18 re W n 0 g BT /Cour 9.0 Tf 2 1.4899999999999998 Td () Tj ET Q EMC 
+endstream
+endobj
+61 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 71.12 674.61 392.6 683.71 ]
+/F 4
+/P 4 0 R
+/T (Grund_der_RKR)
+/Ff 12582912
+/FT /Tx 
+/DA (/Cour 8.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (Grund der Reisekostenrechnung \(Abkürzung eintragen\), Datum/Daten der Reise\(n\))
+/AP << /N 62 0 R >>
+/MaxLen 199
+>>
+endobj
+62 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 321.48 9.1 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 321.48 9.1 re W n 0 g BT /Cour 8.0 Tf 2 1.3499999999999996 Td () Tj ET Q EMC 
+endstream
+endobj
+63 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 71.12 651.85 392.6 660.95 ]
+/F 4
+/P 4 0 R
+/T (Grund_der_RKR1)
+/Ff 12582912
+/FT /Tx 
+/DA (/Cour 8.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (noch Grund der Reisekostenrechnung)
+/AP << /N 64 0 R >>
+/MaxLen 199
+>>
+endobj
+64 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 321.48 9.1 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 321.48 9.1 re W n 0 g BT /Cour 8.0 Tf 2 1.3499999999999996 Td () Tj ET Q EMC 
+endstream
+endobj
+65 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 414.79 765.65 566.15 774.75 ]
+/F 4
+/P 4 0 R
+/T (Abrechnende_Dienststelle)
+/Ff 12582912
+/FT /Tx 
+/DA (/Cour 0.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (Abrechnende Dienststelle)
+/AP << /N 66 0 R >>
+/MaxLen 199
+>>
+endobj
+66 0 obj
+<< /Length 78 /Subtype /Form /BBox [ 0 0 151.36 9.1 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 151.36 9.1 re W n 0 g BT /Cour 0.0 Tf 2 4.55 Td () Tj ET Q EMC 
+endstream
+endobj
+67 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 415.36 701.92 566.15 749.71 ]
+/F 4
+/P 4 0 R
+/T (Wohnungsanschrift)
+/Ff 8392704
+/FT /Tx 
+/DA (/Cour 7.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (Angabe von Wohnungsanschrift, Telefon und E-Mail-Adresse)
+/AP << /N 68 0 R >>
+>>
+endobj
+68 0 obj
+<< /Length 81 /Subtype /Form /BBox [ 0 0 150.79 47.79 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 150.79 47.79 re W n 0 g BT /Cour 7.0 Tf
+2 40.79 Td () Tj
+ET Q EMC 
+endstream
+endobj
+69 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 71.12 602.91 82.5 614.29 ]
+/F 4
+/P 4 0 R
+/T (OBJ21)
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 70 0 R /Off 71 0 R >> >>
+/AS /Off
+/TU (Nein)
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ21\(\);) >>
+>>
+endobj
+70 0 obj
+<< /Length 112 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re s
+0 g 1.5 w 2 2 m 9.38 9.38 l S 2 9.38 m 9.38 2 l S Q
+endstream
+endobj
+71 0 obj
+<< /Length 62 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re S Q
+endstream
+endobj
+72 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 11.21 732.07 66.73 745.16 ]
+/F 6
+/P 4 0 R
+/T (SYSTEM_P1_DUMMY)
+/Ff 12582913
+/FT /Tx
+/DA (/Helv 10.0 Tf 0 g)
+/MK << /BC [ 0.75 0.75 0.75 ] /BG [ 0.74899 0.74899 0.74899 ] >>
+/AA << /C << /S /JavaScript /JS (
+if\(event.source\)
+{ var n=event.source.name;
+if\(n=="OBJ21"\)SYS_CB_OBJ21\(\);
+if\(n=="OBJ22"\)SYS_CB_OBJ22\(\);
+if\(n=="OBJ23"\)SYS_CB_OBJ23\(\);
+if\(n=="OBJ24"\)SYS_CB_OBJ24\(\);
+if\(n=="OBJ25"\)SYS_CB_OBJ25\(\);
+if\(n=="OBJ26"\)SYS_CB_OBJ26\(\);
+if\(n=="OBJ27"\)SYS_CB_OBJ27\(\);
+if\(n=="OBJ28"\)SYS_CB_OBJ28\(\);
+if\(n=="OBJ29"\)SYS_CB_OBJ29\(\);
+if\(n=="OBJ30"\)SYS_CB_OBJ30\(\);
+if\(n=="OBJ32"\)SYS_CB_OBJ32\(\);
+if\(n=="OBJ33"\)SYS_CB_OBJ33\(\);
+if\(n=="OBJ34"\)SYS_CB_OBJ34\(\);
+if\(n=="OBJ35"\)SYS_CB_OBJ35\(\);
+if\(n=="OBJ36"\)SYS_CB_OBJ36\(\);
+if\(n=="OBJ37"\)SYS_CB_OBJ37\(\);
+if\(n=="OBJ38"\)SYS_CB_OBJ38\(\);
+if\(n=="OBJ39"\)SYS_CB_OBJ39\(\);
+if\(n=="OBJ40"\)SYS_CB_OBJ40\(\);
+if\(n=="OBJ41"\)SYS_CB_OBJ41\(\);
+if\(n=="OBJ42"\)SYS_CB_OBJ42\(\);
+if\(n=="OBJ43"\)SYS_CB_OBJ43\(\);
+if\(n=="OBJ1"\)SYS_CB_OBJ1\(\);
+if\(n=="OBJ2"\)SYS_CB_OBJ2\(\);
+if\(n=="OBJ3"\)SYS_CB_OBJ3\(\);
+if\(n=="OBJ4"\)SYS_CB_OBJ4\(\);
+if\(n=="OBJ5"\)SYS_CB_OBJ5\(\);
+if\(n=="OBJ6"\)SYS_CB_OBJ6\(\);
+if\(n=="OBJ7"\)SYS_CB_OBJ7\(\);
+if\(n=="OBJ8"\)SYS_CB_OBJ8\(\);
+if\(n=="OBJ58"\)SYS_CB_OBJ58\(\);
+if\(n=="OBJ59"\)SYS_CB_OBJ59\(\);
+if\(n=="OBJ9"\)SYS_CB_OBJ9\(\);
+if\(n=="OBJ10"\)SYS_CB_OBJ10\(\);
+if\(n=="OBJ52"\)SYS_CB_OBJ52\(\);
+if\(n=="OBJ53"\)SYS_CB_OBJ53\(\);
+if\(n=="OBJ54"\)SYS_CB_OBJ54\(\);
+if\(n=="OBJ55"\)SYS_CB_OBJ55\(\);
+if\(n=="OBJ56"\)SYS_CB_OBJ56\(\);
+if\(n=="OBJ57"\)SYS_CB_OBJ57\(\);
+}) >>
+ >>
+/MaxLen 199
+>>
+endobj
+73 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 141.68 602.91 153.06 614.29 ]
+/F 4
+/P 4 0 R
+/T (OBJ22)
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 74 0 R /Off 75 0 R >> >>
+/AS /Off
+/TU (Ja und zwar)
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ22\(\);) >>
+>>
+endobj
+74 0 obj
+<< /Length 112 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re s
+0 g 1.5 w 2 2 m 9.38 9.38 l S 2 9.38 m 9.38 2 l S Q
+endstream
+endobj
+75 0 obj
+<< /Length 62 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re S Q
+endstream
+endobj
+76 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 228.16 602.91 239.54 614.29 ]
+/F 4
+/P 4 0 R
+/T (OBJ23)
+/Ff 1
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 77 0 R /Off 78 0 R >> >>
+/AS /Off
+/TU (Business 25)
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ23\(\);) >>
+>>
+endobj
+77 0 obj
+<< /Length 118 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 0.749 g 0 0 11.38 11.38 re f f 0 G 1 w 0.5 0.5 10.38 10.38 re s
+0 g 1.5 w 2 2 m 9.38 9.38 l S 2 9.38 m 9.38 2 l S Q
+endstream
+endobj
+78 0 obj
+<< /Length 68 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 0.749 g 0 0 11.38 11.38 re f f 0 G 1 w 0.5 0.5 10.38 10.38 re S Q
+endstream
+endobj
+79 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 293.6 602.91 304.98 614.29 ]
+/F 4
+/P 4 0 R
+/T (OBJ24)
+/Ff 1
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 80 0 R /Off 81 0 R >> >>
+/AS /Off
+/TU (Business 50)
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ24\(\);) >>
+>>
+endobj
+80 0 obj
+<< /Length 118 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 0.749 g 0 0 11.38 11.38 re f f 0 G 1 w 0.5 0.5 10.38 10.38 re s
+0 g 1.5 w 2 2 m 9.38 9.38 l S 2 9.38 m 9.38 2 l S Q
+endstream
+endobj
+81 0 obj
+<< /Length 68 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 0.749 g 0 0 11.38 11.38 re f f 0 G 1 w 0.5 0.5 10.38 10.38 re S Q
+endstream
+endobj
+82 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 359.03 602.91 370.41 614.29 ]
+/F 4
+/P 4 0 R
+/T (OBJ25)
+/Ff 1
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 83 0 R /Off 84 0 R >> >>
+/AS /Off
+/TU (Business 100)
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ25\(\);) >>
+>>
+endobj
+83 0 obj
+<< /Length 118 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 0.749 g 0 0 11.38 11.38 re f f 0 G 1 w 0.5 0.5 10.38 10.38 re s
+0 g 1.5 w 2 2 m 9.38 9.38 l S 2 9.38 m 9.38 2 l S Q
+endstream
+endobj
+84 0 obj
+<< /Length 68 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 0.749 g 0 0 11.38 11.38 re f f 0 G 1 w 0.5 0.5 10.38 10.38 re S Q
+endstream
+endobj
+85 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 430.16 602.91 441.54 614.29 ]
+/F 4
+/P 4 0 R
+/T (OBJ26)
+/Ff 1
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 86 0 R /Off 87 0 R >> >>
+/AS /Off
+/TU (25)
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ26\(\);) >>
+>>
+endobj
+86 0 obj
+<< /Length 118 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 0.749 g 0 0 11.38 11.38 re f f 0 G 1 w 0.5 0.5 10.38 10.38 re s
+0 g 1.5 w 2 2 m 9.38 9.38 l S 2 9.38 m 9.38 2 l S Q
+endstream
+endobj
+87 0 obj
+<< /Length 68 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 0.749 g 0 0 11.38 11.38 re f f 0 G 1 w 0.5 0.5 10.38 10.38 re S Q
+endstream
+endobj
+88 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 469.99 602.91 481.37 614.29 ]
+/F 4
+/P 4 0 R
+/T (OBJ27)
+/Ff 1
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 89 0 R /Off 90 0 R >> >>
+/AS /Off
+/TU (50)
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ27\(\);) >>
+>>
+endobj
+89 0 obj
+<< /Length 118 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 0.749 g 0 0 11.38 11.38 re f f 0 G 1 w 0.5 0.5 10.38 10.38 re s
+0 g 1.5 w 2 2 m 9.38 9.38 l S 2 9.38 m 9.38 2 l S Q
+endstream
+endobj
+90 0 obj
+<< /Length 68 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 0.749 g 0 0 11.38 11.38 re f f 0 G 1 w 0.5 0.5 10.38 10.38 re S Q
+endstream
+endobj
+91 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 509.82 602.91 521.19 614.29 ]
+/F 4
+/P 4 0 R
+/T (OBJ28)
+/Ff 1
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 92 0 R /Off 93 0 R >> >>
+/AS /Off
+/TU (100)
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ28\(\);) >>
+>>
+endobj
+92 0 obj
+<< /Length 118 /Subtype /Form /BBox [ 0 0 11.37 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 0.749 g 0 0 11.37 11.38 re f f 0 G 1 w 0.5 0.5 10.37 10.38 re s
+0 g 1.5 w 2 2 m 9.37 9.38 l S 2 9.38 m 9.37 2 l S Q
+endstream
+endobj
+93 0 obj
+<< /Length 68 /Subtype /Form /BBox [ 0 0 11.37 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 0.749 g 0 0 11.37 11.38 re f f 0 G 1 w 0.5 0.5 10.37 10.38 re S Q
+endstream
+endobj
+94 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 71.69 574.46 83.07 585.84 ]
+/F 4
+/P 4 0 R
+/T (OBJ29)
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 95 0 R /Off 96 0 R >> >>
+/AS /Off
+/TU (Ja)
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ29\(\);) >>
+>>
+endobj
+95 0 obj
+<< /Length 112 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re s
+0 g 1.5 w 2 2 m 9.38 9.38 l S 2 9.38 m 9.38 2 l S Q
+endstream
+endobj
+96 0 obj
+<< /Length 62 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re S Q
+endstream
+endobj
+97 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 71.69 557.4 83.07 568.77 ]
+/F 4
+/P 4 0 R
+/T (OBJ30)
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 98 0 R /Off 99 0 R >> >>
+/AS /Off
+/TU (Nein \(bitte Begründung bei nein angeben, wenn Sie keine BahnCard haben oder aber die BahnCard Business besitzen\))
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ30\(\);) >>
+>>
+endobj
+98 0 obj
+<< /Length 112 /Subtype /Form /BBox [ 0 0 11.38 11.37 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.37 re
+f 0 G 1 w 0.5 0.5 10.38 10.37 re s
+0 g 1.5 w 2 2 m 9.38 9.37 l S 2 9.37 m 9.38 2 l S Q
+endstream
+endobj
+99 0 obj
+<< /Length 62 /Subtype /Form /BBox [ 0 0 11.38 11.37 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.37 re
+f 0 G 1 w 0.5 0.5 10.38 10.37 re S Q
+endstream
+endobj
+100 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 71.12 545.45 566.15 554.55 ]
+/F 4
+/P 4 0 R
+/T (Begruendung_nein)
+/Ff 12582913
+/FT /Tx 
+/DA (/Cour 0.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (Begründung bei nein)
+/AP << /N 101 0 R >>
+/MaxLen 199
+>>
+endobj
+101 0 obj
+<< /Length 119 /Subtype /Form /BBox [ 0 0 495.03 9.1 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+0.749 0.749 0.749 rg 0 0 495.03 9.1 re f /Tx BMC q 0 0 495.03 9.1 re W n 0 g BT /Cour 0.0 Tf 2 4.55 Td () Tj ET Q EMC 
+endstream
+endobj
+102 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 71.69 514.72 83.07 526.1 ]
+/F 4
+/P 4 0 R
+/T (OBJ32)
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 103 0 R /Off 104 0 R >> >>
+/AS /Off
+/TU (Nein)
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ32\(\);) >>
+>>
+endobj
+103 0 obj
+<< /Length 112 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re s
+0 g 1.5 w 2 2 m 9.38 9.38 l S 2 9.38 m 9.38 2 l S Q
+endstream
+endobj
+104 0 obj
+<< /Length 62 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re S Q
+endstream
+endobj
+105 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 142.82 514.72 154.2 526.1 ]
+/F 4
+/P 4 0 R
+/T (OBJ33)
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 106 0 R /Off 107 0 R >> >>
+/AS /Off
+/TU (Ja, und zwar für die Strecke)
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ33\(\);) >>
+>>
+endobj
+106 0 obj
+<< /Length 112 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re s
+0 g 1.5 w 2 2 m 9.38 9.38 l S 2 9.38 m 9.38 2 l S Q
+endstream
+endobj
+107 0 obj
+<< /Length 62 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re S Q
+endstream
+endobj
+108 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 71.12 502.77 566.15 511.88 ]
+/F 4
+/P 4 0 R
+/T (Strecke)
+/Ff 12582913
+/FT /Tx 
+/DA (/Cour 0.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (Angabe der Strecke)
+/AP << /N 109 0 R >>
+/MaxLen 199
+>>
+endobj
+109 0 obj
+<< /Length 122 /Subtype /Form /BBox [ 0 0 495.03 9.11 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+0.749 0.749 0.749 rg 0 0 495.03 9.11 re f /Tx BMC q 0 0 495.03 9.11 re W n 0 g BT /Cour 0.0 Tf 2 4.555 Td () Tj ET Q EMC 
+endstream
+endobj
+110 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 71.69 472.05 83.07 483.43 ]
+/F 4
+/P 4 0 R
+/T (OBJ34)
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 111 0 R /Off 112 0 R >> >>
+/AS /Off
+/TU (Nein)
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ34\(\);) >>
+>>
+endobj
+111 0 obj
+<< /Length 112 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re s
+0 g 1.5 w 2 2 m 9.38 9.38 l S 2 9.38 m 9.38 2 l S Q
+endstream
+endobj
+112 0 obj
+<< /Length 62 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re S Q
+endstream
+endobj
+113 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 142.82 472.05 154.2 483.43 ]
+/F 4
+/P 4 0 R
+/T (OBJ35)
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 114 0 R /Off 115 0 R >> >>
+/AS /Off
+/TU (Ja)
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ35\(\);) >>
+>>
+endobj
+114 0 obj
+<< /Length 112 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re s
+0 g 1.5 w 2 2 m 9.38 9.38 l S 2 9.38 m 9.38 2 l S Q
+endstream
+endobj
+115 0 obj
+<< /Length 62 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re S Q
+endstream
+endobj
+116 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 71.69 443.6 83.07 454.98 ]
+/F 4
+/P 4 0 R
+/T (OBJ36)
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 117 0 R /Off 118 0 R >> >>
+/AS /Off
+/TU (Ja \(Bitte Tage/Mahlzeiten/Nächte angeben\))
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ36\(\);) >>
+>>
+endobj
+117 0 obj
+<< /Length 112 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re s
+0 g 1.5 w 2 2 m 9.38 9.38 l S 2 9.38 m 9.38 2 l S Q
+endstream
+endobj
+118 0 obj
+<< /Length 62 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re S Q
+endstream
+endobj
+119 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 244.67 444.73 506.4 453.84 ]
+/F 4
+/P 4 0 R
+/T (Verpflegung)
+/Ff 12582913
+/FT /Tx 
+/DA (/Cour 0.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (Angabe der Tage/Mahlzeiten/Nächte)
+/AP << /N 120 0 R >>
+/MaxLen 199
+>>
+endobj
+120 0 obj
+<< /Length 122 /Subtype /Form /BBox [ 0 0 261.73 9.11 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+0.749 0.749 0.749 rg 0 0 261.73 9.11 re f /Tx BMC q 0 0 261.73 9.11 re W n 0 g BT /Cour 0.0 Tf 2 4.555 Td () Tj ET Q EMC 
+endstream
+endobj
+121 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 509.82 443.6 521.19 454.98 ]
+/F 4
+/P 4 0 R
+/T (OBJ37)
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 122 0 R /Off 123 0 R >> >>
+/AS /Off
+/TU (Nein)
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ37\(\);) >>
+>>
+endobj
+122 0 obj
+<< /Length 112 /Subtype /Form /BBox [ 0 0 11.37 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.37 11.38 re
+f 0 G 1 w 0.5 0.5 10.37 10.38 re s
+0 g 1.5 w 2 2 m 9.37 9.38 l S 2 9.38 m 9.37 2 l S Q
+endstream
+endobj
+123 0 obj
+<< /Length 62 /Subtype /Form /BBox [ 0 0 11.37 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.37 11.38 re
+f 0 G 1 w 0.5 0.5 10.37 10.38 re S Q
+endstream
+endobj
+124 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 71.69 406.61 83.07 417.99 ]
+/F 4
+/P 4 0 R
+/T (OBJ38)
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 125 0 R /Off 126 0 R >> >>
+/AS /Off
+/TU (Nein)
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ38\(\);) >>
+>>
+endobj
+125 0 obj
+<< /Length 112 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re s
+0 g 1.5 w 2 2 m 9.38 9.38 l S 2 9.38 m 9.38 2 l S Q
+endstream
+endobj
+126 0 obj
+<< /Length 62 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re S Q
+endstream
+endobj
+127 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 142.82 406.61 154.2 417.99 ]
+/F 4
+/P 4 0 R
+/T (OBJ39)
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 128 0 R /Off 129 0 R >> >>
+/AS /Off
+/TU (Ja)
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ39\(\);) >>
+>>
+endobj
+128 0 obj
+<< /Length 112 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re s
+0 g 1.5 w 2 2 m 9.38 9.38 l S 2 9.38 m 9.38 2 l S Q
+endstream
+endobj
+129 0 obj
+<< /Length 62 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re S Q
+endstream
+endobj
+130 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 71.69 378.16 83.07 389.54 ]
+/F 4
+/P 4 0 R
+/T (OBJ40)
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 131 0 R /Off 132 0 R >> >>
+/AS /Off
+/TU (Nein)
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ40\(\);) >>
+>>
+endobj
+131 0 obj
+<< /Length 112 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re s
+0 g 1.5 w 2 2 m 9.38 9.38 l S 2 9.38 m 9.38 2 l S Q
+endstream
+endobj
+132 0 obj
+<< /Length 62 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re S Q
+endstream
+endobj
+133 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 142.82 378.16 154.2 389.54 ]
+/F 4
+/P 4 0 R
+/T (OBJ41)
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 134 0 R /Off 135 0 R >> >>
+/AS /Off
+/TU (Ja, eine detaillierte Darstellung des Reiseablaufs ist beigefügt)
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ41\(\);) >>
+>>
+endobj
+134 0 obj
+<< /Length 112 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re s
+0 g 1.5 w 2 2 m 9.38 9.38 l S 2 9.38 m 9.38 2 l S Q
+endstream
+endobj
+135 0 obj
+<< /Length 62 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re S Q
+endstream
+endobj
+136 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 71.69 349.71 83.07 361.09 ]
+/F 4
+/P 4 0 R
+/T (OBJ42)
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 137 0 R /Off 138 0 R >> >>
+/AS /Off
+/TU (Nein)
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ42\(\);) >>
+>>
+endobj
+137 0 obj
+<< /Length 112 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re s
+0 g 1.5 w 2 2 m 9.38 9.38 l S 2 9.38 m 9.38 2 l S Q
+endstream
+endobj
+138 0 obj
+<< /Length 62 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re S Q
+endstream
+endobj
+139 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 142.82 349.71 154.2 361.09 ]
+/F 4
+/P 4 0 R
+/T (OBJ43)
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 140 0 R /Off 141 0 R >> >>
+/AS /Off
+/TU (Ja, detaillierte Angaben hierzu sind beigefügt, §§ 15 bis 18 NRKVO sind zu beachten)
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ43\(\);) >>
+>>
+endobj
+140 0 obj
+<< /Length 112 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re s
+0 g 1.5 w 2 2 m 9.38 9.38 l S 2 9.38 m 9.38 2 l S Q
+endstream
+endobj
+141 0 obj
+<< /Length 62 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re S Q
+endstream
+endobj
+142 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 72.26 301.35 395.45 310.45 ]
+/F 4
+/P 4 0 R
+/T (Bei_RRS)
+/Ff 12582912
+/FT /Tx 
+/DA (/Cour 8.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (\(Bei RRS\) Aktenzeichen der Sachakten bzw. ersuchende Behörde und Aktenzeichen)
+/AP << /N 143 0 R >>
+/MaxLen 199
+>>
+endobj
+143 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 323.19 9.1 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 323.19 9.1 re W n 0 g BT /Cour 8.0 Tf 2 1.3499999999999996 Td () Tj ET Q EMC 
+endstream
+endobj
+144 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 401.14 301.35 425.6 310.45 ]
+/F 4
+/P 4 0 R
+/T (Tage)
+/Ff 12582912
+/FT /Tx 
+/Q 1
+/DA (/Cour 8.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (Anzahl der Tage)
+/AP << /N 145 0 R >>
+/MaxLen 199
+/AA << /K << /S /JavaScript /JS (
+if\( \(event.change!=""\) && \(true==event.rc\) \) {
+  var strZiffern="0123456789";  
+   if\(-1 == strZiffern.indexOf\(event.change\)\)
+   {       app.beep\(0\);event.rc=false;
+   }
+}) >>
+ >>
+>>
+endobj
+145 0 obj
+<< /Length 91 /Subtype /Form /BBox [ 0 0 24.46 9.1 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 24.46 9.1 re W n 0 g BT /Cour 8.0 Tf 2 1.3499999999999996 Td () Tj ET Q EMC 
+endstream
+endobj
+146 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 433.57 301.35 460.88 310.45 ]
+/F 4
+/P 4 0 R
+/T (EUR)
+/Ff 0
+/FT /Tx 
+/Q 2
+/DA (/Cour 8.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (Tagegeld in Euro)
+/AP << /N 147 0 R >>
+/MaxLen 199
+/AA << /F << /S /JavaScript /JS (var memorized_eventvalue=event.value;
+  if\(app.viewerVersion<6\) event.rc = true;\r
+if \(event.value != ""\) { 
+   AFNumber_Format\(2,2,0,0,'',false\);
+}if(false==event.rc){    event.rc=true;      event.value=memorized_eventvalue;     app.beep(0);     event.target.setFocus();}) >>
+ /K << /S /JavaScript /JS (
+if\( \(event.change!=""\) && \(true==event.rc\) \) {
+   AFNumber_Keystroke\(2,2,0,0,'',false\);
+   var n=2;
+   if\( \(0==n\) && \(","==event.change\) \)
+   {       app.beep\(0\);
+           event.rc=false;
+   }       
+}) >>
+ >>
+>>
+endobj
+147 0 obj
+<< /Length 91 /Subtype /Form /BBox [ 0 0 27.31 9.1 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 27.31 9.1 re W n 0 g BT /Cour 8.0 Tf 2 1.3499999999999996 Td () Tj ET Q EMC 
+endstream
+endobj
+148 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 71.12 272.9 82.5 284.28 ]
+/F 4
+/P 4 0 R
+/T (OBJ1)
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 149 0 R /Off 150 0 R >> >>
+/AS /Off
+/TU (beigefügte Genehmigung\(en\) \(035_001\))
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ1\(\);) >>
+>>
+endobj
+149 0 obj
+<< /Length 112 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re s
+0 g 1.5 w 2 2 m 9.38 9.38 l S 2 9.38 m 9.38 2 l S Q
+endstream
+endobj
+150 0 obj
+<< /Length 62 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re S Q
+endstream
+endobj
+151 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 236.13 272.9 247.51 284.28 ]
+/F 4
+/P 4 0 R
+/T (OBJ2)
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 152 0 R /Off 153 0 R >> >>
+/AS /Off
+/TU (beigefügte Anlage\(n\) \(035_003\))
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ2\(\);) >>
+>>
+endobj
+152 0 obj
+<< /Length 112 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re s
+0 g 1.5 w 2 2 m 9.38 9.38 l S 2 9.38 m 9.38 2 l S Q
+endstream
+endobj
+153 0 obj
+<< /Length 62 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re S Q
+endstream
+endobj
+154 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 401.14 275.74 425.6 284.85 ]
+/F 4
+/P 4 0 R
+/T (Tage6)
+/Ff 12582912
+/FT /Tx 
+/Q 1
+/DA (/Cour 8.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (Anzahl der Tage)
+/AP << /N 155 0 R >>
+/MaxLen 199
+/AA << /K << /S /JavaScript /JS (
+if\( \(event.change!=""\) && \(true==event.rc\) \) {
+  var strZiffern="0123456789";  
+   if\(-1 == strZiffern.indexOf\(event.change\)\)
+   {       app.beep\(0\);event.rc=false;
+   }
+}) >>
+ >>
+>>
+endobj
+155 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 24.46 9.11 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 24.46 9.11 re W n 0 g BT /Cour 8.0 Tf 2 1.3549999999999995 Td () Tj ET Q EMC 
+endstream
+endobj
+156 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 433.57 275.74 460.88 284.85 ]
+/F 4
+/P 4 0 R
+/T (EUR6)
+/Ff 0
+/FT /Tx 
+/Q 2
+/DA (/Cour 8.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (Betrag in Euro)
+/AP << /N 157 0 R >>
+/MaxLen 199
+/AA << /F << /S /JavaScript /JS (var memorized_eventvalue=event.value;
+  if\(app.viewerVersion<6\) event.rc = true;\r
+if \(event.value != ""\) { 
+   AFNumber_Format\(2,2,0,0,'',false\);
+}if(false==event.rc){    event.rc=true;      event.value=memorized_eventvalue;     app.beep(0);     event.target.setFocus();}) >>
+ /K << /S /JavaScript /JS (
+if\( \(event.change!=""\) && \(true==event.rc\) \) {
+   AFNumber_Keystroke\(2,2,0,0,'',false\);
+   var n=2;
+   if\( \(0==n\) && \(","==event.change\) \)
+   {       app.beep\(0\);
+           event.rc=false;
+   }       
+}) >>
+ >>
+>>
+endobj
+157 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 27.31 9.11 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 27.31 9.11 re W n 0 g BT /Cour 8.0 Tf 2 1.3549999999999995 Td () Tj ET Q EMC 
+endstream
+endobj
+158 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 70.55 250.14 229.87 259.24 ]
+/F 4
+/P 4 0 R
+/T (Beginn_der_Dienstreise)
+/Ff 12582912
+/FT /Tx 
+/DA (/Cour 8.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (Beginn der Dienstreise \(Datum/Uhrzeit\))
+/AP << /N 159 0 R >>
+/MaxLen 199
+>>
+endobj
+159 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 159.32 9.1 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 159.32 9.1 re W n 0 g BT /Cour 8.0 Tf 2 1.3499999999999996 Td () Tj ET Q EMC 
+endstream
+endobj
+160 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 236.13 250.14 395.45 259.24 ]
+/F 4
+/P 4 0 R
+/T (Beginn_des_Dienstgeschaefts)
+/Ff 12582912
+/FT /Tx 
+/DA (/Cour 8.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (Beginn des Dienstgeschäfts \(Datum/Uhrzeit\))
+/AP << /N 161 0 R >>
+/MaxLen 199
+>>
+endobj
+161 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 159.32 9.1 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 159.32 9.1 re W n 0 g BT /Cour 8.0 Tf 2 1.3499999999999996 Td () Tj ET Q EMC 
+endstream
+endobj
+162 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 401.14 250.14 425.6 259.24 ]
+/F 4
+/P 4 0 R
+/T (Tage7)
+/Ff 12582912
+/FT /Tx 
+/Q 1
+/DA (/Cour 8.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (Anzahl der Tage)
+/AP << /N 163 0 R >>
+/MaxLen 199
+/AA << /K << /S /JavaScript /JS (
+if\( \(event.change!=""\) && \(true==event.rc\) \) {
+  var strZiffern="0123456789";  
+   if\(-1 == strZiffern.indexOf\(event.change\)\)
+   {       app.beep\(0\);event.rc=false;
+   }
+}) >>
+ >>
+>>
+endobj
+163 0 obj
+<< /Length 91 /Subtype /Form /BBox [ 0 0 24.46 9.1 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 24.46 9.1 re W n 0 g BT /Cour 8.0 Tf 2 1.3499999999999996 Td () Tj ET Q EMC 
+endstream
+endobj
+164 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 433.57 250.14 460.88 259.24 ]
+/F 4
+/P 4 0 R
+/T (EUR7)
+/Ff 0
+/FT /Tx 
+/Q 2
+/DA (/Cour 8.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (Betrag in Euro)
+/AP << /N 165 0 R >>
+/MaxLen 199
+/AA << /F << /S /JavaScript /JS (var memorized_eventvalue=event.value;
+  if\(app.viewerVersion<6\) event.rc = true;\r
+if \(event.value != ""\) { 
+   AFNumber_Format\(2,2,0,0,'',false\);
+}if(false==event.rc){    event.rc=true;      event.value=memorized_eventvalue;     app.beep(0);     event.target.setFocus();}) >>
+ /K << /S /JavaScript /JS (
+if\( \(event.change!=""\) && \(true==event.rc\) \) {
+   AFNumber_Keystroke\(2,2,0,0,'',false\);
+   var n=2;
+   if\( \(0==n\) && \(","==event.change\) \)
+   {       app.beep\(0\);
+           event.rc=false;
+   }       
+}) >>
+ >>
+>>
+endobj
+165 0 obj
+<< /Length 91 /Subtype /Form /BBox [ 0 0 27.31 9.1 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 27.31 9.1 re W n 0 g BT /Cour 8.0 Tf 2 1.3499999999999996 Td () Tj ET Q EMC 
+endstream
+endobj
+166 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 70.55 225.67 229.87 234.78 ]
+/F 4
+/P 4 0 R
+/T (Ende_des_Dienstgeschaefts)
+/Ff 12582912
+/FT /Tx 
+/DA (/Cour 8.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (Ende des Dienstgeschäfts \(Datum/Uhrzeit\))
+/AP << /N 167 0 R >>
+/MaxLen 199
+>>
+endobj
+167 0 obj
+<< /Length 93 /Subtype /Form /BBox [ 0 0 159.32 9.11 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 159.32 9.11 re W n 0 g BT /Cour 8.0 Tf 2 1.3549999999999995 Td () Tj ET Q EMC 
+endstream
+endobj
+168 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 236.13 225.67 395.45 234.78 ]
+/F 4
+/P 4 0 R
+/T (Ende_der_Dienstreise)
+/Ff 12582912
+/FT /Tx 
+/DA (/Cour 8.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (Ende der Dienstreise \(Datum/Uhrzeit\))
+/AP << /N 169 0 R >>
+/MaxLen 199
+>>
+endobj
+169 0 obj
+<< /Length 93 /Subtype /Form /BBox [ 0 0 159.32 9.11 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 159.32 9.11 re W n 0 g BT /Cour 8.0 Tf 2 1.3549999999999995 Td () Tj ET Q EMC 
+endstream
+endobj
+170 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 71.12 202.91 82.5 214.29 ]
+/F 4
+/P 4 0 R
+/T (OBJ3)
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 171 0 R /Off 172 0 R >> >>
+/AS /Off
+/TU (Auf Anordnung oder Genehmigung durch)
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ3\(\);) >>
+>>
+endobj
+171 0 obj
+<< /Length 112 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re s
+0 g 1.5 w 2 2 m 9.38 9.38 l S 2 9.38 m 9.38 2 l S Q
+endstream
+endobj
+172 0 obj
+<< /Length 62 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re S Q
+endstream
+endobj
+173 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 236.13 201.78 395.45 210.88 ]
+/F 4
+/P 4 0 R
+/T (Dienststelle_Datum)
+/Ff 12582912
+/FT /Tx 
+/DA (/Cour 8.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (Dienststelle und Datum)
+/AP << /N 174 0 R >>
+/MaxLen 199
+>>
+endobj
+174 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 159.32 9.1 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 159.32 9.1 re W n 0 g BT /Cour 8.0 Tf 2 1.3499999999999996 Td () Tj ET Q EMC 
+endstream
+endobj
+175 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 464.86 202.35 514.94 211.45 ]
+/F 4
+/P 4 0 R
+/T (Uebernachtungsgeld)
+/Ff 0
+/FT /Tx 
+/Q 2
+/DA (/Cour 8.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (Betrag für Übernachtungsgeld in Euro)
+/AP << /N 176 0 R >>
+/MaxLen 199
+/AA << /F << /S /JavaScript /JS (var memorized_eventvalue=event.value;
+  if\(app.viewerVersion<6\) event.rc = true;\r
+if \(event.value != ""\) { 
+   AFNumber_Format\(2,2,0,0,'',false\);
+}if(false==event.rc){    event.rc=true;      event.value=memorized_eventvalue;     app.beep(0);     event.target.setFocus();}) >>
+ /K << /S /JavaScript /JS (
+if\( \(event.change!=""\) && \(true==event.rc\) \) {
+   AFNumber_Keystroke\(2,2,0,0,'',false\);
+   var n=2;
+   if\( \(0==n\) && \(","==event.change\) \)
+   {       app.beep\(0\);
+           event.rc=false;
+   }       
+}) >>
+ >>
+>>
+endobj
+176 0 obj
+<< /Length 91 /Subtype /Form /BBox [ 0 0 50.08 9.1 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 50.08 9.1 re W n 0 g BT /Cour 8.0 Tf 2 1.3499999999999996 Td () Tj ET Q EMC 
+endstream
+endobj
+177 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 71.12 153.98 395.45 163.08 ]
+/F 4
+/P 4 0 R
+/T (Reiseziel_Reiseweg)
+/Ff 12582912
+/FT /Tx 
+/DA (/Cour 0.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (Reiseziel/Reiseweg)
+/AP << /N 178 0 R >>
+/MaxLen 199
+>>
+endobj
+178 0 obj
+<< /Length 78 /Subtype /Form /BBox [ 0 0 324.33 9.1 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 324.33 9.1 re W n 0 g BT /Cour 0.0 Tf 2 4.55 Td () Tj ET Q EMC 
+endstream
+endobj
+179 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 71.69 119.27 83.07 130.65 ]
+/F 4
+/P 4 0 R
+/T (OBJ4)
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 180 0 R /Off 181 0 R >> >>
+/AS /Off
+/TU (Bahn/Bus)
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ4\(\);) >>
+>>
+endobj
+180 0 obj
+<< /Length 112 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re s
+0 g 1.5 w 2 2 m 9.38 9.38 l S 2 9.38 m 9.38 2 l S Q
+endstream
+endobj
+181 0 obj
+<< /Length 62 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re S Q
+endstream
+endobj
+182 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 115.5 119.27 126.88 130.65 ]
+/F 4
+/P 4 0 R
+/T (OBJ5)
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 183 0 R /Off 184 0 R >> >>
+/AS /Off
+/TU (Dienst-Kraftfahrzeug)
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ5\(\);) >>
+>>
+endobj
+183 0 obj
+<< /Length 112 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re s
+0 g 1.5 w 2 2 m 9.38 9.38 l S 2 9.38 m 9.38 2 l S Q
+endstream
+endobj
+184 0 obj
+<< /Length 62 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re S Q
+endstream
+endobj
+185 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 162.73 119.27 174.11 130.65 ]
+/F 4
+/P 4 0 R
+/T (OBJ6)
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 186 0 R /Off 187 0 R >> >>
+/AS /Off
+/TU (Privates Kraftfahrzeug \(§ 5 II NRKVO\))
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ6\(\);) >>
+>>
+endobj
+186 0 obj
+<< /Length 112 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re s
+0 g 1.5 w 2 2 m 9.38 9.38 l S 2 9.38 m 9.38 2 l S Q
+endstream
+endobj
+187 0 obj
+<< /Length 62 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re S Q
+endstream
+endobj
+188 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 229.3 119.27 240.68 130.65 ]
+/F 4
+/P 4 0 R
+/T (OBJ7)
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 189 0 R /Off 190 0 R >> >>
+/AS /Off
+/TU (Privater Pkw, Begründungspflicht nach § 5 III NRKVO)
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ7\(\);) >>
+>>
+endobj
+189 0 obj
+<< /Length 112 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re s
+0 g 1.5 w 2 2 m 9.38 9.38 l S 2 9.38 m 9.38 2 l S Q
+endstream
+endobj
+190 0 obj
+<< /Length 62 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re S Q
+endstream
+endobj
+191 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 315.22 119.27 326.6 130.65 ]
+/F 4
+/P 4 0 R
+/T (OBJ8)
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 192 0 R /Off 193 0 R >> >>
+/AS /Off
+/TU (sonstiges Beförderungsmittel oder Mitnahme eines Anhängers, Begründungspflicht)
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ8\(\);) >>
+>>
+endobj
+192 0 obj
+<< /Length 112 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re s
+0 g 1.5 w 2 2 m 9.38 9.38 l S 2 9.38 m 9.38 2 l S Q
+endstream
+endobj
+193 0 obj
+<< /Length 62 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re S Q
+endstream
+endobj
+194 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 71.12 21.98 395.45 84.56 ]
+/F 4
+/P 4 0 R
+/T (Erlaeuterungen)
+/Ff 8392704
+/FT /Tx 
+/DA (/Cour 7.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (Erläuterungen)
+/AP << /N 195 0 R >>
+>>
+endobj
+195 0 obj
+<< /Length 81 /Subtype /Form /BBox [ 0 0 324.33 62.58 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 324.33 62.58 re W n 0 g BT /Cour 7.0 Tf
+2 55.58 Td () Tj
+ET Q EMC 
+endstream
+endobj
+196 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 467.71 153.98 514.94 163.08 ]
+/F 4
+/P 4 0 R
+/T (Erstattung_Uebernachtungskosten)
+/Ff 0
+/FT /Tx 
+/Q 2
+/DA (/Cour 8.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (Betrag für Erstattung der
+ Übernachtungskosten in Euro)
+/AP << /N 197 0 R >>
+/MaxLen 199
+/AA << /F << /S /JavaScript /JS (var memorized_eventvalue=event.value;
+  if\(app.viewerVersion<6\) event.rc = true;\r
+if \(event.value != ""\) { 
+   AFNumber_Format\(2,2,0,0,'',false\);
+}if(false==event.rc){    event.rc=true;      event.value=memorized_eventvalue;     app.beep(0);     event.target.setFocus();}) >>
+ /K << /S /JavaScript /JS (
+if\( \(event.change!=""\) && \(true==event.rc\) \) {
+   AFNumber_Keystroke\(2,2,0,0,'',false\);
+   var n=2;
+   if\( \(0==n\) && \(","==event.change\) \)
+   {       app.beep\(0\);
+           event.rc=false;
+   }       
+}) >>
+ >>
+>>
+endobj
+197 0 obj
+<< /Length 91 /Subtype /Form /BBox [ 0 0 47.23 9.1 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 47.23 9.1 re W n 0 g BT /Cour 8.0 Tf 2 1.3499999999999996 Td () Tj ET Q EMC 
+endstream
+endobj
+198 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 467.71 131.22 514.94 140.33 ]
+/F 4
+/P 4 0 R
+/T (Fahrkarte)
+/Ff 0
+/FT /Tx 
+/Q 2
+/DA (/Cour 8.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (Betrag der Fahrkarte in Euro)
+/AP << /N 199 0 R >>
+/MaxLen 199
+/AA << /F << /S /JavaScript /JS (var memorized_eventvalue=event.value;
+  if\(app.viewerVersion<6\) event.rc = true;\r
+if \(event.value != ""\) { 
+   AFNumber_Format\(2,2,0,0,'',false\);
+}if(false==event.rc){    event.rc=true;      event.value=memorized_eventvalue;     app.beep(0);     event.target.setFocus();}) >>
+ /K << /S /JavaScript /JS (
+if\( \(event.change!=""\) && \(true==event.rc\) \) {
+   AFNumber_Keystroke\(2,2,0,0,'',false\);
+   var n=2;
+   if\( \(0==n\) && \(","==event.change\) \)
+   {       app.beep\(0\);
+           event.rc=false;
+   }       
+}) >>
+ >>
+>>
+endobj
+199 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 47.23 9.11 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 47.23 9.11 re W n 0 g BT /Cour 8.0 Tf 2 1.3549999999999995 Td () Tj ET Q EMC 
+endstream
+endobj
+200 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 467.71 108.46 514.94 117.57 ]
+/F 4
+/P 4 0 R
+/T (Zuschlaege)
+/Ff 0
+/FT /Tx 
+/Q 2
+/DA (/Cour 8.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (Betrag für Zuschläge in Euro)
+/AP << /N 201 0 R >>
+/MaxLen 199
+/AA << /F << /S /JavaScript /JS (var memorized_eventvalue=event.value;
+  if\(app.viewerVersion<6\) event.rc = true;\r
+if \(event.value != ""\) { 
+   AFNumber_Format\(2,2,0,0,'',false\);
+}if(false==event.rc){    event.rc=true;      event.value=memorized_eventvalue;     app.beep(0);     event.target.setFocus();}) >>
+ /K << /S /JavaScript /JS (
+if\( \(event.change!=""\) && \(true==event.rc\) \) {
+   AFNumber_Keystroke\(2,2,0,0,'',false\);
+   var n=2;
+   if\( \(0==n\) && \(","==event.change\) \)
+   {       app.beep\(0\);
+           event.rc=false;
+   }       
+}) >>
+ >>
+>>
+endobj
+201 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 47.23 9.11 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 47.23 9.11 re W n 0 g BT /Cour 8.0 Tf 2 1.3549999999999995 Td () Tj ET Q EMC 
+endstream
+endobj
+202 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 467.71 80.01 514.94 89.12 ]
+/F 4
+/P 4 0 R
+/T (Sonstige_Fahrauslagen)
+/Ff 0
+/FT /Tx 
+/Q 2
+/DA (/Cour 8.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (Betrag für sonstige Fahrkosten in Euro)
+/AP << /N 203 0 R >>
+/MaxLen 199
+/AA << /F << /S /JavaScript /JS (var memorized_eventvalue=event.value;
+  if\(app.viewerVersion<6\) event.rc = true;\r
+if \(event.value != ""\) { 
+   AFNumber_Format\(2,2,0,0,'',false\);
+}if(false==event.rc){    event.rc=true;      event.value=memorized_eventvalue;     app.beep(0);     event.target.setFocus();}) >>
+ /K << /S /JavaScript /JS (
+if\( \(event.change!=""\) && \(true==event.rc\) \) {
+   AFNumber_Keystroke\(2,2,0,0,'',false\);
+   var n=2;
+   if\( \(0==n\) && \(","==event.change\) \)
+   {       app.beep\(0\);
+           event.rc=false;
+   }       
+}) >>
+ >>
+>>
+endobj
+203 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 47.23 9.11 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 47.23 9.11 re W n 0 g BT /Cour 8.0 Tf 2 1.3549999999999995 Td () Tj ET Q EMC 
+endstream
+endobj
+204 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 401.14 45.87 425.6 54.98 ]
+/F 4
+/P 4 0 R
+/T (Tage3)
+/Ff 12582912
+/FT /Tx 
+/Q 1
+/DA (/Cour 8.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (Kilometer)
+/AP << /N 205 0 R >>
+/MaxLen 199
+>>
+endobj
+205 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 24.46 9.11 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 24.46 9.11 re W n 0 g BT /Cour 8.0 Tf 2 1.3549999999999995 Td () Tj ET Q EMC 
+endstream
+endobj
+206 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 433.57 45.87 460.88 54.98 ]
+/F 4
+/P 4 0 R
+/T (EUR3)
+/Ff 0
+/FT /Tx 
+/Q 2
+/DA (/Cour 8.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (Betrag in Euro)
+/AP << /N 207 0 R >>
+/MaxLen 199
+/AA << /F << /S /JavaScript /JS (var memorized_eventvalue=event.value;
+  if\(app.viewerVersion<6\) event.rc = true;\r
+if \(event.value != ""\) { 
+   AFNumber_Format\(2,2,0,0,'',false\);
+}if(false==event.rc){    event.rc=true;      event.value=memorized_eventvalue;     app.beep(0);     event.target.setFocus();}) >>
+ /K << /S /JavaScript /JS (
+if\( \(event.change!=""\) && \(true==event.rc\) \) {
+   AFNumber_Keystroke\(2,2,0,0,'',false\);
+   var n=2;
+   if\( \(0==n\) && \(","==event.change\) \)
+   {       app.beep\(0\);
+           event.rc=false;
+   }       
+}) >>
+ >>
+>>
+endobj
+207 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 27.31 9.11 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 27.31 9.11 re W n 0 g BT /Cour 8.0 Tf 2 1.3549999999999995 Td () Tj ET Q EMC 
+endstream
+endobj
+208 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 467.71 45.87 514.94 54.98 ]
+/F 4
+/P 4 0 R
+/T (Wegstreckenentschaedigung)
+/Ff 0
+/FT /Tx 
+/Q 2
+/DA (/Cour 8.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (Summe in Euro)
+/AP << /N 209 0 R >>
+/MaxLen 199
+/AA << /F << /S /JavaScript /JS (var memorized_eventvalue=event.value;
+  if\(app.viewerVersion<6\) event.rc = true;\r
+if \(event.value != ""\) { 
+   AFNumber_Format\(2,2,0,0,'',false\);
+}if(false==event.rc){    event.rc=true;      event.value=memorized_eventvalue;     app.beep(0);     event.target.setFocus();}) >>
+ /K << /S /JavaScript /JS (
+if\( \(event.change!=""\) && \(true==event.rc\) \) {
+   AFNumber_Keystroke\(2,2,0,0,'',false\);
+   var n=2;
+   if\( \(0==n\) && \(","==event.change\) \)
+   {       app.beep\(0\);
+           event.rc=false;
+   }       
+}) >>
+ >>
+>>
+endobj
+209 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 47.23 9.11 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 47.23 9.11 re W n 0 g BT /Cour 8.0 Tf 2 1.3549999999999995 Td () Tj ET Q EMC 
+endstream
+endobj
+210 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 401.14 23.11 425.6 32.22 ]
+/F 4
+/P 4 0 R
+/T (Tage4)
+/Ff 12582912
+/FT /Tx 
+/Q 1
+/DA (/Cour 8.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (Kilometer)
+/AP << /N 211 0 R >>
+/MaxLen 199
+>>
+endobj
+211 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 24.46 9.11 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 24.46 9.11 re W n 0 g BT /Cour 8.0 Tf 2 1.3549999999999995 Td () Tj ET Q EMC 
+endstream
+endobj
+212 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 433.57 23.11 460.88 32.22 ]
+/F 4
+/P 4 0 R
+/T (EUR4)
+/Ff 0
+/FT /Tx 
+/Q 2
+/DA (/Cour 8.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (Betrag in Euro)
+/AP << /N 213 0 R >>
+/MaxLen 199
+/AA << /F << /S /JavaScript /JS (var memorized_eventvalue=event.value;
+  if\(app.viewerVersion<6\) event.rc = true;\r
+if \(event.value != ""\) { 
+   AFNumber_Format\(2,2,0,0,'',false\);
+}if(false==event.rc){    event.rc=true;      event.value=memorized_eventvalue;     app.beep(0);     event.target.setFocus();}) >>
+ /K << /S /JavaScript /JS (
+if\( \(event.change!=""\) && \(true==event.rc\) \) {
+   AFNumber_Keystroke\(2,2,0,0,'',false\);
+   var n=2;
+   if\( \(0==n\) && \(","==event.change\) \)
+   {       app.beep\(0\);
+           event.rc=false;
+   }       
+}) >>
+ >>
+>>
+endobj
+213 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 27.31 9.11 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 27.31 9.11 re W n 0 g BT /Cour 8.0 Tf 2 1.3549999999999995 Td () Tj ET Q EMC 
+endstream
+endobj
+214 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 467.71 23.11 514.94 32.22 ]
+/F 4
+/P 4 0 R
+/T (Wegstreckenentschaedigung1)
+/Ff 0
+/FT /Tx 
+/Q 2
+/DA (/Cour 8.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (Summe in Euro)
+/AP << /N 215 0 R >>
+/MaxLen 199
+/AA << /F << /S /JavaScript /JS (var memorized_eventvalue=event.value;
+  if\(app.viewerVersion<6\) event.rc = true;\r
+if \(event.value != ""\) { 
+   AFNumber_Format\(2,2,0,0,'',false\);
+}if(false==event.rc){    event.rc=true;      event.value=memorized_eventvalue;     app.beep(0);     event.target.setFocus();}) >>
+ /K << /S /JavaScript /JS (
+if\( \(event.change!=""\) && \(true==event.rc\) \) {
+   AFNumber_Keystroke\(2,2,0,0,'',false\);
+   var n=2;
+   if\( \(0==n\) && \(","==event.change\) \)
+   {       app.beep\(0\);
+           event.rc=false;
+   }       
+}) >>
+ >>
+>>
+endobj
+215 0 obj
+<< /Length 92 /Subtype /Form /BBox [ 0 0 47.23 9.11 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 47.23 9.11 re W n 0 g BT /Cour 8.0 Tf 2 1.3549999999999995 Td () Tj ET Q EMC 
+endstream
+endobj
+216 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 71.12 515.86 82.5 527.24 ]
+/F 4
+/P 7 0 R
+/T (OBJ58)
+/Ff 1
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 217 0 R /Off 218 0 R >> >>
+/AS /Off
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ58\(\);) >>
+>>
+endobj
+217 0 obj
+<< /Length 118 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 0.749 g 0 0 11.38 11.38 re f f 0 G 1 w 0.5 0.5 10.38 10.38 re s
+0 g 1.5 w 2 2 m 9.38 9.38 l S 2 9.38 m 9.38 2 l S Q
+endstream
+endobj
+218 0 obj
+<< /Length 68 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 0.749 g 0 0 11.38 11.38 re f f 0 G 1 w 0.5 0.5 10.38 10.38 re S Q
+endstream
+endobj
+219 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 278.81 515.86 290.18 527.24 ]
+/F 4
+/P 7 0 R
+/T (OBJ59)
+/Ff 1
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 220 0 R /Off 221 0 R >> >>
+/AS /Off
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ59\(\);) >>
+>>
+endobj
+220 0 obj
+<< /Length 118 /Subtype /Form /BBox [ 0 0 11.37 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 0.749 g 0 0 11.37 11.38 re f f 0 G 1 w 0.5 0.5 10.37 10.38 re s
+0 g 1.5 w 2 2 m 9.37 9.38 l S 2 9.38 m 9.37 2 l S Q
+endstream
+endobj
+221 0 obj
+<< /Length 68 /Subtype /Form /BBox [ 0 0 11.37 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 0.749 g 0 0 11.37 11.38 re f f 0 G 1 w 0.5 0.5 10.37 10.38 re S Q
+endstream
+endobj
+222 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 467.71 786.13 514.94 795.23 ]
+/F 4
+/P 7 0 R
+/T (Sonstige_Fahrauslagen1)
+/Ff 0
+/FT /Tx 
+/Q 2
+/DA (/Cour 8.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (Betrag für die Erstattung sonstiger Kosten)
+/AP << /N 223 0 R >>
+/MaxLen 199
+/AA << /F << /S /JavaScript /JS (var memorized_eventvalue=event.value;
+  if\(app.viewerVersion<6\) event.rc = true;\r
+if \(event.value != ""\) { 
+   AFNumber_Format\(2,2,0,0,'',false\);
+}if(false==event.rc){    event.rc=true;      event.value=memorized_eventvalue;     app.beep(0);     event.target.setFocus();}) >>
+ /K << /S /JavaScript /JS (
+if\( \(event.change!=""\) && \(true==event.rc\) \) {
+   AFNumber_Keystroke\(2,2,0,0,'',false\);
+   var n=2;
+   if\( \(0==n\) && \(","==event.change\) \)
+   {       app.beep\(0\);
+           event.rc=false;
+   }       
+}) >>
+ >>
+>>
+endobj
+223 0 obj
+<< /Length 91 /Subtype /Form /BBox [ 0 0 47.23 9.1 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 47.23 9.1 re W n 0 g BT /Cour 8.0 Tf 2 1.3499999999999996 Td () Tj ET Q EMC 
+endstream
+endobj
+224 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 71.12 734.92 82.5 746.3 ]
+/F 4
+/P 7 0 R
+/T (OBJ9)
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 225 0 R /Off 226 0 R >> >>
+/AS /Off
+/TU (Nein)
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ9\(\);) >>
+>>
+endobj
+225 0 obj
+<< /Length 112 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re s
+0 g 1.5 w 2 2 m 9.38 9.38 l S 2 9.38 m 9.38 2 l S Q
+endstream
+endobj
+226 0 obj
+<< /Length 62 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re S Q
+endstream
+endobj
+227 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 152.49 734.92 163.87 746.3 ]
+/F 4
+/P 7 0 R
+/T (OBJ10)
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 228 0 R /Off 229 0 R >> >>
+/AS /Off
+/TU (Ja, und zwar in Höhe von)
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ10\(\);) >>
+>>
+endobj
+228 0 obj
+<< /Length 112 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re s
+0 g 1.5 w 2 2 m 9.38 9.38 l S 2 9.38 m 9.38 2 l S Q
+endstream
+endobj
+229 0 obj
+<< /Length 62 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re S Q
+endstream
+endobj
+230 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 370.98 737.2 395.45 746.3 ]
+/F 4
+/P 7 0 R
+/T (Tage5)
+/Ff 12582913
+/FT /Tx 
+/Q 1
+/DA (/Cour 8.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (Betrag von Zuwendungen in Euro)
+/AP << /N 231 0 R >>
+/MaxLen 199
+>>
+endobj
+231 0 obj
+<< /Length 131 /Subtype /Form /BBox [ 0 0 24.47 9.1 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+0.749 0.749 0.749 rg 0 0 24.47 9.1 re f /Tx BMC q 0 0 24.47 9.1 re W n 0 g BT /Cour 8.0 Tf 2 1.3499999999999996 Td () Tj ET Q EMC 
+endstream
+endobj
+232 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 71.12 709.32 82.5 720.7 ]
+/F 4
+/P 7 0 R
+/T (OBJ52)
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 233 0 R /Off 234 0 R >> >>
+/AS /Off
+/TU (Nein)
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ52\(\);) >>
+>>
+endobj
+233 0 obj
+<< /Length 112 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re s
+0 g 1.5 w 2 2 m 9.38 9.38 l S 2 9.38 m 9.38 2 l S Q
+endstream
+endobj
+234 0 obj
+<< /Length 62 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re S Q
+endstream
+endobj
+235 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 152.49 709.32 163.87 720.7 ]
+/F 4
+/P 7 0 R
+/T (OBJ53)
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 236 0 R /Off 237 0 R >> >>
+/AS /Off
+/TU (Ja, und zwar in Höhe von)
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ53\(\);) >>
+>>
+endobj
+236 0 obj
+<< /Length 112 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re s
+0 g 1.5 w 2 2 m 9.38 9.38 l S 2 9.38 m 9.38 2 l S Q
+endstream
+endobj
+237 0 obj
+<< /Length 62 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re S Q
+endstream
+endobj
+238 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 370.98 711.59 395.45 720.7 ]
+/F 4
+/P 7 0 R
+/T (Tage8)
+/Ff 12582913
+/FT /Tx 
+/Q 1
+/DA (/Cour 8.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (Betrag für den Reisekostenabschlag in Euro)
+/AP << /N 239 0 R >>
+/MaxLen 199
+>>
+endobj
+239 0 obj
+<< /Length 133 /Subtype /Form /BBox [ 0 0 24.47 9.11 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+0.749 0.749 0.749 rg 0 0 24.47 9.11 re f /Tx BMC q 0 0 24.47 9.11 re W n 0 g BT /Cour 8.0 Tf 2 1.3549999999999995 Td () Tj ET Q EMC 
+endstream
+endobj
+240 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 71.12 683.71 82.5 695.09 ]
+/F 4
+/P 7 0 R
+/T (OBJ54)
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 241 0 R /Off 242 0 R >> >>
+/AS /Off
+/TU (Nein)
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ54\(\);) >>
+>>
+endobj
+241 0 obj
+<< /Length 112 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re s
+0 g 1.5 w 2 2 m 9.38 9.38 l S 2 9.38 m 9.38 2 l S Q
+endstream
+endobj
+242 0 obj
+<< /Length 62 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re S Q
+endstream
+endobj
+243 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 152.49 683.71 163.87 695.09 ]
+/F 4
+/P 7 0 R
+/T (OBJ55)
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 244 0 R /Off 245 0 R >> >>
+/AS /Off
+/TU (Ja \(Bitte Hinweise zu Art und Höhe angeben\))
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ55\(\);) >>
+>>
+endobj
+244 0 obj
+<< /Length 112 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re s
+0 g 1.5 w 2 2 m 9.38 9.38 l S 2 9.38 m 9.38 2 l S Q
+endstream
+endobj
+245 0 obj
+<< /Length 62 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 1 g 0 0 11.38 11.38 re
+f 0 G 1 w 0.5 0.5 10.38 10.38 re S Q
+endstream
+endobj
+246 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 71.12 670.62 395.45 682.0 ]
+/F 4
+/P 7 0 R
+/T (Erlaeuterungen2)
+/Ff 8392705
+/FT /Tx 
+/DA (/Cour 7.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (Hinweise zu Art und Höhe)
+/AP << /N 247 0 R >>
+>>
+endobj
+247 0 obj
+<< /Length 136 /Subtype /Form /BBox [ 0 0 324.33 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+0.749 0.749 0.749 rg 0 0 324.33 11.38 re f /Tx BMC q 0 0 324.33 11.38 re W n 0 g BT /Cour 7.0 Tf
+2 4.380000000000001 Td () Tj
+ET Q EMC 
+endstream
+endobj
+248 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 401.14 652.42 412.52 663.8 ]
+/F 4
+/P 7 0 R
+/T (OBJ56)
+/Ff 1
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 249 0 R /Off 250 0 R >> >>
+/AS /Off
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ56\(\);) >>
+>>
+endobj
+249 0 obj
+<< /Length 118 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 0.749 g 0 0 11.38 11.38 re f f 0 G 1 w 0.5 0.5 10.38 10.38 re s
+0 g 1.5 w 2 2 m 9.38 9.38 l S 2 9.38 m 9.38 2 l S Q
+endstream
+endobj
+250 0 obj
+<< /Length 68 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 0.749 g 0 0 11.38 11.38 re f f 0 G 1 w 0.5 0.5 10.38 10.38 re S Q
+endstream
+endobj
+251 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 466.57 652.42 477.95 663.8 ]
+/F 4
+/P 7 0 R
+/T (OBJ57)
+/Ff 1
+/FT /Btn
+/DV /Yes
+/AP << /N << /Yes 252 0 R /Off 253 0 R >> >>
+/AS /Off
+ /A << /S /JavaScript /JS (
+SYS_CB_OBJ57\(\);) >>
+>>
+endobj
+252 0 obj
+<< /Length 118 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 0.749 g 0 0 11.38 11.38 re f f 0 G 1 w 0.5 0.5 10.38 10.38 re s
+0 g 1.5 w 2 2 m 9.38 9.38 l S 2 9.38 m 9.38 2 l S Q
+endstream
+endobj
+253 0 obj
+<< /Length 68 /Subtype /Form /BBox [ 0 0 11.38 11.38 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /ZaDb 352 0 R >> >> >>
+stream
+q 0.749 g 0 0 11.38 11.38 re f f 0 G 1 w 0.5 0.5 10.38 10.38 re S Q
+endstream
+endobj
+254 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/Rect [ 71.12 761.66 395.45 810.03 ]
+/F 4
+/P 7 0 R
+/T (Erlaeuterungen1)
+/Ff 8392704
+/FT /Tx 
+/DA (/Cour 7.0 Tf 0 g)
+/DV ()
+/V ()
+/TU (weitere Erläuterungen)
+/AP << /N 255 0 R >>
+>>
+endobj
+255 0 obj
+<< /Length 81 /Subtype /Form /BBox [ 0 0 324.33 48.37 ] /Resources << /ProcSet [ /PDF /Text ] /Font << /Cour 353 0 R >> >> >>
+stream
+/Tx BMC q 0 0 324.33 48.37 re W n 0 g BT /Cour 7.0 Tf
+2 41.37 Td () Tj
+ET Q EMC 
+endstream
+endobj
+256 0 obj
+<<
+/JavaScript 257 0 R
+>>
+endobj
+257 0 obj
+<<
+/Names [ (SYS_AWM)265 0 R (SYS_CB_HDL_CLR)260 0 R (SYS_CB_HDL_OBJ1)290 0 R (SYS_CB_HDL_OBJ10)301 0 R (SYS_CB_HDL_OBJ2)291 0 R (SYS_CB_HDL_OBJ21)268 0 R (SYS_CB_HDL_OBJ22)269 0 R (SYS_CB_HDL_OBJ23)270 0 R (SYS_CB_HDL_OBJ24)271 0 R (SYS_CB_HDL_OBJ25)272 0 R (SYS_CB_HDL_OBJ26)273 0 R (SYS_CB_HDL_OBJ27)274 0 R (SYS_CB_HDL_OBJ28)275 0 R (SYS_CB_HDL_OBJ29)276 0 R (SYS_CB_HDL_OBJ3)292 0 R (SYS_CB_HDL_OBJ30)277 0 R (SYS_CB_HDL_OBJ32)278 0 R (SYS_CB_HDL_OBJ33)279 0 R (SYS_CB_HDL_OBJ34)280 0 R (SYS_CB_HDL_OBJ35)281 0 R (SYS_CB_HDL_OBJ36)282 0 R (SYS_CB_HDL_OBJ37)283 0 R (SYS_CB_HDL_OBJ38)284 0 R (SYS_CB_HDL_OBJ39)285 0 R (SYS_CB_HDL_OBJ4)293 0 R (SYS_CB_HDL_OBJ40)286 0 R (SYS_CB_HDL_OBJ41)287 0 R (SYS_CB_HDL_OBJ42)288 0 R (SYS_CB_HDL_OBJ43)289 0 R (SYS_CB_HDL_OBJ5)294 0 R (SYS_CB_HDL_OBJ52)302 0 R (SYS_CB_HDL_OBJ53)303 0 R (SYS_CB_HDL_OBJ54)304 0 R (SYS_CB_HDL_OBJ55)305 0 R (SYS_CB_HDL_OBJ56)306 0 R (SYS_CB_HDL_OBJ57)307 0 R (SYS_CB_HDL_OBJ58)298 0 R (SYS_CB_HDL_OBJ59)299 0 R (SYS_CB_HDL_OBJ6)295 0 R (SYS_CB_HDL_OBJ7)296 0 R (SYS_CB_HDL_OBJ8)297 0 R (SYS_CB_HDL_OBJ9)300 0 R (SYS_CB_HDL_STATE)261 0 R (SYS_CB_OBJ1)332 0 R (SYS_CB_OBJ10)343 0 R (SYS_CB_OBJ2)333 0 R (SYS_CB_OBJ21)310 0 R (SYS_CB_OBJ22)311 0 R (SYS_CB_OBJ23)312 0 R (SYS_CB_OBJ24)313 0 R (SYS_CB_OBJ25)314 0 R (SYS_CB_OBJ26)315 0 R (SYS_CB_OBJ27)316 0 R (SYS_CB_OBJ28)317 0 R (SYS_CB_OBJ29)318 0 R (SYS_CB_OBJ3)334 0 R (SYS_CB_OBJ30)319 0 R (SYS_CB_OBJ32)320 0 R (SYS_CB_OBJ33)321 0 R (SYS_CB_OBJ34)322 0 R (SYS_CB_OBJ35)323 0 R (SYS_CB_OBJ36)324 0 R (SYS_CB_OBJ37)325 0 R (SYS_CB_OBJ38)326 0 R (SYS_CB_OBJ39)327 0 R (SYS_CB_OBJ4)335 0 R (SYS_CB_OBJ40)328 0 R (SYS_CB_OBJ41)329 0 R (SYS_CB_OBJ42)330 0 R (SYS_CB_OBJ43)331 0 R (SYS_CB_OBJ5)336 0 R (SYS_CB_OBJ52)344 0 R (SYS_CB_OBJ53)345 0 R (SYS_CB_OBJ54)346 0 R (SYS_CB_OBJ55)347 0 R (SYS_CB_OBJ56)348 0 R (SYS_CB_OBJ57)349 0 R (SYS_CB_OBJ58)340 0 R (SYS_CB_OBJ59)341 0 R (SYS_CB_OBJ6)337 0 R (SYS_CB_OBJ7)338 0 R (SYS_CB_OBJ8)339 0 R (SYS_CB_OBJ9)342 0 R (SYS_CHECK_MF_FIELDS)308 0 R (SYS_EWB)266 0 R (SYS_EWM)264 0 R (SYS_FILL)263 0 R (SYS_IS_MUFI_CB)262 0 R (SYS_PA2_SUBMIT)267 0 R (SYS_RESET_BG_COLORS_UPON_ALL_PAGES)309 0 R (getBgColor)258 0 R (getBorderColor)259 0 R ]
+>>
+endobj
+258 0 obj
+<<
+/S /JavaScript
+/JS (function getBgColor\(fn\){\rvar BG_DISABLED=["RGB",0.749,0.749,0.749];\rvar BG_174=["RGB",1.0,1.0,1.0];\r  if\(fn=="Beschaeftigungsstelle"\) return BG_174;\r  if\(fn=="Name__Vorname"\) return BG_174;\r  if\(fn=="IBAN1"\) return BG_174;\r  if\(fn=="IBAN2"\) return BG_174;\r  if\(fn=="IBAN3"\) return BG_174;\r  if\(fn=="IBAN4"\) return BG_174;\r  if\(fn=="IBAN5"\) return BG_174;\r  if\(fn=="IBAN6"\) return BG_174;\r  if\(fn=="IBAN7"\) return BG_174;\r  if\(fn=="IBAN8"\) return BG_174;\r  if\(fn=="IBAN9"\) return BG_174;\r  if\(fn=="IBAN10"\) return BG_174;\r  if\(fn=="IBAN11"\) return BG_174;\r  if\(fn=="IBAN12"\) return BG_174;\r  if\(fn=="IBAN13"\) return BG_174;\r  if\(fn=="IBAN14"\) return BG_174;\r  if\(fn=="IBAN15"\) return BG_174;\r  if\(fn=="IBAN16"\) return BG_174;\r  if\(fn=="IBAN17"\) return BG_174;\r  if\(fn=="IBAN18"\) return BG_174;\r  if\(fn=="IBAN19"\) return BG_174;\r  if\(fn=="IBAN20"\) return BG_174;\r  if\(fn=="IBAN21"\) return BG_174;\r  if\(fn=="IBAN22"\) return BG_174;\r  if\(fn=="BIC"\) return BG_174;\r  if\(fn=="Grund_der_RKR"\) return BG_174;\r  if\(fn=="Grund_der_RKR1"\) return BG_174;\r  if\(fn=="Abrechnende_Dienststelle"\) return BG_174;\r  if\(fn=="Wohnungsanschrift"\) return BG_174;\r  if\(fn=="OBJ21"\) return BG_174;\r  if\(fn=="OBJ22"\) return BG_174;\r  if\(fn=="OBJ23"\) return BG_174;\r  if\(fn=="OBJ24"\) return BG_174;\r  if\(fn=="OBJ25"\) return BG_174;\r  if\(fn=="OBJ26"\) return BG_174;\r  if\(fn=="OBJ27"\) return BG_174;\r  if\(fn=="OBJ28"\) return BG_174;\r  if\(fn=="OBJ29"\) return BG_174;\r  if\(fn=="OBJ30"\) return BG_174;\r  if\(fn=="Begruendung_nein"\) return BG_174;\r  if\(fn=="OBJ32"\) return BG_174;\r  if\(fn=="OBJ33"\) return BG_174;\r  if\(fn=="Strecke"\) return BG_174;\r  if\(fn=="OBJ34"\) return BG_174;\r  if\(fn=="OBJ35"\) return BG_174;\r  if\(fn=="OBJ36"\) return BG_174;\r  if\(fn=="Verpflegung"\) return BG_174;\r  if\(fn=="OBJ37"\) return BG_174;\r  if\(fn=="OBJ38"\) return BG_174;\r  if\(fn=="OBJ39"\) return BG_174;\r  if\(fn=="OBJ40"\) return BG_174;\r  if\(fn=="OBJ41"\) return BG_174;\r  if\(fn=="OBJ42"\) return BG_174;\r  if\(fn=="OBJ43"\) return BG_174;\r  if\(fn=="Bei_RRS"\) return BG_174;\r  if\(fn=="Tage"\) return BG_174;\r  if\(fn=="EUR"\) return BG_174;\r  if\(fn=="OBJ1"\) return BG_174;\r  if\(fn=="OBJ2"\) return BG_174;\r  if\(fn=="Tage6"\) return BG_174;\r  if\(fn=="EUR6"\) return BG_174;\r  if\(fn=="Beginn_der_Dienstreise"\) return BG_174;\r  if\(fn=="Beginn_des_Dienstgeschaefts"\) return BG_174;\r  if\(fn=="Tage7"\) return BG_174;\r  if\(fn=="EUR7"\) return BG_174;\r  if\(fn=="Ende_des_Dienstgeschaefts"\) return BG_174;\r  if\(fn=="Ende_der_Dienstreise"\) return BG_174;\r  if\(fn=="OBJ3"\) return BG_174;\r  if\(fn=="Dienststelle_Datum"\) return BG_174;\r  if\(fn=="Uebernachtungsgeld"\) return BG_174;\r  if\(fn=="Reiseziel_Reiseweg"\) return BG_174;\r  if\(fn=="OBJ4"\) return BG_174;\r  if\(fn=="OBJ5"\) return BG_174;\r  if\(fn=="OBJ6"\) return BG_174;\r  if\(fn=="OBJ7"\) return BG_174;\r  if\(fn=="OBJ8"\) return BG_174;\r  if\(fn=="Erlaeuterungen"\) return BG_174;\r  if\(fn=="Erstattung_Uebernachtungskosten"\) return BG_174;\r  if\(fn=="Fahrkarte"\) return BG_174;\r  if\(fn=="Zuschlaege"\) return BG_174;\r  if\(fn=="Sonstige_Fahrauslagen"\) return BG_174;\r  if\(fn=="Tage3"\) return BG_174;\r  if\(fn=="EUR3"\) return BG_174;\r  if\(fn=="Wegstreckenentschaedigung"\) return BG_174;\r  if\(fn=="Tage4"\) return BG_174;\r  if\(fn=="EUR4"\) return BG_174;\r  if\(fn=="Wegstreckenentschaedigung1"\) return BG_174;\r  if\(fn=="Formularhinweise"\) return BG_174;\r  if\(fn=="OBJ58"\) return BG_174;\r  if\(fn=="OBJ59"\) return BG_174;\r  if\(fn=="Sonstige_Fahrauslagen1"\) return BG_174;\r  if\(fn=="OBJ9"\) return BG_174;\r  if\(fn=="OBJ10"\) return BG_174;\r  if\(fn=="Tage5"\) return BG_174;\r  if\(fn=="OBJ52"\) return BG_174;\r  if\(fn=="OBJ53"\) return BG_174;\r  if\(fn=="Tage8"\) return BG_174;\r  if\(fn=="OBJ54"\) return BG_174;\r  if\(fn=="OBJ55"\) return BG_174;\r  if\(fn=="Erlaeuterungen2"\) return BG_174;\r  if\(fn=="OBJ56"\) return BG_174;\r  if\(fn=="OBJ57"\) return BG_174;\r  if\(fn=="Erlaeuterungen1"\) return BG_174;\r    return color.transparent;})
+>>
+endobj
+259 0 obj
+<<
+/S /JavaScript
+/JS (function getBorderColor\(fn\){\r   var f = this.getField\(fn\);\r   if\(\(null!=f\)&&\("checkbox"==f.type\)\)\r   { return ["RGB",0.0,0.0,0.0];\r   }\r   return color.transparent;\r})
+>>
+endobj
+260 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_CLR\(name,bNeedsColouredMustFillBorder\)\r{\r    if\(bNeedsColouredMustFillBorder\)\r    {    getField\(name\).strokeColor=color.red;\r        }\r        else\r    	{    getField\(name\).strokeColor=getBorderColor\(name\);\r        }\r    return bNeedsColouredMustFillBorder;\r}\r)
+>>
+endobj
+261 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_STATE\(\)\r{\r    if\(false==SYS_IS_MUFI_CB\(SYS_CB_HDL_STATE.arguments[0]\)\) return false;\r    var obj=getField\(SYS_CB_HDL_STATE.arguments[0]\);\r    if\("Yes"==obj.value\) return false;\r    if\(true==obj.readonly\) return false;\r    if\(display.hidden==obj.display\) return false;\r    for\(var i=1;i<SYS_CB_HDL_STATE.arguments.length;i++\)\r    {   if\("Yes"==getField\(SYS_CB_HDL_STATE.arguments[i]\).value\)\r    	{   return false;\r        }\r    }\r    return true;\r}\r)
+>>
+endobj
+262 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_IS_MUFI_CB\(cbname\)\r{   var all_mufi_cb= new Array\(\);\r	for\(var i=0;i<all_mufi_cb.length;i++\)\r	{	if\(cbname==all_mufi_cb[i]\) return true;\r	}\r	return false;\r}\r)
+>>
+endobj
+263 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_FILL\(f,c\){\r  if\(""+f.fillColor!=""+c\)  {f.fillColor=c;}}\r)
+>>
+endobj
+264 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_EWM\(f1,f2\){\r var v1=getField\(f1\);\r var v2=getField\(f2\);\r if\(\(null==v1\)||\(null==v2\)\) return;\r if\(v1.value=="Off"\)\r { v2.readonly=true;SYS_FILL\(v2,["RGB",0.749,0.749,0.749]\);\r }\r else\r {  v2.readonly=false;SYS_FILL\(v2,getBgColor\(f2\)\);\r }\r}\r)
+>>
+endobj
+265 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_AWM\(f1,f2\){\r var v1=getField\(f1\);\r var v2=getField\(f2\);\r if\(\(null==v1\)||\(null==v2\)\) return;\r if\(v1.value=="Off"\)\r {  v2.readonly=false;SYS_FILL\(v2,getBgColor\(f2\)\);\r }\r else\r { v2.readonly=true;SYS_FILL\(v2,["RGB",0.749,0.749,0.749]\);\r }\r}\r)
+>>
+endobj
+266 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_EWB\(v1,f2\){\r var v2=getField\(f2\);\r if\(\(null==v1\)||\(null==v2\)\) return;\r if\(""==v1\)\r { v2.readonly=true;SYS_FILL\(v2,["RGB",0.749,0.749,0.749]\);\r }\r else\r {  v2.readonly=false;SYS_FILL\(v2,getBgColor\(f2\)\);\r }\r}\r)
+>>
+endobj
+267 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_PA2_SUBMIT\(\)\r{\r        var pflichtfelder_befuellt = SYS_CHECK_MF_FIELDS\(\);\r        var n = this.numFields;\r        var f;\r        var fn;\r        for\(var i=0;i<n;i++\)\r        {\r                fn = this.getNthFieldName\(i\);\r                if\( \(""!=fn\) && \("SYS_SEND_BUTTON"==fn.substring\(0,15\)\) \)\r                {\r                        f = this.getField\(fn\);\r                        if\(null!=f\)\r                        {\r                             if\(true==pflichtfelder_befuellt\)\r                        	 { f.readonly=false;\r                        	 }\r                        	 else\r                        	 { f.readonly=true;\r                        	 }\r                        }\r                        f = this.getField\("SYS_SEND_BTN_SHADOW"+fn.substring\(15,fn.length\)\);\r                        if\(null!=f\)\r                        {\r                             if\(true==pflichtfelder_befuellt\)\r                        	 { f.readonly=true;\r                        	   f.display=display.hidden;\r                        	 }\r                        	 else\r                        	 { f.readonly=false;\r                        	   f.display=display.visible;\r                        	 }\r                        }\r                }\r        }\r}\r)
+>>
+endobj
+268 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ21\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ21","OBJ21","OBJ22"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ21",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+269 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ22\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ22","OBJ21","OBJ22"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ22",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+270 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ23\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ23","OBJ23","OBJ24","OBJ25","OBJ26","OBJ27","OBJ28"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ23",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+271 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ24\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ24","OBJ23","OBJ24","OBJ25","OBJ26","OBJ27","OBJ28"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ24",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+272 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ25\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ25","OBJ23","OBJ24","OBJ25","OBJ26","OBJ27","OBJ28"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ25",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+273 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ26\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ26","OBJ23","OBJ24","OBJ25","OBJ26","OBJ27","OBJ28"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ26",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+274 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ27\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ27","OBJ23","OBJ24","OBJ25","OBJ26","OBJ27","OBJ28"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ27",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+275 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ28\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ28","OBJ23","OBJ24","OBJ25","OBJ26","OBJ27","OBJ28"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ28",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+276 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ29\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ29","OBJ29","OBJ30"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ29",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+277 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ30\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ30","OBJ29","OBJ30"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ30",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+278 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ32\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ32","OBJ32","OBJ33"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ32",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+279 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ33\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ33","OBJ32","OBJ33"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ33",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+280 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ34\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ34","OBJ34","OBJ35"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ34",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+281 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ35\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ35","OBJ34","OBJ35"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ35",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+282 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ36\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ36","OBJ36","OBJ37"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ36",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+283 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ37\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ37","OBJ36","OBJ37"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ37",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+284 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ38\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ38","OBJ38","OBJ39"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ38",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+285 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ39\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ39","OBJ38","OBJ39"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ39",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+286 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ40\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ40","OBJ40","OBJ41"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ40",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+287 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ41\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ41","OBJ40","OBJ41"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ41",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+288 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ42\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ42","OBJ42","OBJ43"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ42",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+289 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ43\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ43","OBJ42","OBJ43"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ43",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+290 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ1\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ1"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ1",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+291 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ2\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ2"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ2",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+292 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ3\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ3"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ3",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+293 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ4\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ4","OBJ4","OBJ5","OBJ6","OBJ7","OBJ8"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ4",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+294 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ5\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ5","OBJ4","OBJ5","OBJ6","OBJ7","OBJ8"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ5",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+295 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ6\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ6","OBJ4","OBJ5","OBJ6","OBJ7","OBJ8"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ6",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+296 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ7\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ7","OBJ4","OBJ5","OBJ6","OBJ7","OBJ8"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ7",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+297 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ8\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ8","OBJ4","OBJ5","OBJ6","OBJ7","OBJ8"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ8",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+298 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ58\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ58"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ58",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+299 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ59\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ59"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ59",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+300 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ9\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ9","OBJ9","OBJ10"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ9",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+301 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ10\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ10","OBJ9","OBJ10"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ10",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+302 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ52\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ52","OBJ52","OBJ53"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ52",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+303 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ53\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ53","OBJ52","OBJ53"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ53",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+304 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ54\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ54","OBJ54","OBJ55"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ54",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+305 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ55\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ55","OBJ54","OBJ55"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ55",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+306 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ56\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ56"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ56",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+307 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_HDL_OBJ57\(changecolor\)\r{   var retval=SYS_CB_HDL_STATE\("OBJ57"\);\r    if\(true==changecolor\)\r    {   SYS_CB_HDL_CLR\("OBJ57",retval\);\r    }\r    return retval;\r}\r)
+>>
+endobj
+308 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CHECK_MF_FIELDS\(\)\r{\r        var n = this.numFields;\r        var f;\r        var fn;\r        for\(var i=0;i<n;i++\)\r        {\r                fn = this.getNthFieldName\(i\);\r                if\( \(""!=fn\) && \("SYSTEM_P1_DUMMY"!=fn\) \)\r                {\r                        f = this.getField\(fn\);\r                        if\( \(null!=f\) && \("button"!=f.type\) \)\r                        {\r                                if\(\(f.required\)&&\(""==f.value\)\)\r                                {\r                                        return false;\r                                }\r                        }\r                }\r        }\r    	if\(true==SYS_CB_HDL_OBJ21\(false\)\){return false;}\r    	if\(true==SYS_CB_HDL_OBJ22\(false\)\){return false;}\r    	if\(true==SYS_CB_HDL_OBJ23\(false\)\){return false;}\r    	if\(true==SYS_CB_HDL_OBJ24\(false\)\){return false;}\r    	if\(true==SYS_CB_HDL_OBJ25\(false\)\){return false;}\r    	if\(true==SYS_CB_HDL_OBJ26\(false\)\){return false;}\r    	if\(true==SYS_CB_HDL_OBJ27\(false\)\){return false;}\r    	if\(true==SYS_CB_HDL_OBJ28\(false\)\){return false;}\r    	if\(true==SYS_CB_HDL_OBJ29\(false\)\){return false;}\r    	if\(true==SYS_CB_HDL_OBJ30\(false\)\){return false;}\r    	if\(true==SYS_CB_HDL_OBJ32\(false\)\){return false;}\r    	if\(true==SYS_CB_HDL_OBJ33\(false\)\){return false;}\r    	if\(true==SYS_CB_HDL_OBJ34\(false\)\){return false;}\r    	if\(true==SYS_CB_HDL_OBJ35\(false\)\){return false;}\r    	if\(true==SYS_CB_HDL_OBJ36\(false\)\){return false;}\r    	if\(true==SYS_CB_HDL_OBJ37\(false\)\){return false;}\r    	if\(true==SYS_CB_HDL_OBJ38\(false\)\){return false;}\r    	if\(true==SYS_CB_HDL_OBJ39\(false\)\){return false;}\r    	if\(true==SYS_CB_HDL_OBJ40\(false\)\){return false;}\r    	if\(true==SYS_CB_HDL_OBJ41\(false\)\){return false;}\r    	if\(true==SYS_CB_HDL_OBJ42\(false\)\){return false;}\r    	if\(true==SYS_CB_HDL_OBJ43\(false\)\){return false;}\r    	if\(true==SYS_CB_HDL_OBJ1\(false\)\){return false;}\r    	if\(true==SYS_CB_HDL_OBJ2\(false\)\){return false;}\r    	if\(true==SYS_CB_HDL_OBJ3\(false\)\){return false;}\r    	if\(true==SYS_CB_HDL_OBJ4\(false\)\){return false;}\r    	if\(true==SYS_CB_HDL_OBJ5\(false\)\){return false;}\r    	if\(true==SYS_CB_HDL_OBJ6\(false\)\){return false;}\r    	if\(true==SYS_CB_HDL_OBJ7\(false\)\){return false;}\r    	if\(true==SYS_CB_HDL_OBJ8\(false\)\){return false;}\r    	if\(true==SYS_CB_HDL_OBJ58\(false\)\){return false;}\r    	if\(true==SYS_CB_HDL_OBJ59\(false\)\){return false;}\r    	if\(true==SYS_CB_HDL_OBJ9\(false\)\){return false;}\r    	if\(true==SYS_CB_HDL_OBJ10\(false\)\){return false;}\r    	if\(true==SYS_CB_HDL_OBJ52\(false\)\){return false;}\r    	if\(true==SYS_CB_HDL_OBJ53\(false\)\){return false;}\r    	if\(true==SYS_CB_HDL_OBJ54\(false\)\){return false;}\r    	if\(true==SYS_CB_HDL_OBJ55\(false\)\){return false;}\r    	if\(true==SYS_CB_HDL_OBJ56\(false\)\){return false;}\r    	if\(true==SYS_CB_HDL_OBJ57\(false\)\){return false;}\r        return true;\r}\r)
+>>
+endobj
+309 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_RESET_BG_COLORS_UPON_ALL_PAGES\(\)\r{\rSYS_PA2_SUBMIT\(\);\r        var n = this.numFields;\r        var f;\r        var fn;\r        for\(var i=0;i<n;i++\)\r        {\r                fn = this.getNthFieldName\(i\);\r                if\( \(""!=fn\) && \("SYSTEM_P1_DUMMY"!=fn\) \)\r                {\r                        f = this.getField\(fn\);\r                        if\( \(null!=f\) && \("button"!=f.type\) \)\r                        {\r                                if\("checkbox"==f.type\)\r                                { \r                                  f.style=style.cr;\r                                }\r                                if\(f.readonly\)\r                                {\r                                        if\(f.readonly\) SYS_FILL\(f,["RGB",0.749,0.749,0.749]\);\r                                }\r                                else\r                                {\r                                     SYS_FILL\(f,getBgColor\(fn\)\);\r                                }\r                                if\(\(f.required\)&&\(""==f.value\)\)\r                                {\r                                        f.strokeColor=color.red;\r                                }\r                                else\r                                {\r                                   f.strokeColor=getBorderColor\(fn\);\r                                }\r                        }\r                }\r        }\r    	SYS_CB_HDL_OBJ21\(true\);\r    	SYS_CB_HDL_OBJ22\(true\);\r    	SYS_CB_HDL_OBJ23\(true\);\r    	SYS_CB_HDL_OBJ24\(true\);\r    	SYS_CB_HDL_OBJ25\(true\);\r    	SYS_CB_HDL_OBJ26\(true\);\r    	SYS_CB_HDL_OBJ27\(true\);\r    	SYS_CB_HDL_OBJ28\(true\);\r    	SYS_CB_HDL_OBJ29\(true\);\r    	SYS_CB_HDL_OBJ30\(true\);\r    	SYS_CB_HDL_OBJ32\(true\);\r    	SYS_CB_HDL_OBJ33\(true\);\r    	SYS_CB_HDL_OBJ34\(true\);\r    	SYS_CB_HDL_OBJ35\(true\);\r    	SYS_CB_HDL_OBJ36\(true\);\r    	SYS_CB_HDL_OBJ37\(true\);\r    	SYS_CB_HDL_OBJ38\(true\);\r    	SYS_CB_HDL_OBJ39\(true\);\r    	SYS_CB_HDL_OBJ40\(true\);\r    	SYS_CB_HDL_OBJ41\(true\);\r    	SYS_CB_HDL_OBJ42\(true\);\r    	SYS_CB_HDL_OBJ43\(true\);\r    	SYS_CB_HDL_OBJ1\(true\);\r    	SYS_CB_HDL_OBJ2\(true\);\r    	SYS_CB_HDL_OBJ3\(true\);\r    	SYS_CB_HDL_OBJ4\(true\);\r    	SYS_CB_HDL_OBJ5\(true\);\r    	SYS_CB_HDL_OBJ6\(true\);\r    	SYS_CB_HDL_OBJ7\(true\);\r    	SYS_CB_HDL_OBJ8\(true\);\r    	SYS_CB_HDL_OBJ58\(true\);\r    	SYS_CB_HDL_OBJ59\(true\);\r    	SYS_CB_HDL_OBJ9\(true\);\r    	SYS_CB_HDL_OBJ10\(true\);\r    	SYS_CB_HDL_OBJ52\(true\);\r    	SYS_CB_HDL_OBJ53\(true\);\r    	SYS_CB_HDL_OBJ54\(true\);\r    	SYS_CB_HDL_OBJ55\(true\);\r    	SYS_CB_HDL_OBJ56\(true\);\r    	SYS_CB_HDL_OBJ57\(true\);\r}\r)
+>>
+endobj
+310 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ21\(\) {var F1=getField\("OBJ22"\);var F0=getField\("OBJ21"\);if\("Yes"==F0.value\){F1.value="Off";};{SYS_EWM\("OBJ22","OBJ23"\);SYS_EWM\("OBJ22","OBJ24"\);SYS_EWM\("OBJ22","OBJ25"\);SYS_EWM\("OBJ22","OBJ26"\);SYS_EWM\("OBJ22","OBJ27"\);SYS_EWM\("OBJ22","OBJ28"\);}{SYS_AWM\("OBJ21","OBJ22"\);}SYS_CB_HDL_OBJ21\(true\);SYS_CB_HDL_OBJ22\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+311 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ22\(\) {var F0=getField\("OBJ21"\);var F1=getField\("OBJ22"\);if\("Yes"==F1.value\){F0.value="Off";};{SYS_AWM\("OBJ21","OBJ22"\);}{SYS_EWM\("OBJ22","OBJ23"\);SYS_EWM\("OBJ22","OBJ24"\);SYS_EWM\("OBJ22","OBJ25"\);SYS_EWM\("OBJ22","OBJ26"\);SYS_EWM\("OBJ22","OBJ27"\);SYS_EWM\("OBJ22","OBJ28"\);}SYS_CB_HDL_OBJ21\(true\);SYS_CB_HDL_OBJ22\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+312 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ23\(\) {var F3=getField\("OBJ24"\);var F4=getField\("OBJ25"\);var F5=getField\("OBJ26"\);var F6=getField\("OBJ27"\);var F7=getField\("OBJ28"\);var F2=getField\("OBJ23"\);if\("Yes"==F2.value\){F3.value="Off";};if\("Yes"==F2.value\){F4.value="Off";};if\("Yes"==F2.value\){F5.value="Off";};if\("Yes"==F2.value\){F6.value="Off";};if\("Yes"==F2.value\){F7.value="Off";};SYS_CB_HDL_OBJ23\(true\);SYS_CB_HDL_OBJ24\(true\);SYS_CB_HDL_OBJ25\(true\);SYS_CB_HDL_OBJ26\(true\);SYS_CB_HDL_OBJ27\(true\);SYS_CB_HDL_OBJ28\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+313 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ24\(\) {var F2=getField\("OBJ23"\);var F4=getField\("OBJ25"\);var F5=getField\("OBJ26"\);var F6=getField\("OBJ27"\);var F7=getField\("OBJ28"\);var F3=getField\("OBJ24"\);if\("Yes"==F3.value\){F2.value="Off";};if\("Yes"==F3.value\){F4.value="Off";};if\("Yes"==F3.value\){F5.value="Off";};if\("Yes"==F3.value\){F6.value="Off";};if\("Yes"==F3.value\){F7.value="Off";};SYS_CB_HDL_OBJ23\(true\);SYS_CB_HDL_OBJ24\(true\);SYS_CB_HDL_OBJ25\(true\);SYS_CB_HDL_OBJ26\(true\);SYS_CB_HDL_OBJ27\(true\);SYS_CB_HDL_OBJ28\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+314 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ25\(\) {var F2=getField\("OBJ23"\);var F3=getField\("OBJ24"\);var F5=getField\("OBJ26"\);var F6=getField\("OBJ27"\);var F7=getField\("OBJ28"\);var F4=getField\("OBJ25"\);if\("Yes"==F4.value\){F2.value="Off";};if\("Yes"==F4.value\){F3.value="Off";};if\("Yes"==F4.value\){F5.value="Off";};if\("Yes"==F4.value\){F6.value="Off";};if\("Yes"==F4.value\){F7.value="Off";};SYS_CB_HDL_OBJ23\(true\);SYS_CB_HDL_OBJ24\(true\);SYS_CB_HDL_OBJ25\(true\);SYS_CB_HDL_OBJ26\(true\);SYS_CB_HDL_OBJ27\(true\);SYS_CB_HDL_OBJ28\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+315 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ26\(\) {var F2=getField\("OBJ23"\);var F3=getField\("OBJ24"\);var F4=getField\("OBJ25"\);var F6=getField\("OBJ27"\);var F7=getField\("OBJ28"\);var F5=getField\("OBJ26"\);if\("Yes"==F5.value\){F2.value="Off";};if\("Yes"==F5.value\){F3.value="Off";};if\("Yes"==F5.value\){F4.value="Off";};if\("Yes"==F5.value\){F6.value="Off";};if\("Yes"==F5.value\){F7.value="Off";};SYS_CB_HDL_OBJ23\(true\);SYS_CB_HDL_OBJ24\(true\);SYS_CB_HDL_OBJ25\(true\);SYS_CB_HDL_OBJ26\(true\);SYS_CB_HDL_OBJ27\(true\);SYS_CB_HDL_OBJ28\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+316 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ27\(\) {var F2=getField\("OBJ23"\);var F3=getField\("OBJ24"\);var F4=getField\("OBJ25"\);var F5=getField\("OBJ26"\);var F7=getField\("OBJ28"\);var F6=getField\("OBJ27"\);if\("Yes"==F6.value\){F2.value="Off";};if\("Yes"==F6.value\){F3.value="Off";};if\("Yes"==F6.value\){F4.value="Off";};if\("Yes"==F6.value\){F5.value="Off";};if\("Yes"==F6.value\){F7.value="Off";};SYS_CB_HDL_OBJ23\(true\);SYS_CB_HDL_OBJ24\(true\);SYS_CB_HDL_OBJ25\(true\);SYS_CB_HDL_OBJ26\(true\);SYS_CB_HDL_OBJ27\(true\);SYS_CB_HDL_OBJ28\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+317 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ28\(\) {var F2=getField\("OBJ23"\);var F3=getField\("OBJ24"\);var F4=getField\("OBJ25"\);var F5=getField\("OBJ26"\);var F6=getField\("OBJ27"\);var F7=getField\("OBJ28"\);if\("Yes"==F7.value\){F2.value="Off";};if\("Yes"==F7.value\){F3.value="Off";};if\("Yes"==F7.value\){F4.value="Off";};if\("Yes"==F7.value\){F5.value="Off";};if\("Yes"==F7.value\){F6.value="Off";};SYS_CB_HDL_OBJ23\(true\);SYS_CB_HDL_OBJ24\(true\);SYS_CB_HDL_OBJ25\(true\);SYS_CB_HDL_OBJ26\(true\);SYS_CB_HDL_OBJ27\(true\);SYS_CB_HDL_OBJ28\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+318 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ29\(\) {var F9=getField\("OBJ30"\);var F8=getField\("OBJ29"\);if\("Yes"==F8.value\){F9.value="Off";};{SYS_EWM\("OBJ30","Begruendung_nein"\);}SYS_CB_HDL_OBJ29\(true\);SYS_CB_HDL_OBJ30\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+319 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ30\(\) {var F8=getField\("OBJ29"\);var F9=getField\("OBJ30"\);if\("Yes"==F9.value\){F8.value="Off";};{SYS_EWM\("OBJ30","Begruendung_nein"\);}SYS_CB_HDL_OBJ29\(true\);SYS_CB_HDL_OBJ30\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+320 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ32\(\) {var F11=getField\("OBJ33"\);var F10=getField\("OBJ32"\);if\("Yes"==F10.value\){F11.value="Off";};{SYS_EWM\("OBJ33","Strecke"\);}SYS_CB_HDL_OBJ32\(true\);SYS_CB_HDL_OBJ33\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+321 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ33\(\) {var F10=getField\("OBJ32"\);var F11=getField\("OBJ33"\);if\("Yes"==F11.value\){F10.value="Off";};{SYS_EWM\("OBJ33","Strecke"\);}SYS_CB_HDL_OBJ32\(true\);SYS_CB_HDL_OBJ33\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+322 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ34\(\) {var F13=getField\("OBJ35"\);var F12=getField\("OBJ34"\);if\("Yes"==F12.value\){F13.value="Off";};SYS_CB_HDL_OBJ34\(true\);SYS_CB_HDL_OBJ35\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+323 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ35\(\) {var F12=getField\("OBJ34"\);var F13=getField\("OBJ35"\);if\("Yes"==F13.value\){F12.value="Off";};SYS_CB_HDL_OBJ34\(true\);SYS_CB_HDL_OBJ35\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+324 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ36\(\) {var F15=getField\("OBJ37"\);var F14=getField\("OBJ36"\);if\("Yes"==F14.value\){F15.value="Off";};{SYS_EWM\("OBJ36","Verpflegung"\);}SYS_CB_HDL_OBJ36\(true\);SYS_CB_HDL_OBJ37\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+325 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ37\(\) {var F14=getField\("OBJ36"\);var F15=getField\("OBJ37"\);if\("Yes"==F15.value\){F14.value="Off";};{SYS_EWM\("OBJ36","Verpflegung"\);}SYS_CB_HDL_OBJ36\(true\);SYS_CB_HDL_OBJ37\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+326 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ38\(\) {var F17=getField\("OBJ39"\);var F16=getField\("OBJ38"\);if\("Yes"==F16.value\){F17.value="Off";};SYS_CB_HDL_OBJ38\(true\);SYS_CB_HDL_OBJ39\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+327 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ39\(\) {var F16=getField\("OBJ38"\);var F17=getField\("OBJ39"\);if\("Yes"==F17.value\){F16.value="Off";};SYS_CB_HDL_OBJ38\(true\);SYS_CB_HDL_OBJ39\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+328 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ40\(\) {var F19=getField\("OBJ41"\);var F18=getField\("OBJ40"\);if\("Yes"==F18.value\){F19.value="Off";};SYS_CB_HDL_OBJ40\(true\);SYS_CB_HDL_OBJ41\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+329 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ41\(\) {var F18=getField\("OBJ40"\);var F19=getField\("OBJ41"\);if\("Yes"==F19.value\){F18.value="Off";};SYS_CB_HDL_OBJ40\(true\);SYS_CB_HDL_OBJ41\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+330 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ42\(\) {var F21=getField\("OBJ43"\);var F20=getField\("OBJ42"\);if\("Yes"==F20.value\){F21.value="Off";};SYS_CB_HDL_OBJ42\(true\);SYS_CB_HDL_OBJ43\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+331 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ43\(\) {var F20=getField\("OBJ42"\);var F21=getField\("OBJ43"\);if\("Yes"==F21.value\){F20.value="Off";};SYS_CB_HDL_OBJ42\(true\);SYS_CB_HDL_OBJ43\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+332 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ1\(\) {SYS_CB_HDL_OBJ1\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+333 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ2\(\) {SYS_CB_HDL_OBJ2\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+334 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ3\(\) {SYS_CB_HDL_OBJ3\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+335 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ4\(\) {var F26=getField\("OBJ5"\);var F27=getField\("OBJ6"\);var F28=getField\("OBJ7"\);var F29=getField\("OBJ8"\);var F25=getField\("OBJ4"\);if\("Yes"==F25.value\){F26.value="Off";};if\("Yes"==F25.value\){F27.value="Off";};if\("Yes"==F25.value\){F28.value="Off";};if\("Yes"==F25.value\){F29.value="Off";};SYS_CB_HDL_OBJ7\(true\);SYS_CB_HDL_OBJ8\(true\);SYS_CB_HDL_OBJ4\(true\);SYS_CB_HDL_OBJ5\(true\);SYS_CB_HDL_OBJ6\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+336 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ5\(\) {var F25=getField\("OBJ4"\);var F27=getField\("OBJ6"\);var F28=getField\("OBJ7"\);var F29=getField\("OBJ8"\);var F26=getField\("OBJ5"\);if\("Yes"==F26.value\){F25.value="Off";};if\("Yes"==F26.value\){F27.value="Off";};if\("Yes"==F26.value\){F28.value="Off";};if\("Yes"==F26.value\){F29.value="Off";};SYS_CB_HDL_OBJ7\(true\);SYS_CB_HDL_OBJ8\(true\);SYS_CB_HDL_OBJ4\(true\);SYS_CB_HDL_OBJ5\(true\);SYS_CB_HDL_OBJ6\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+337 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ6\(\) {var F25=getField\("OBJ4"\);var F26=getField\("OBJ5"\);var F28=getField\("OBJ7"\);var F29=getField\("OBJ8"\);var F27=getField\("OBJ6"\);if\("Yes"==F27.value\){F25.value="Off";};if\("Yes"==F27.value\){F26.value="Off";};if\("Yes"==F27.value\){F28.value="Off";};if\("Yes"==F27.value\){F29.value="Off";};SYS_CB_HDL_OBJ7\(true\);SYS_CB_HDL_OBJ8\(true\);SYS_CB_HDL_OBJ4\(true\);SYS_CB_HDL_OBJ5\(true\);SYS_CB_HDL_OBJ6\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+338 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ7\(\) {var F25=getField\("OBJ4"\);var F26=getField\("OBJ5"\);var F27=getField\("OBJ6"\);var F29=getField\("OBJ8"\);var F28=getField\("OBJ7"\);if\("Yes"==F28.value\){F25.value="Off";};if\("Yes"==F28.value\){F26.value="Off";};if\("Yes"==F28.value\){F27.value="Off";};if\("Yes"==F28.value\){F29.value="Off";};SYS_CB_HDL_OBJ7\(true\);SYS_CB_HDL_OBJ8\(true\);SYS_CB_HDL_OBJ4\(true\);SYS_CB_HDL_OBJ5\(true\);SYS_CB_HDL_OBJ6\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+339 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ8\(\) {var F25=getField\("OBJ4"\);var F26=getField\("OBJ5"\);var F27=getField\("OBJ6"\);var F28=getField\("OBJ7"\);var F29=getField\("OBJ8"\);if\("Yes"==F29.value\){F25.value="Off";};if\("Yes"==F29.value\){F26.value="Off";};if\("Yes"==F29.value\){F27.value="Off";};if\("Yes"==F29.value\){F28.value="Off";};SYS_CB_HDL_OBJ7\(true\);SYS_CB_HDL_OBJ8\(true\);SYS_CB_HDL_OBJ4\(true\);SYS_CB_HDL_OBJ5\(true\);SYS_CB_HDL_OBJ6\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+340 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ58\(\) {SYS_CB_HDL_OBJ58\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+341 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ59\(\) {SYS_CB_HDL_OBJ59\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+342 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ9\(\) {var F33=getField\("OBJ10"\);var F32=getField\("OBJ9"\);if\("Yes"==F32.value\){F33.value="Off";};{SYS_EWM\("OBJ10","Tage5"\);}SYS_CB_HDL_OBJ9\(true\);SYS_CB_HDL_OBJ10\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+343 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ10\(\) {var F32=getField\("OBJ9"\);var F33=getField\("OBJ10"\);if\("Yes"==F33.value\){F32.value="Off";};{SYS_EWM\("OBJ10","Tage5"\);}SYS_CB_HDL_OBJ9\(true\);SYS_CB_HDL_OBJ10\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+344 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ52\(\) {var F35=getField\("OBJ53"\);var F34=getField\("OBJ52"\);if\("Yes"==F34.value\){F35.value="Off";};{SYS_EWM\("OBJ53","Tage8"\);}SYS_CB_HDL_OBJ52\(true\);SYS_CB_HDL_OBJ53\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+345 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ53\(\) {var F34=getField\("OBJ52"\);var F35=getField\("OBJ53"\);if\("Yes"==F35.value\){F34.value="Off";};{SYS_EWM\("OBJ53","Tage8"\);}SYS_CB_HDL_OBJ52\(true\);SYS_CB_HDL_OBJ53\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+346 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ54\(\) {var F37=getField\("OBJ55"\);var F36=getField\("OBJ54"\);if\("Yes"==F36.value\){F37.value="Off";};{SYS_EWM\("OBJ55","Erlaeuterungen2"\);}SYS_CB_HDL_OBJ54\(true\);SYS_CB_HDL_OBJ55\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+347 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ55\(\) {var F36=getField\("OBJ54"\);var F37=getField\("OBJ55"\);if\("Yes"==F37.value\){F36.value="Off";};{SYS_EWM\("OBJ55","Erlaeuterungen2"\);}SYS_CB_HDL_OBJ54\(true\);SYS_CB_HDL_OBJ55\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+348 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ56\(\) {SYS_CB_HDL_OBJ56\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+349 0 obj
+<<
+/S /JavaScript
+/JS (function SYS_CB_OBJ57\(\) {SYS_CB_HDL_OBJ57\(true\);SYS_PA2_SUBMIT\(\);})
+>>
+endobj
+350 0 obj
+<< /Type /Font
+/Subtype /Type1
+/Name /Helv
+/BaseFont /Helvetica
+/Encoding /WinAnsiEncoding
+>>
+endobj
+351 0 obj
+<< /Type /Font
+/Subtype /Type1
+/Name /HeBo
+/BaseFont /Helvetica-Bold
+/Encoding /WinAnsiEncoding
+>>
+endobj
+352 0 obj
+<< /Type /Font
+/Subtype /Type1
+/Name /ZaDb
+/BaseFont /ZapfDingbats
+>>
+endobj
+353 0 obj
+<< /Type /Font
+/Subtype /Type1
+/Name /Cour
+/BaseFont /Courier
+/Encoding /WinAnsiEncoding
+>>
+endobj
+354 0 obj
+<< /Type /Font
+/Subtype /Type1
+/Name /Sym
+/BaseFont /Symbol
+>>
+endobj
+xref
+0 355
+0000000000 65535 f 
+0000000015 00000 n 
+0000000249 00000 n 
+0000000940 00000 n 
+0000001004 00000 n 
+0000001283 00000 n 
+0000030554 00000 n 
+0000031237 00000 n 
+0000031516 00000 n 
+0000042179 00000 n 
+0000042318 00000 n 
+0000043236 00000 n 
+0000043530 00000 n 
+0000043779 00000 n 
+0000044032 00000 n 
+0000044285 00000 n 
+0000045107 00000 n 
+0000045356 00000 n 
+0000046178 00000 n 
+0000046427 00000 n 
+0000046875 00000 n 
+0000047124 00000 n 
+0000047573 00000 n 
+0000047822 00000 n 
+0000048271 00000 n 
+0000048520 00000 n 
+0000048969 00000 n 
+0000049218 00000 n 
+0000049667 00000 n 
+0000049916 00000 n 
+0000050364 00000 n 
+0000050613 00000 n 
+0000051062 00000 n 
+0000051311 00000 n 
+0000051761 00000 n 
+0000052010 00000 n 
+0000052461 00000 n 
+0000052710 00000 n 
+0000053161 00000 n 
+0000053410 00000 n 
+0000053861 00000 n 
+0000054110 00000 n 
+0000054560 00000 n 
+0000054809 00000 n 
+0000055260 00000 n 
+0000055509 00000 n 
+0000055960 00000 n 
+0000056209 00000 n 
+0000056660 00000 n 
+0000056909 00000 n 
+0000057360 00000 n 
+0000057609 00000 n 
+0000058060 00000 n 
+0000058309 00000 n 
+0000058760 00000 n 
+0000059009 00000 n 
+0000059460 00000 n 
+0000059709 00000 n 
+0000060159 00000 n 
+0000060408 00000 n 
+0000061146 00000 n 
+0000061397 00000 n 
+0000061696 00000 n 
+0000061945 00000 n 
+0000062198 00000 n 
+0000062447 00000 n 
+0000062702 00000 n 
+0000062937 00000 n 
+0000063204 00000 n 
+0000063444 00000 n 
+0000063687 00000 n 
+0000063958 00000 n 
+0000064178 00000 n 
+0000065855 00000 n 
+0000066108 00000 n 
+0000066379 00000 n 
+0000066599 00000 n 
+0000066858 00000 n 
+0000067135 00000 n 
+0000067361 00000 n 
+0000067619 00000 n 
+0000067896 00000 n 
+0000068122 00000 n 
+0000068382 00000 n 
+0000068659 00000 n 
+0000068885 00000 n 
+0000069135 00000 n 
+0000069412 00000 n 
+0000069638 00000 n 
+0000069888 00000 n 
+0000070165 00000 n 
+0000070391 00000 n 
+0000070642 00000 n 
+0000070919 00000 n 
+0000071145 00000 n 
+0000071387 00000 n 
+0000071658 00000 n 
+0000071878 00000 n 
+0000072231 00000 n 
+0000072502 00000 n 
+0000072722 00000 n 
+0000072965 00000 n 
+0000073243 00000 n 
+0000073489 00000 n 
+0000073761 00000 n 
+0000073982 00000 n 
+0000074253 00000 n 
+0000074525 00000 n 
+0000074746 00000 n 
+0000074979 00000 n 
+0000075261 00000 n 
+0000075508 00000 n 
+0000075780 00000 n 
+0000076001 00000 n 
+0000076247 00000 n 
+0000076519 00000 n 
+0000076740 00000 n 
+0000077025 00000 n 
+0000077297 00000 n 
+0000077518 00000 n 
+0000077770 00000 n 
+0000078052 00000 n 
+0000078300 00000 n 
+0000078572 00000 n 
+0000078793 00000 n 
+0000079040 00000 n 
+0000079312 00000 n 
+0000079533 00000 n 
+0000079779 00000 n 
+0000080051 00000 n 
+0000080272 00000 n 
+0000080519 00000 n 
+0000080791 00000 n 
+0000081012 00000 n 
+0000081320 00000 n 
+0000081592 00000 n 
+0000081813 00000 n 
+0000082060 00000 n 
+0000082332 00000 n 
+0000082553 00000 n 
+0000082880 00000 n 
+0000083152 00000 n 
+0000083373 00000 n 
+0000083667 00000 n 
+0000083917 00000 n 
+0000084375 00000 n 
+0000084623 00000 n 
+0000085421 00000 n 
+0000085669 00000 n 
+0000085948 00000 n 
+0000086220 00000 n 
+0000086441 00000 n 
+0000086717 00000 n 
+0000086989 00000 n 
+0000087210 00000 n 
+0000087669 00000 n 
+0000087919 00000 n 
+0000088716 00000 n 
+0000088966 00000 n 
+0000089236 00000 n 
+0000089486 00000 n 
+0000089766 00000 n 
+0000090016 00000 n 
+0000090475 00000 n 
+0000090723 00000 n 
+0000091520 00000 n 
+0000091768 00000 n 
+0000092043 00000 n 
+0000092295 00000 n 
+0000092562 00000 n 
+0000092814 00000 n 
+0000093090 00000 n 
+0000093362 00000 n 
+0000093583 00000 n 
+0000093832 00000 n 
+0000094082 00000 n 
+0000094915 00000 n 
+0000095163 00000 n 
+0000095407 00000 n 
+0000095643 00000 n 
+0000095892 00000 n 
+0000096164 00000 n 
+0000096385 00000 n 
+0000096647 00000 n 
+0000096919 00000 n 
+0000097140 00000 n 
+0000097422 00000 n 
+0000097694 00000 n 
+0000097915 00000 n 
+0000098208 00000 n 
+0000098480 00000 n 
+0000098701 00000 n 
+0000099021 00000 n 
+0000099293 00000 n 
+0000099514 00000 n 
+0000099734 00000 n 
+0000099975 00000 n 
+0000100839 00000 n 
+0000101087 00000 n 
+0000101903 00000 n 
+0000102153 00000 n 
+0000102970 00000 n 
+0000103220 00000 n 
+0000104056 00000 n 
+0000104306 00000 n 
+0000104531 00000 n 
+0000104781 00000 n 
+0000105576 00000 n 
+0000105826 00000 n 
+0000106641 00000 n 
+0000106891 00000 n 
+0000107116 00000 n 
+0000107366 00000 n 
+0000108161 00000 n 
+0000108411 00000 n 
+0000109227 00000 n 
+0000109477 00000 n 
+0000109718 00000 n 
+0000109996 00000 n 
+0000110223 00000 n 
+0000110467 00000 n 
+0000110745 00000 n 
+0000110972 00000 n 
+0000111815 00000 n 
+0000112063 00000 n 
+0000112306 00000 n 
+0000112578 00000 n 
+0000112799 00000 n 
+0000113067 00000 n 
+0000113339 00000 n 
+0000113560 00000 n 
+0000113807 00000 n 
+0000114096 00000 n 
+0000114341 00000 n 
+0000114613 00000 n 
+0000114834 00000 n 
+0000115102 00000 n 
+0000115374 00000 n 
+0000115595 00000 n 
+0000115855 00000 n 
+0000116147 00000 n 
+0000116393 00000 n 
+0000116665 00000 n 
+0000116886 00000 n 
+0000117176 00000 n 
+0000117448 00000 n 
+0000117669 00000 n 
+0000117902 00000 n 
+0000118199 00000 n 
+0000118442 00000 n 
+0000118720 00000 n 
+0000118947 00000 n 
+0000119190 00000 n 
+0000119468 00000 n 
+0000119695 00000 n 
+0000119926 00000 n 
+0000120167 00000 n 
+0000120210 00000 n 
+0000122430 00000 n 
+0000126668 00000 n 
+0000126895 00000 n 
+0000127240 00000 n 
+0000127787 00000 n 
+0000128015 00000 n 
+0000128136 00000 n 
+0000128463 00000 n 
+0000128790 00000 n 
+0000129083 00000 n 
+0000130457 00000 n 
+0000130707 00000 n 
+0000130957 00000 n 
+0000131239 00000 n 
+0000131521 00000 n 
+0000131803 00000 n 
+0000132085 00000 n 
+0000132367 00000 n 
+0000132649 00000 n 
+0000132899 00000 n 
+0000133149 00000 n 
+0000133399 00000 n 
+0000133649 00000 n 
+0000133899 00000 n 
+0000134149 00000 n 
+0000134399 00000 n 
+0000134649 00000 n 
+0000134899 00000 n 
+0000135149 00000 n 
+0000135399 00000 n 
+0000135649 00000 n 
+0000135899 00000 n 
+0000136149 00000 n 
+0000136380 00000 n 
+0000136611 00000 n 
+0000136842 00000 n 
+0000137108 00000 n 
+0000137374 00000 n 
+0000137640 00000 n 
+0000137906 00000 n 
+0000138172 00000 n 
+0000138406 00000 n 
+0000138640 00000 n 
+0000138886 00000 n 
+0000139135 00000 n 
+0000139385 00000 n 
+0000139635 00000 n 
+0000139885 00000 n 
+0000140135 00000 n 
+0000140369 00000 n 
+0000140603 00000 n 
+0000143702 00000 n 
+0000146505 00000 n 
+0000146933 00000 n 
+0000147361 00000 n 
+0000147960 00000 n 
+0000148559 00000 n 
+0000149158 00000 n 
+0000149757 00000 n 
+0000150356 00000 n 
+0000150955 00000 n 
+0000151230 00000 n 
+0000151505 00000 n 
+0000151775 00000 n 
+0000152045 00000 n 
+0000152284 00000 n 
+0000152523 00000 n 
+0000152797 00000 n 
+0000153071 00000 n 
+0000153310 00000 n 
+0000153549 00000 n 
+0000153788 00000 n 
+0000154027 00000 n 
+0000154266 00000 n 
+0000154505 00000 n 
+0000154620 00000 n 
+0000154735 00000 n 
+0000154850 00000 n 
+0000155360 00000 n 
+0000155870 00000 n 
+0000156380 00000 n 
+0000156890 00000 n 
+0000157400 00000 n 
+0000157517 00000 n 
+0000157634 00000 n 
+0000157899 00000 n 
+0000158165 00000 n 
+0000158433 00000 n 
+0000158701 00000 n 
+0000158979 00000 n 
+0000159257 00000 n 
+0000159374 00000 n 
+0000159491 00000 n 
+0000159602 00000 n 
+0000159718 00000 n 
+0000159805 00000 n 
+0000159914 00000 n 
+
+trailer
+<</Size 355
+/Root 2 0 R
+/Info 1 0 R
+>>
+startxref
+159994
+%%EOF
