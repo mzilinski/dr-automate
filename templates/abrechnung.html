@@ -1248,7 +1248,115 @@
       }
     });
 
+    // ── Tooltips ────────────────────────────────────────────────────
+    const TIPS = {
+      // Step 2 — Stammdaten
+      'f_name': 'Vor- und Nachname wie auf dem Personalausweis. Bsp.: Malte Zilinski',
+      'f_abteilung': 'Schule + Schul-Nr. + Dienstort, oder Amt + Dienstort. Schul-Nr. steht im Briefkopf oder IServ-Impressum. Bsp.: BBS Lingen Technik und Gestaltung, Schul-Nr. 72989, Lingen',
+      'f_telefon': 'Dienstliche oder erreichbare Telefonnummer für Rückfragen. Bsp.: 0591 12345-678',
+      'f_email': 'Dienstliche E-Mail-Adresse. Bsp.: zilinski@bbs-lingen-tg.eu',
+      'f_adresse': 'Privatadresse mit Straße, Hausnummer, PLZ und Ort — Start- und Endpunkt der Reise. Bsp.: Am Biener Esch 11, 49808 Lingen',
+      'f_iban': '22-stellige IBAN zur Auszahlung. Findest du im Kontoauszug oder in der Banking-App. Bsp.: DE71 1203 0000 0015 8617 50',
+      'f_bic': 'BIC der kontoführenden Bank, oft auf dem Kontoauszug. Bsp.: BYLADEM1001',
+      'f_abrechnende': 'Stelle, die deine Reisekosten bearbeitet. Bei Lehrkräften meist „NLBV Aurich" (Niedersächsisches Landesamt für Bezüge und Versorgung).',
+      'f_mitreisender': 'Nur ausfüllen, wenn jemand mit dir gefahren ist. Bsp.: Erika Musterfrau',
+
+      // Step 3 — Reise
+      'f_zielort': 'Vollständige Anschrift des Dienstgeschäfts mit PLZ. Bsp.: 30159 Hannover, Akademie für Lehrerfortbildung, Richthofenstr. 29',
+      'f_reiseweg': 'Verlauf der Reise mit Pfeilen. Bsp.: Lingen -> Hannover Hbf -> Lingen',
+      'f_zweck': 'Anlass der Reise. Bsp.: Fortbildung: Digitale Prüfungsformate',
+      'f_start_datum': 'Tatsächlicher Reisebeginn (Abfahrt von zu Hause), kann von der Genehmigung abweichen.',
+      'f_start_zeit': 'Uhrzeit der Abfahrt von zu Hause. Bsp.: 06:30',
+      'f_dg_beginn_datum': 'Beginn des eigentlichen Dienstgeschäfts (z.B. Tagungsbeginn), nicht der Reise.',
+      'f_dg_beginn_zeit': 'Uhrzeit des Tagungs-/Sitzungsbeginns. Bsp.: 09:00',
+      'f_dg_ende_datum': 'Ende des Dienstgeschäfts.',
+      'f_dg_ende_zeit': 'Uhrzeit des Dienstgeschäfts-Endes. Bsp.: 17:00',
+      'f_ende_datum': 'Tatsächliche Rückkehr zu Hause.',
+      'f_ende_zeit': 'Uhrzeit der Rückkehr zu Hause. Bsp.: 19:30',
+      'f_hin_typ': 'Hauptverkehrsmittel der Hinreise. Bei Flug: Zubringer wählen (PKW oder Bahn) — Flugbeleg in Schritt 5 eintragen.',
+      'f_hin_para': 'II = kleine Wegstrecke (0,25 €/km, max 125 €). III = große Wegstrecke (0,38 €/km), nur bei triftigem Grund (Materialtransport, schlechte ÖPNV-Anbindung, Mitnahme Kollege).',
+      'f_rueck_typ': 'Hauptverkehrsmittel der Rückreise — kann von Hinreise abweichen.',
+      'f_rueck_para': 'Wie Hinreise — II = kleine, III = große Wegstrecke.',
+      'f_sonderfall': 'Pflicht bei § 5 III. Bsp.: „Schlechte ÖPNV-Anbindung Fähranleger Harlesiel, Materialtransport (Präsentationstechnik)"',
+      'f_rkr': 'DR = Dienstreise · AFR = Aus-/Fortbildung · RPR = Personalrat · RRS = Rechtssache · GNE = Genehmigungsfreie Reise (z.B. < 8h ohne Übernachtung).',
+      'f_rrs_az': 'Pflicht bei RKR=RRS. Aktenzeichen der Sachakten oder ersuchenden Behörde.',
+      'f_anordnung_dienst': 'Wer hat die Reise vorab genehmigt? Bei beigefügter 035_001 oder GNE leer lassen. Bsp.: Schulleitung BBS Lingen',
+      'f_anordnung_datum': 'Datum der Genehmigung (steht auf der 035_001).',
+      'f_anlage1': 'Häkchen wenn die Dienstreisegenehmigung (Formular 035_001) als Anlage beiliegt.',
+      'f_anlage2': 'Häkchen wenn zusätzliche Anlagen (Formular 035_003, z.B. Detail-Reiseaufstellung bei mehreren Geschäftsorten) beiliegen.',
+
+      // Step 4 — Verpflegung
+      'f_fruehstueck': 'Anzahl unentgeltlich bereitgestellter Frühstücke (z.B. im Tagungshotel inkludiert). Kürzt das Tagegeld um 5,60 € pro Stück.',
+      'f_mittag': 'Anzahl unentgeltlicher Mittagessen (z.B. Mittags-Buffet auf der Tagung). Kürzt um 11,20 € pro Stück.',
+      'f_abend': 'Anzahl unentgeltlicher Abendessen. Kürzt um 11,20 € pro Stück.',
+      'f_naechte_pauschal': 'Nächte ohne Hotelbeleg → pauschal 20 €/Nacht (max. 14 Nächte). Bei Hotelrechnung Feld unten nutzen.',
+      'f_naechte_unentgeltlich': 'Nächte, die das Amt direkt gestellt hat (z.B. Schullandheim) — kein Übernachtungsgeld.',
+      'f_uebern_kosten': 'Tatsächliche Hotelkosten laut Rechnung — Beleg im Original beim Antrag beilegen. Über 100 €/Nacht: Begründung Pflicht.',
+      'f_begr_100': 'Warum war das Hotel teurer als 100 €/Nacht? Bsp.: „Sitzungshotel direkt am Tagungsort, günstigere Optionen ausgebucht"',
+
+      // Step 5 — Belege
+      'f_fahrkarte': 'Bahn-Fahrkartenpreis (ohne Zuschläge). Bsp.: 49,50 € (Sparpreis 2. Klasse)',
+      'f_zuschlaege': 'ICE-Sprinter-, Sitzplatz-, Zugbindungs-Zuschlag. Bsp.: 12,50 €',
+      'f_wagenklasse': 'Welche Klasse / welcher Tarif. Bsp.: „2. Klasse", „1. Klasse + ICE-Sprinter"',
+      'f_sonst_fahrt': 'Taxi, ÖPNV im Zielort, Fähre, Mietwagen — nicht das Hauptverkehrsmittel.',
+      'f_sonst_fahrt_erl': 'Was und wofür. Bsp.: „BVG Tageskarte Berlin", „Fähre Wangerooge", „Taxi Bahnhof->Tagungsort"',
+      'f_sonst_kosten': 'Kongressgebühr, Parkhaus, Garderobe, sonstige unmittelbar reisebedingte Kosten.',
+      'f_sonst_kosten_erl': 'Pflicht bei Betrag > 0. Bsp.: „Tagungsgebühr 80 €, Parkhaus Flughafen 25 €"',
+
+      // Step 6 — Wegstrecke
+      'f_km_hin': 'Gefahrene Kilometer von Wohnung zum Dienstgeschäftsort (Hinfahrt). Online-Routenplaner ist üblich.',
+      'f_km_rueck': 'Kilometer vom Dienstgeschäft zurück zur Wohnung. Meist gleich wie Hinreise — bei Umweg/anderer Strecke entsprechend anpassen.',
+
+      // Step 7 — Abzüge
+      'f_zuwendungen': 'Erhaltene Zuwendungen Dritter — z.B. wenn der Veranstalter Reisekosten teilweise erstattet hat.',
+      'f_abschlag': 'Vor der Reise erhaltener Vorschuss/Abschlag von der Dienststelle.',
+      'f_eigenanteil': 'Selbst zu tragende Anteile. Bsp.: 5 € Tagungspauschale, die der Beamte selbst zahlen muss.',
+      'f_eigen_erl': 'Art und Höhe des Eigenanteils. Bsp.: „Tagungs-Eigenanteil lt. Ausschreibung"',
+
+      // Step 8 — Sonstiges
+      'f_2km': 'Dienstgeschäft im Umkreis von 2 km zur Dienststätte oder Wohnung — kein Tagegeld nach § 6 NRKVO.',
+      'f_trennung': 'Anspruch auf Trennungsgeld bei mehrtägigen Reisen mit auswärtigem Verbleiben (auch bei Nullauszahlung wegen Kürzungen).',
+      'f_grosskunde': 'DB Großkunden-/Geschäftskundenrabatt für die Bahnfahrt genutzt? Wenn nein: Begründung unten ausfüllen.',
+      'f_bcb': 'BahnCard Business der Dienststelle vorhanden?',
+      'f_bcp': 'Eigene private BahnCard 25 / 50 / 100?',
+      'f_erm': 'Sonstige Ermäßigung (Monatskarte, Jobticket, Verbund-Sondertarif) — nicht automatisch ja, nur weil Bahn genutzt wird.',
+      'f_urlaub': 'Reise wurde mit > 5 Tagen Urlaub/Zeitausgleich verbunden — detaillierte Reise-Aufstellung wird Pflicht.',
+      'f_grosskunde_begr': 'Warum kein Großkundenrabatt? Bsp.: „Nutzung PKW", „Verbindung nicht buchbar", „Sparpreis günstiger"',
+      'f_verz_tageg': 'Erkläre den Verzicht auf Tagegeld (z.B. weil komplette Verpflegung gestellt wurde).',
+      'f_verz_uebern': 'Erkläre den Verzicht auf Übernachtungsgeld.',
+      'f_verz_fahrt': 'Erkläre den Verzicht auf Fahrtkosten.',
+    };
+
+    function attachTips() {
+      Object.entries(TIPS).forEach(([id, text]) => {
+        const label = document.querySelector(`label[for="${id}"]`);
+        if (!label || label.querySelector('.tip')) return;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'tip';
+        btn.tabIndex = 0;
+        btn.setAttribute('data-tip', text);
+        btn.setAttribute('aria-label', `Hinweis: ${text}`);
+        btn.textContent = '?';
+        label.appendChild(btn);
+      });
+    }
+
+    // Tooltips per Klick toggeln (Mobile, ohne Hover)
+    document.addEventListener('click', e => {
+      const isTip = e.target.matches('.tip');
+      document.querySelectorAll('.tip.active').forEach(t => {
+        if (t !== e.target) t.classList.remove('active');
+      });
+      if (isTip) {
+        e.target.classList.toggle('active');
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    });
+
     // ── Init ────────────────────────────────────────────────────────
+    attachTips();
     applyProfile();
     syncFormFromState();
     goStep(1);
