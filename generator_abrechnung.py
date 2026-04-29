@@ -144,8 +144,9 @@ def _build_text_fields(data: AbrechnungData) -> dict:
     else:
         fields["Dienststelle_Datum"] = ""
 
-    # Reiseziel/Reiseweg
-    fields["Reiseziel_Reiseweg"] = f"{rd.zielort}\r{rd.reiseweg}"
+    # Reiseziel/Reiseweg — Feld ist einzeilig (kein Multiline-Flag), daher
+    # sichtbares Trennzeichen statt \r.
+    fields["Reiseziel_Reiseweg"] = f"{rd.zielort} · {rd.reiseweg}"
 
     # Erläuterungen (Reisezweck, PKW-Begründung, mitfahrende Personen, Sonstiges)
     erl_parts = []
