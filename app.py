@@ -902,11 +902,11 @@ def extract():
     pdf_file = request.files.get("pdf")
     if pdf_file and pdf_file.filename:
         if (pdf_file.mimetype or "").lower() not in ("application/pdf", "application/x-pdf"):
-            return jsonify({"error": "Nur PDF-Dateien werden unterstuetzt."}), 400
+            return jsonify({"error": "Nur PDF-Dateien werden unterstützt."}), 400
         head = pdf_file.stream.read(5)
         pdf_file.stream.seek(0)
         if not head.startswith(b"%PDF-"):
-            return jsonify({"error": "Datei ist kein gueltiges PDF."}), 400
+            return jsonify({"error": "Datei ist kein gültiges PDF."}), 400
         try:
             import pypdf
 
