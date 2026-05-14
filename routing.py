@@ -69,7 +69,13 @@ def geocode(address: str) -> tuple[float, float]:
 
 @lru_cache(maxsize=512)
 def route_km(start: str, ende: str) -> dict:
-    """Gibt {'km': float, 'duration_min': float, 'start_label': str, 'ende_label': str} zurueck."""
+    """Routing-Schaetzung Start → Ende via OSRM-Demo.
+
+    Returns dict: km (gefahrene Strecke), duration_min.
+    Hinweis: Fähren-Anteile sind in OSRM-Demo nicht zuverlaessig getaggt.
+    Das Frontend zeigt einen statischen Hinweis, dass der User ggf. manuell
+    Faehren-Strecke abziehen muss.
+    """
     lat1, lon1 = geocode(start)
     lat2, lon2 = geocode(ende)
     try:

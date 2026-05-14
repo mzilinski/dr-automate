@@ -686,15 +686,29 @@
 
           <div class="info-box" id="wegstrecke_info">Aktueller Satz wird live berechnet.</div>
 
-          <div style="margin-bottom:.7rem; display:flex; align-items:center; gap:.7rem; flex-wrap:wrap;">
-            <button type="button" class="btn btn-outline btn-sm" onclick="estimateDistance()">
-              🗺 Entfernung schätzen
-            </button>
-            <span class="wiz-hint" id="routeStatus" style="margin:0;">
-              Holt PKW-Entfernung Wohnort ↔ Reiseziel über OpenStreetMap (OSRM).
-              Hin- und Rückreise werden gleich gesetzt.
-            </span>
-          </div>
+          <details style="margin-bottom:.8rem;">
+            <summary style="cursor:pointer; font-weight:600; color:var(--accent);">
+              🗺 Entfernung schätzen (OpenStreetMap)
+            </summary>
+            <div style="margin-top:.6rem; display:grid; grid-template-columns:1fr 1fr; gap:.5rem;">
+              <div>
+                <label class="field-label" for="r_from">Start-Adresse</label>
+                <input type="text" id="r_from" placeholder="z.B. Lingen, Am Biener Esch 11">
+              </div>
+              <div>
+                <label class="field-label" for="r_to">Ziel-Adresse</label>
+                <input type="text" id="r_to" placeholder="z.B. Harlesiel (Fährhafen) — nicht Wangerooge selbst">
+              </div>
+            </div>
+            <div style="margin-top:.5rem; display:flex; align-items:center; gap:.7rem; flex-wrap:wrap;">
+              <button type="button" class="btn btn-primary btn-sm" onclick="estimateDistance()">
+                Entfernung berechnen
+              </button>
+              <span class="wiz-hint" id="routeStatus" style="margin:0;">
+                Bei Strecken mit Fähre/Bahn die letzte PKW-erreichbare Adresse als Ziel angeben.
+              </span>
+            </div>
+          </details>
 
           <div class="field-grid">
             <div>
@@ -1085,12 +1099,18 @@
     }
 
     // ── Entfernung schaetzen via OSRM/Nominatim ──────────────────────
+    function prefillRouteFields() {
+      const fromEl = document.getElementById('r_from');
+      const toEl = document.getElementById('r_to');
+      if (fromEl && !fromEl.value) fromEl.value = state.antragsteller.adresse_privat || '';
+      if (toEl && !toEl.value) toEl.value = state.reise.zielort || '';
+    }
     async function estimateDistance() {
       const status = document.getElementById('routeStatus');
-      const from = (state.antragsteller.adresse_privat || '').trim();
-      const to = (state.reise.zielort || '').trim();
+      const from = (document.getElementById('r_from').value || '').trim();
+      const to = (document.getElementById('r_to').value || '').trim();
       if (!from || !to) {
-        showAlert('Adresse + Reiseziel werden benötigt (Schritte 2 + 3).', 'warning');
+        showAlert('Bitte Start- und Ziel-Adresse angeben.', 'warning');
         return;
       }
       status.textContent = 'Suche Route über OpenStreetMap …';
@@ -1112,7 +1132,7 @@
         state.wegstrecke.km_rueckreise = km;
         syncFormFromState();
         if (typeof recompute === 'function') recompute();
-        status.innerHTML = `✓ Geschätzt: ${km} km pro Strecke (${Math.round(data.duration_min)} min) — Datenquelle <em>${data.source}</em>. Korrigieren wenn nötig.`;
+        status.innerHTML = `✓ ${km} km pro Strecke (${Math.round(data.duration_min)} min) — Datenquelle <em>${data.source}</em>.`;
       } catch (e) {
         status.textContent = '';
         showAlert('Netzwerkfehler: ' + e.message, 'danger');
@@ -1628,6 +1648,7 @@
     attachTips();
     applyProfile();
     syncFormFromState();
+    prefillRouteFields();
 
     // Auto-Load aus Dashboard: wenn ?dienstreise=N im URL UND User
     // angemeldet, holen wir Antrag-JSON + ggf. existierende Abrechnung
