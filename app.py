@@ -799,6 +799,19 @@ def account_request_post():
         flash("Bitte Name und gültige E-Mail angeben.", "error")
         return redirect(url_for("account_request_get"))
 
+    # Anti-Spam: leere oder ein-Wort-Begründungen filtern. Echte Anfragen
+    # erklären in mindestens einem ganzen Satz, warum sie Zugang brauchen.
+    if len(begruendung) < 20:
+        logger.info(
+            "Account-Anfrage abgelehnt: Begründung zu kurz (%d Zeichen) von %s",
+            len(begruendung), request.remote_addr,
+        )
+        flash(
+            "Bitte beschreibe in mindestens 20 Zeichen, warum du dr-automate nutzen möchtest.",
+            "error",
+        )
+        return redirect(url_for("account_request_get"))
+
     with SessionLocal() as session_db:
         req = AccountRequest(
             email=email,
