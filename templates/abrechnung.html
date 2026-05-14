@@ -570,6 +570,16 @@
             (vom vollen Tagegeld 28 €)
           </div>
 
+          <div style="margin-bottom:.7rem; display:flex; align-items:center; gap:.7rem; flex-wrap:wrap;">
+            <button type="button" class="btn btn-outline btn-sm" onclick="suggestVerpflegung()">
+              📅 Aus Reisezeiten vorschlagen
+            </button>
+            <span class="wiz-hint" style="margin:0;">
+              Schätzt anhand Start/Ende, wie viele Mahlzeiten typischerweise gestellt werden.
+              Werte kannst du korrigieren.
+            </span>
+          </div>
+
           <div class="field-grid">
             <div>
               <label class="field-label" for="f_fruehstueck">Frühstück (Anzahl)</label>
@@ -675,6 +685,16 @@
           </p>
 
           <div class="info-box" id="wegstrecke_info">Aktueller Satz wird live berechnet.</div>
+
+          <div style="margin-bottom:.7rem; display:flex; align-items:center; gap:.7rem; flex-wrap:wrap;">
+            <button type="button" class="btn btn-outline btn-sm" onclick="estimateDistance()">
+              🗺 Entfernung schätzen
+            </button>
+            <span class="wiz-hint" id="routeStatus" style="margin:0;">
+              Holt PKW-Entfernung Wohnort ↔ Reiseziel über OpenStreetMap (OSRM).
+              Hin- und Rückreise werden gleich gesetzt.
+            </span>
+          </div>
 
           <div class="field-grid">
             <div>
@@ -994,11 +1014,109 @@
       if (!state.stammdaten.bic) state.stammdaten.bic = p.bic || '';
       if (!state.stammdaten.email) state.stammdaten.email = p.email || '';
       if (!state.stammdaten.abrechnende_dienststelle) state.stammdaten.abrechnende_dienststelle = p.abrechnende_dienststelle || '';
+      // Anordnende Dienststelle: kommt aus Profil-Feld; Datum spaeter aus
+      // genehmigung_datum (siehe autoLoadFromDashboard).
+      if (state.anordnung && !state.anordnung.dienststelle) {
+        state.anordnung.dienststelle = p.anordnende_dienststelle || '';
+      }
       if (p.rkr_default) state.rkr = p.rkr_default;
 
       // AI-Extraktionsblock nur zeigen, wenn DeepSeek-Key hinterlegt ist
       const aiBlock = document.getElementById('aiExtractBlockAbr');
       if (aiBlock) aiBlock.style.display = p.deepseek_api_key ? 'block' : 'none';
+    }
+
+    // ── Verpflegung-Vorschlag aus Reisezeiten ─────────────────────────
+    // Heuristik fuer "unentgeltlich vom Amt bereitgestellte" Mahlzeiten in
+    // Fortbildungs-Settings (Tagungshaus, OJE etc.): Default-Annahme = alle
+    // Mahlzeiten waehrend des Aufenthalts werden gestellt.
+    //   Fruehstueck = # Uebernachtungen
+    //   Mittag/Abend = Volle-Tage-Mahlzeiten + Anreise-/Abreise-Tag-Anteile
+    //                  (anhand der Uhrzeit am Anreise-/Abreisetag).
+    // User kann jeden Wert nachtraeglich anpassen — der Button ist als
+    // sinnvoller Startwert gedacht, nicht als finale Antwort.
+    function suggestVerpflegung() {
+      const startD = parseGermanDate(state.reise.start_datum);
+      const endeD = parseGermanDate(state.reise.ende_datum);
+      const startT = state.reise.start_zeit || '00:00';
+      const endeT = state.reise.ende_zeit || '23:59';
+      if (!startD || !endeD || endeD < startD) {
+        showAlert('Reisedaten (Schritt 3) unvollständig — bitte Start- und Endzeit eintragen.', 'warning');
+        return;
+      }
+      const oneDay = 86400000;
+      const overnight = Math.round((endeD - startD) / oneDay);
+      if (overnight < 1) {
+        // Tagesreise: nichts standardmaessig gestellt, User entscheidet
+        showAlert('Eintägige Reise — typischerweise keine unentgeltlichen Mahlzeiten. Trag manuell ein, falls doch.', 'info');
+        return;
+      }
+      const [sh, sm] = startT.split(':').map(Number);
+      const [eh, em] = endeT.split(':').map(Number);
+      const startMin = sh * 60 + (sm || 0);
+      const endeMin = eh * 60 + (em || 0);
+      // 12:00 = Mittag, 18:00 = Abend
+      const anMittag = startMin < 12 * 60 ? 1 : 0;
+      const anAbend = startMin < 18 * 60 ? 1 : 0;
+      const abMittag = endeMin > 12 * 60 ? 1 : 0;
+      const abAbend = endeMin > 18 * 60 ? 1 : 0;
+      const fruehstueck = overnight;            // morgen nach jeder Übernachtung
+      const mittag = anMittag + (overnight - 1) + abMittag;
+      const abend = anAbend + (overnight - 1) + abAbend;
+
+      state.verpflegung.fruehstueck_anzahl = fruehstueck;
+      state.verpflegung.mittag_anzahl = mittag;
+      state.verpflegung.abend_anzahl = abend;
+      // Übernachtungen sind sehr oft auch unentgeltlich bei Tagungshaeusern
+      state.uebernachtungen.anzahl_unentgeltlich = overnight;
+      syncFormFromState();
+      if (typeof recompute === 'function') recompute();
+      showAlert(
+        `Vorschlag: ${fruehstueck}× Frühstück, ${mittag}× Mittag, ${abend}× Abend bei ${overnight} Übernachtungen. Bitte prüfen und korrigieren.`,
+        'info'
+      );
+    }
+    function parseGermanDate(s) {
+      if (!s) return null;
+      const m = s.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+      if (m) return new Date(`${m[3]}-${m[2]}-${m[1]}T12:00:00`);
+      const iso = new Date(s);
+      return isNaN(iso) ? null : iso;
+    }
+
+    // ── Entfernung schaetzen via OSRM/Nominatim ──────────────────────
+    async function estimateDistance() {
+      const status = document.getElementById('routeStatus');
+      const from = (state.antragsteller.adresse_privat || '').trim();
+      const to = (state.reise.zielort || '').trim();
+      if (!from || !to) {
+        showAlert('Adresse + Reiseziel werden benötigt (Schritte 2 + 3).', 'warning');
+        return;
+      }
+      status.textContent = 'Suche Route über OpenStreetMap …';
+      try {
+        const csrf = document.querySelector('input[name=csrf_token]').value;
+        const fd = new FormData();
+        fd.set('csrf_token', csrf);
+        fd.set('from', from);
+        fd.set('to', to);
+        const res = await fetch('/api/route', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (!res.ok) {
+          status.textContent = '';
+          showAlert('Routing fehlgeschlagen: ' + (data.error || res.statusText), 'warning');
+          return;
+        }
+        const km = Math.round(data.km);
+        state.wegstrecke.km_hinreise = km;
+        state.wegstrecke.km_rueckreise = km;
+        syncFormFromState();
+        if (typeof recompute === 'function') recompute();
+        status.innerHTML = `✓ Geschätzt: ${km} km pro Strecke (${Math.round(data.duration_min)} min) — Datenquelle <em>${data.source}</em>. Korrigieren wenn nötig.`;
+      } catch (e) {
+        status.textContent = '';
+        showAlert('Netzwerkfehler: ' + e.message, 'danger');
+      }
     }
 
     // ── AI-Direktextraktion (BYOK) ──────────────────────────────────
@@ -1539,6 +1657,12 @@
           return;
         }
         mergeIntoState(payload);
+        // Tag der Genehmigung aus der Dienstreise-Tabelle in den Anordnungs-
+        // Block des Wizards uebernehmen — der Wizard fragt dann nicht mehr
+        // nach. Anordnende Dienststelle ist schon aus dem Profil gefuellt.
+        if (d.genehmigung_datum && state.anordnung) {
+          state.anordnung.datum = d.genehmigung_datum; // ISO YYYY-MM-DD
+        }
         // Banner statt Step-1-Upload-UI: kennzeichnen, dass alles geladen ist
         const stepEl = document.querySelector('.wiz-step[data-step="1"]');
         if (stepEl) {
