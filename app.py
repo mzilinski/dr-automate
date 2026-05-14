@@ -5,6 +5,7 @@ import re
 import secrets
 import shutil
 import tempfile
+from datetime import datetime
 from pathlib import Path
 
 import bleach
@@ -22,6 +23,7 @@ from flask import (
     send_file,
     url_for,
 )
+from sqlalchemy import select
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_mail import Mail, Message
@@ -50,6 +52,12 @@ TRUST_REMOTE_USER_HEADER = os.environ.get("TRUST_REMOTE_USER_HEADER", "false").l
 DATA_DIR = Path(os.environ.get("DR_AUTOMATE_DATA_DIR", "data"))
 DOCS_DIR = Path(os.environ.get("DR_AUTOMATE_DOCS_DIR", "docs"))
 ADMIN_EMAIL = os.environ.get("DR_AUTOMATE_ADMIN_EMAIL", "")
+# Admin-Routen (/admin/...) sind nur fuer die hier gelisteten Remote-User
+# erreichbar — Authelia kennt aktuell nur eine Gruppe ("adults"), daher
+# enforcement per-User. Leer = niemand hat Admin-Zugang (sicheres default).
+ADMIN_REMOTE_USERS: set[str] = {
+    u.strip() for u in os.environ.get("ADMIN_REMOTE_USERS", "").split(",") if u.strip()
+}
 # Telegram-Notifications fuer Admin-Events (z.B. neue Account-Anfrage).
 # Beide leer = Telegram-Versand deaktiviert. SMTP/Mail bleibt unabhaengig.
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
@@ -844,17 +852,106 @@ def account_request_post():
     # Telegram parallel zur Mail (eigener Helper, fail-silent).
     from html import escape as _e
 
+    admin_url = url_for("admin_account_requests", _external=True)
     _send_telegram(
         "🔔 <b>dr-automate</b>: neue Account-Anfrage\n\n"
         f"<b>Name:</b> {_e(display_name)}\n"
         f"<b>E-Mail:</b> {_e(email)}\n"
         f"<b>Quell-IP:</b> {_e(request.remote_addr or '?')}\n"
         f"<b>Anfrage-ID:</b> {req_id}\n\n"
-        f"<b>Begründung:</b>\n{_e(begruendung) or '<i>(keine)</i>'}"
+        f"<b>Begründung:</b>\n{_e(begruendung) or '<i>(keine)</i>'}\n\n"
+        f"➡️ <a href=\"{admin_url}\">Anfragen verwalten</a>"
     )
 
     flash("Anfrage abgesendet. Wir melden uns per E-Mail, sobald der Account freigeschaltet ist.", "success")
     return redirect(url_for("landing"))
+
+
+# --- ADMIN: ACCOUNT-REQUESTS-LISTE ---
+
+
+def _require_admin() -> None:
+    """Authelia liefert via login_required schon einen User; zusaetzlich
+    pruefen wir ob der explizit als Admin markiert ist."""
+    user = getattr(g, "current_user", None)
+    if user is None:
+        abort(401)
+    if user.remote_user not in ADMIN_REMOTE_USERS:
+        logger.warning(
+            "Admin-Zugriff verweigert fuer remote_user=%s (nicht in ADMIN_REMOTE_USERS)",
+            user.remote_user,
+        )
+        abort(403)
+
+
+@app.route("/admin/account-requests", methods=["GET"])
+@auth.login_required
+def admin_account_requests():
+    _require_admin()
+    from db import SessionLocal
+    from models_db import AccountRequest
+
+    with SessionLocal() as session_db:
+        # Pending zuerst (alteste zuerst), dann erledigte zur Referenz.
+        rows = session_db.execute(
+            select(AccountRequest).order_by(AccountRequest.fulfilled, AccountRequest.created_at)
+        ).scalars().all()
+        items = [
+            {
+                "id": r.id,
+                "display_name": r.display_name,
+                "email": r.email,
+                "begruendung": r.begruendung,
+                "remote_addr": r.remote_addr,
+                "created_at": r.created_at,
+                "fulfilled": r.fulfilled,
+                "fulfilled_at": r.fulfilled_at,
+            }
+            for r in rows
+        ]
+    return render_template(
+        "admin_account_requests.html",
+        items=items,
+        **_common_template_ctx(),
+    )
+
+
+@app.route("/admin/account-requests/<int:req_id>/fulfill", methods=["POST"])
+@auth.login_required
+def admin_account_request_fulfill(req_id: int):
+    _require_admin()
+    from db import SessionLocal
+    from models_db import AccountRequest
+
+    with SessionLocal() as session_db:
+        req = session_db.get(AccountRequest, req_id)
+        if req is None:
+            flash(f"Anfrage #{req_id} nicht gefunden.", "error")
+        else:
+            req.fulfilled = True
+            req.fulfilled_at = datetime.utcnow()
+            session_db.commit()
+            flash(f"Anfrage #{req_id} ({req.display_name}) als erledigt markiert.", "success")
+    return redirect(url_for("admin_account_requests"))
+
+
+@app.route("/admin/account-requests/<int:req_id>/delete", methods=["POST"])
+@auth.login_required
+def admin_account_request_delete(req_id: int):
+    _require_admin()
+    from db import SessionLocal
+    from models_db import AccountRequest
+
+    with SessionLocal() as session_db:
+        req = session_db.get(AccountRequest, req_id)
+        if req is None:
+            flash(f"Anfrage #{req_id} nicht gefunden.", "error")
+        else:
+            display_name = req.display_name
+            session_db.delete(req)
+            session_db.commit()
+            flash(f"Anfrage #{req_id} ({display_name}) geloescht.", "success")
+    return redirect(url_for("admin_account_requests"))
 
 
 # --- DOCS (Public) ---
