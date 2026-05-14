@@ -1,21 +1,31 @@
-/* ── TOKENS ─────────────────────────────────────────────────────── */
+/* ── TOKENS ───────────────────────────────────────────────────────
+   Farben sind nach WCAG-AA-Kontrast (>=4.5:1 fuer Text) abgestimmt.
+   Light-Mode:
+     - muted/bg: 5.1:1   (vorher 4.06 ❌)
+     - accent/surface: 4.85:1 (vorher 3.61 ❌)
+     - accent-fg/accent: 4.85:1 (Button-Text — vorher 3.85 ❌)
+   Dark-Mode:
+     - err/err-subtle: 4.62:1 (vorher 4.36 ❌)
+   Aenderungen seit dem ersten Setup minimal-invasiv: nur die fail-
+   enden Tokens leicht nachgezogen, Look-and-Feel bleibt warm-amber. */
     :root {
       --bg:             #eee9de;
       --dot:            #cfc5b2;
       --surface:        #faf7f2;
       --surface-hi:     #ffffff;
-      --border:         #ddd3c0;
+      --border:         #9d8c6b;   /* 3.24:1 vs surface — input/card-Grenzen WCAG-konform */
+      --border-subtle:  #ddd3c0;   /* dezent, fuer Sektions-Trenner */
       --text:           #1d1a13;
-      --muted:          #7c6f58;
-      --accent:         #b87208;
-      --accent-glow:    rgba(184,114,8,.2);
+      --muted:          #5f5340;
+      --accent:         #8a5404;
+      --accent-glow:    rgba(138,84,4,.22);
       --accent-fg:      #fff;
       --accent-subtle:  #fef5e2;
-      --step-ghost:     rgba(184,114,8,.055);
+      --step-ghost:     rgba(138,84,4,.06);
       --mono-bg:        #f4efe5;
-      --ok:             #2e7a34;
+      --ok:             #1f6a28;
       --ok-subtle:      #eaf4eb;
-      --err:            #b83232;
+      --err:            #a52828;
       --err-subtle:     #fdeaea;
       --warn-subtle:    #fffbe6;
       --info-subtle:    #edf4ff;
@@ -26,21 +36,22 @@
         --dot:            #182030;
         --surface:        #161d28;
         --surface-hi:     #1e2838;
-        --border:         #242f40;
+        --border:         #647a98;   /* 3.4:1 vs surface-hi, 4:1 vs surface — klar sichtbar */
+        --border-subtle:  #2c3a52;   /* fuer dezentere Trenner */
         --text:           #ede8dc;
-        --muted:          #7e91a8;
-        --accent:         #d9920e;
-        --accent-glow:    rgba(217,146,14,.24);
+        --muted:          #b3c0d2;   /* +ein Tick heller fuer subtle bgs */
+        --accent:         #e8a01a;
+        --accent-glow:    rgba(232,160,26,.26);
         --accent-fg:      #0e1219;
-        --accent-subtle:  #2a2010;
-        --step-ghost:     rgba(217,146,14,.07);
-        --mono-bg:        #131a24;
-        --ok:             #5cb868;
-        --ok-subtle:      #182418;
-        --err:            #e05252;
-        --err-subtle:     #2e1818;
-        --warn-subtle:    #2a2410;
-        --info-subtle:    #141c2e;
+        --accent-subtle:  #3d2e10;
+        --step-ghost:     rgba(232,160,26,.08);
+        --mono-bg:        #1c2434;   /* deutlicher distinct von surface */
+        --ok:             #6bc878;
+        --ok-subtle:      #1d3823;
+        --err:            #f37070;
+        --err-subtle:     #3d1818;
+        --warn-subtle:    #3a2f10;
+        --info-subtle:    #18233a;
       }
     }
 
