@@ -546,10 +546,17 @@ def dienstreise_bezahlt(reise_id: int):
 def dienstreise_antrag_pdf(reise_id: int):
     s, reise = _get_dienstreise_or_404(reise_id)
     path = reise.antrag_pdf_path
+    antrag_json = reise.antrag_json
     s.close()
     if not path or not os.path.isfile(path):
         abort(404)
-    return send_file(path, as_attachment=True, download_name=f"DR-Antrag-{reise_id}.pdf")
+    # Schoener Dateiname aus den gespeicherten JSON-Daten ableiten
+    # (Format: YYYYMMDD_DR-Antrag_Stadt_Thema.pdf).
+    try:
+        download_name = generator.generate_output_filename(antrag_json or {})
+    except Exception:
+        download_name = f"DR-Antrag-{reise_id}.pdf"
+    return send_file(path, as_attachment=True, download_name=download_name)
 
 
 @app.route("/dienstreisen/<int:reise_id>/abrechnung.pdf", methods=["GET"])
@@ -557,10 +564,20 @@ def dienstreise_antrag_pdf(reise_id: int):
 def dienstreise_abrechnung_pdf(reise_id: int):
     s, reise = _get_dienstreise_or_404(reise_id)
     path = reise.abrechnung.abrechnung_pdf_path if reise.abrechnung else None
+    abr_json = reise.abrechnung.abrechnung_json if reise.abrechnung else None
     s.close()
     if not path or not os.path.isfile(path):
         abort(404)
-    return send_file(path, as_attachment=True, download_name=f"DR-Abrechnung-{reise_id}.pdf")
+    try:
+        # generator_abrechnung erwartet ein AbrechnungData-Pydantic-Modell.
+        is_valid, model = validate_abrechnung(abr_json or {})
+        if is_valid:
+            download_name = generator_abrechnung.generate_output_filename(model)
+        else:
+            raise ValueError("invalid abrechnung-json")
+    except Exception:
+        download_name = f"DR-Abrechnung-{reise_id}.pdf"
+    return send_file(path, as_attachment=True, download_name=download_name)
 
 
 # --- PROFIL (Auth-only) ---
