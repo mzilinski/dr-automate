@@ -171,8 +171,8 @@
           <p class="wiz-hint">Start- und Endpunkt aller Dienstreisen laut Formular. <strong>Wichtig:</strong> Bitte PLZ und Ort nicht vergessen!</p>
         </div>
         <div class="wiz-field">
-          <label class="wiz-label" for="wiz_mitreisender">Mitreisender <em>(optional)</em></label>
-          <input type="text" id="wiz_mitreisender" placeholder="Erika Musterfrau">
+          <label class="wiz-label" for="wiz_mitreisender">Mitreisende <em>(optional, mehrere mit Komma trennen)</em></label>
+          <input type="text" id="wiz_mitreisender" placeholder="z.B. Erika Musterfrau, Max Beispiel">
           <p class="wiz-hint">Wird automatisch eingesetzt, wenn der Name in der Ausschreibung erwähnt wird</p>
         </div>
 
@@ -436,7 +436,7 @@
 
     function makeDisplayPrompt(full) {
       const dataLines = full.split('\n')
-        .filter(l => /^- (Name|Abteilung|Telefon|Privatadresse|Mitreisender):/.test(l))
+        .filter(l => /^- (Name|Abteilung|Telefon|Privatadresse|Mitreisende Person|Mitreisender):/.test(l))
         .map(l => l.replace(/\s*\(nur einsetzen,[^)]*\)/, '').trimEnd());
       return dataLines.join('\n');
     }

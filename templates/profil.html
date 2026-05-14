@@ -95,8 +95,11 @@
         placeholder="z.B. SL BBS Lingen TG">
       <span class="help">Stelle, die die Dienstreise genehmigt/angeordnet hat (typischerweise Schulleitung).</span>
     </label>
-    <label>Mitreisende:r (Vorbelegung)
-      <input type="text" name="mitreisender_name_default" value="{{ profile.mitreisender_name_default or '' }}" maxlength="200">
+    <label>Mitreisende (Vorbelegung)
+      <input type="text" name="mitreisender_name_default" value="{{ profile.mitreisender_name_default or '' }}" maxlength="200"
+        placeholder="z.B. Erika Musterfrau, Max Beispiel">
+      <span class="help">Falls du regelmäßig mit denselben Personen reist. Mehrere mit Komma trennen.
+        Wird nur in Antrag/Abrechnung übernommen, wenn die Reise tatsächlich gemeinsam stattfindet.</span>
     </label>
     <label>AI-Provider Default
       <select name="ai_provider_default">
@@ -147,7 +150,7 @@
 
   <h3>BahnCards &amp; Großkundenrabatte</h3>
   {% set bcs = profile.bahncards or {} %}
-  <p style="font-size:.85rem;color:var(--muted);margin-bottom:.4rem;">Person 1 = Antragsteller:in, Person 2 = Mitreisende:r</p>
+  <p style="font-size:.85rem;color:var(--muted);margin-bottom:.4rem;">Person 1 = Antragsteller:in, Person 2 = Mitreisende</p>
   <div class="check-row">
     <label><input type="checkbox" name="bahncard_bc25_1" value="1" {% if bcs.get('bc25_1') %}checked{% endif %}>BC25 (P1)</label>
     <label><input type="checkbox" name="bahncard_bc25_2" value="1" {% if bcs.get('bc25_2') %}checked{% endif %}>BC25 (P2)</label>
