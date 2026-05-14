@@ -91,9 +91,12 @@ def berechnung(data: AbrechnungData) -> BerechneteWerte:
     )
     if naechte < naechte_input:
         import logging as _logging
+
         _logging.getLogger(__name__).warning(
             "Pauschal-Naechte %d > Reisedauer %d Naechte; auf %d gedeckelt.",
-            naechte_input, max_naechte_real, naechte,
+            naechte_input,
+            max_naechte_real,
+            naechte,
         )
     uebernachtungsgeld_pauschal = naechte * r.UEBERNACHTUNG_PAUSCHAL_EUR
     if data.verzicht_erklaerung and data.verzicht_erklaerung.verzicht_uebernachtungsgeld:
@@ -141,11 +144,7 @@ def berechnung(data: AbrechnungData) -> BerechneteWerte:
     zwischensumme = tagegeld_netto + uebernachtungsgeld_pauschal + wegstrecke + belege
 
     # 7. Auszahlbetrag (kann negativ sein → Rückzahlung)
-    abzuege = (
-        data.abzuege.zuwendungen_eur
-        + data.abzuege.reisekostenabschlag_eur
-        + data.abzuege.eigenanteile_eur
-    )
+    abzuege = data.abzuege.zuwendungen_eur + data.abzuege.reisekostenabschlag_eur + data.abzuege.eigenanteile_eur
     auszahlbetrag = zwischensumme - abzuege
 
     return BerechneteWerte(

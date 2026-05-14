@@ -21,9 +21,7 @@ depends_on: str | Sequence[str] | None = None
 
 def upgrade() -> None:
     with op.batch_alter_table("user_profiles") as batch:
-        batch.add_column(
-            sa.Column("auto_save_dienstreisen", sa.Boolean(), nullable=False, server_default=sa.true())
-        )
+        batch.add_column(sa.Column("auto_save_dienstreisen", sa.Boolean(), nullable=False, server_default=sa.true()))
 
 
 def downgrade() -> None:

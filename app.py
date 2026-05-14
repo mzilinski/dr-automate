@@ -168,9 +168,7 @@ def _build_wizard_profile_seed(user) -> dict | None:
                 "email": user.email or "",
                 "auto_save_dienstreisen": True,
             }
-        full_name = " ".join(p for p in (profile.vorname, profile.nachname) if p).strip() or (
-            user.display_name or ""
-        )
+        full_name = " ".join(p for p in (profile.vorname, profile.nachname) if p).strip() or (user.display_name or "")
         return {
             "name": full_name,
             "abteilung": profile.abteilung or "",
@@ -378,7 +376,7 @@ def _persist_pdf(src_pdf: str, user_id: int, reise_id: int, filename: str) -> Pa
     # Permissions explizit setzen — umask 022 wuerde sonst 0755 daraus machen.
     try:
         os.chmod(target_dir.parent, 0o700)  # /pdfs/<user_id>
-        os.chmod(target_dir, 0o700)         # /pdfs/<user_id>/<reise_id>
+        os.chmod(target_dir, 0o700)  # /pdfs/<user_id>/<reise_id>
     except OSError:
         pass
     target = target_dir / filename
@@ -802,21 +800,47 @@ def account_request_post():
 # --- DOCS (Public) ---
 
 
-_BLEACH_ALLOWED_TAGS = frozenset({
-    "h1", "h2", "h3", "h4", "h5", "h6",
-    "p", "br", "hr",
-    "strong", "em", "code", "pre", "blockquote",
-    "ul", "ol", "li",
-    "a",
-    "table", "thead", "tbody", "tr", "th", "td",
-    "div", "span",
-})
+_BLEACH_ALLOWED_TAGS = frozenset(
+    {
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "p",
+        "br",
+        "hr",
+        "strong",
+        "em",
+        "code",
+        "pre",
+        "blockquote",
+        "ul",
+        "ol",
+        "li",
+        "a",
+        "table",
+        "thead",
+        "tbody",
+        "tr",
+        "th",
+        "td",
+        "div",
+        "span",
+    }
+)
 _BLEACH_ALLOWED_ATTRIBUTES = {
     "a": ["href", "title", "rel", "target"],
     "code": ["class"],  # fuer fenced_code language classes
     "th": ["align"],
     "td": ["align"],
-    "h1": ["id"], "h2": ["id"], "h3": ["id"], "h4": ["id"], "h5": ["id"], "h6": ["id"],
+    "h1": ["id"],
+    "h2": ["id"],
+    "h3": ["id"],
+    "h4": ["id"],
+    "h5": ["id"],
+    "h6": ["id"],
 }
 _BLEACH_ALLOWED_PROTOCOLS = frozenset({"http", "https", "mailto"})
 
@@ -908,9 +932,7 @@ def generate():
             response_headers = {}
             if auth.is_authenticated() and request.form.get("save_to_account") == "1":
                 try:
-                    reise_id = _persist_antrag(
-                        request.form.get("dienstreise_id", ""), data, result, output_path
-                    )
+                    reise_id = _persist_antrag(request.form.get("dienstreise_id", ""), data, result, output_path)
                     response_headers["X-Dienstreise-Id"] = str(reise_id)
                     logger.info("Antrag in DB persistiert: reise_id=%s user=%s", reise_id, g.current_user.id)
                 except Exception:
@@ -1046,6 +1068,7 @@ def abrechnung_generate():
         # wird verworfen und neu gerechnet, damit Kürzungen (Verpflegung) und
         # Netto-Tagegeld im PDF garantiert mit der NRKVO-Logik übereinstimmen.
         from abrechnung_calc import berechnung
+
         result.berechnet = berechnung(result)
 
         temp_dir = tempfile.mkdtemp()
@@ -1056,9 +1079,7 @@ def abrechnung_generate():
             response_headers = {}
             if auth.is_authenticated() and request.form.get("save_to_account") == "1":
                 try:
-                    abr_id = _persist_abrechnung(
-                        request.form.get("dienstreise_id", ""), data, output_path
-                    )
+                    abr_id = _persist_abrechnung(request.form.get("dienstreise_id", ""), data, output_path)
                     if abr_id is not None:
                         response_headers["X-Abrechnung-Id"] = str(abr_id)
                         logger.info("Abrechnung in DB persistiert: abr_id=%s user=%s", abr_id, g.current_user.id)
@@ -1149,8 +1170,7 @@ def _set_security_headers(response):
     response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
     response.headers.setdefault(
         "Permissions-Policy",
-        "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), "
-        "microphone=(), payment=(), usb=()",
+        "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()",
     )
     return response
 
@@ -1165,9 +1185,7 @@ def ratelimit_handler(e):
 @app.errorhandler(413)
 def too_large_handler(e):
     """Handler fuer Upload-Limit-Ueberschreitung (PDF-Upload)."""
-    return jsonify(
-        {"error": f"Datei zu gross (max {MAX_UPLOAD_BYTES // (1024 * 1024)} MB)."}
-    ), 413
+    return jsonify({"error": f"Datei zu gross (max {MAX_UPLOAD_BYTES // (1024 * 1024)} MB)."}), 413
 
 
 if __name__ == "__main__":

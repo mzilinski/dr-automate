@@ -51,9 +51,10 @@ def _split_iban(iban: str) -> dict:
     cleaned = "".join(iban.split()).upper()
     if len(cleaned) > 22:
         _logging.getLogger(__name__).warning(
-            "IBAN ist %d Zeichen lang, der Vordruck hat nur 22 Felder — "
-            "Zeichen %d–%d werden NICHT eingetragen!",
-            len(cleaned), 23, len(cleaned),
+            "IBAN ist %d Zeichen lang, der Vordruck hat nur 22 Felder — Zeichen %d–%d werden NICHT eingetragen!",
+            len(cleaned),
+            23,
+            len(cleaned),
         )
     for i in range(22):
         fields[f"IBAN{i + 1}"] = cleaned[i] if i < len(cleaned) else ""
@@ -197,8 +198,10 @@ def _build_text_fields(data: AbrechnungData) -> dict:
         # Wenn der User explizit eine Begruendung eingetragen hat, sollte sie
         # auf jeden Fall im PDF auftauchen — die Eintragung an sich impliziert
         # > 100 €/Nacht. Schwellen-Check bleibt als zusaetzliche Plausibilitaet.
-        if eur_pro_nacht > nrkvo_rates.UEBERNACHTUNG_BELEG_OHNE_BEGRUENDUNG_MAX_EUR \
-                or data.uebernachtungen.kosten_eur > nrkvo_rates.UEBERNACHTUNG_BELEG_OHNE_BEGRUENDUNG_MAX_EUR:
+        if (
+            eur_pro_nacht > nrkvo_rates.UEBERNACHTUNG_BELEG_OHNE_BEGRUENDUNG_MAX_EUR
+            or data.uebernachtungen.kosten_eur > nrkvo_rates.UEBERNACHTUNG_BELEG_OHNE_BEGRUENDUNG_MAX_EUR
+        ):
             erl_parts.append(f"Übernachtung > 100 €/Nacht: {data.uebernachtungen.begruendung_ueber_100}")
     if data.beleg_betraege.wagenklasse:
         erl_parts.append(f"Wagenklasse: {data.beleg_betraege.wagenklasse}")
@@ -247,7 +250,10 @@ def _build_text_fields(data: AbrechnungData) -> dict:
     fields["Erlaeuterungen2"] = data.abzuege.eigenanteile_erlaeuterung
 
     # Zeilenumbrüche für PDF-Konvention (\r)
-    return {k: (v.replace("\r\n", "\r").replace("\\n", "\r").replace("\n", "\r") if isinstance(v, str) else v) for k, v in fields.items()}
+    return {
+        k: (v.replace("\r\n", "\r").replace("\\n", "\r").replace("\n", "\r") if isinstance(v, str) else v)
+        for k, v in fields.items()
+    }
 
 
 def _build_button_fields(data: AbrechnungData) -> dict:
