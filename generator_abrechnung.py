@@ -39,9 +39,22 @@ def _fmt_eur(value: float) -> str:
 
 
 def _split_iban(iban: str) -> dict:
-    """IBAN char-für-char auf IBAN1..IBAN22 verteilen."""
+    """IBAN char-für-char auf IBAN1..IBAN22 verteilen.
+
+    Der amtliche Vordruck 035-002 hat nur 22 Felder (passt fuer DE/AT/UK,
+    nicht fuer MT/SA/MU mit bis zu 31/24/30 Zeichen). Bei laengeren IBANs
+    warnen wir — die ueberzaehligen Zeichen wuerden sonst still abgeschnitten.
+    """
+    import logging as _logging
+
     fields = {}
     cleaned = "".join(iban.split()).upper()
+    if len(cleaned) > 22:
+        _logging.getLogger(__name__).warning(
+            "IBAN ist %d Zeichen lang, der Vordruck hat nur 22 Felder — "
+            "Zeichen %d–%d werden NICHT eingetragen!",
+            len(cleaned), 23, len(cleaned),
+        )
     for i in range(22):
         fields[f"IBAN{i + 1}"] = cleaned[i] if i < len(cleaned) else ""
     return fields
@@ -169,10 +182,23 @@ def _build_text_fields(data: AbrechnungData) -> dict:
         erl_parts.append(data.befoerderung.sonderfall_begruendung_textfeld)
     if data.antragsteller.mitreisender_name:
         erl_parts.append(f"Mitreisender: {data.antragsteller.mitreisender_name}")
-    naechte = data.uebernachtungen.anzahl_pauschal
-    if naechte > 0:
-        eur_pro_nacht = data.uebernachtungen.kosten_eur / naechte
-        if eur_pro_nacht > nrkvo_rates.UEBERNACHTUNG_BELEG_OHNE_BEGRUENDUNG_MAX_EUR and data.uebernachtungen.begruendung_ueber_100:
+    # Begruendung fuer Hotelkosten > 100 €/Nacht: gilt unabhaengig davon,
+    # ob die Naechte als pauschal oder per Beleg abgerechnet werden.
+    # Bei pauschal: Cap pro Nacht = kosten_eur / anzahl_pauschal; bei Beleg-
+    # only nehmen wir die anzahl_unentgeltlich + 1 als Annahme, oder zaehlen
+    # gegen die gesamte Aufenthaltsdauer (best effort — entscheidend ist,
+    # dass die Begruendung nicht still verloren geht).
+    if data.uebernachtungen.begruendung_ueber_100:
+        ref_naechte = max(
+            1,
+            data.uebernachtungen.anzahl_pauschal,
+        )
+        eur_pro_nacht = data.uebernachtungen.kosten_eur / ref_naechte
+        # Wenn der User explizit eine Begruendung eingetragen hat, sollte sie
+        # auf jeden Fall im PDF auftauchen — die Eintragung an sich impliziert
+        # > 100 €/Nacht. Schwellen-Check bleibt als zusaetzliche Plausibilitaet.
+        if eur_pro_nacht > nrkvo_rates.UEBERNACHTUNG_BELEG_OHNE_BEGRUENDUNG_MAX_EUR \
+                or data.uebernachtungen.kosten_eur > nrkvo_rates.UEBERNACHTUNG_BELEG_OHNE_BEGRUENDUNG_MAX_EUR:
             erl_parts.append(f"Übernachtung > 100 €/Nacht: {data.uebernachtungen.begruendung_ueber_100}")
     if data.beleg_betraege.wagenklasse:
         erl_parts.append(f"Wagenklasse: {data.beleg_betraege.wagenklasse}")

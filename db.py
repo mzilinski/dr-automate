@@ -29,12 +29,36 @@ class Base(DeclarativeBase):
 
 
 def _ensure_data_dir() -> None:
+    """Datenverzeichnis mit restriktiven Permissions (0700) anlegen.
+    Doku verspricht 0700 (docs/security.md). Wir erzwingen das hier explizit,
+    auch wenn umask 022 sonst 0755 setzen wuerde.
+    """
+    import os
+
     if DATABASE_URL.startswith("sqlite:///"):
         db_path = Path(DATABASE_URL.removeprefix("sqlite:///"))
         db_path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            os.chmod(db_path.parent, 0o700)
+        except OSError:
+            pass  # nicht alle FS unterstuetzen chmod; gemounted Volumes sind ok
 
 
 _ensure_data_dir()
+
+
+def _harden_sqlite_file_perms(dbapi_connection, _connection_record):
+    """Setzt 0600 auf der SQLite-Datei, sobald sie existiert."""
+    if not DATABASE_URL.startswith("sqlite:///"):
+        return
+    import os
+
+    db_path = Path(DATABASE_URL.removeprefix("sqlite:///"))
+    if db_path.exists():
+        try:
+            os.chmod(db_path, 0o600)
+        except OSError:
+            pass
 
 engine: Engine = create_engine(
     DATABASE_URL,
@@ -53,6 +77,7 @@ def _sqlite_pragmas(dbapi_connection, _connection_record):
     cur.execute("PRAGMA foreign_keys=ON")
     cur.execute("PRAGMA synchronous=NORMAL")
     cur.close()
+    _harden_sqlite_file_perms(dbapi_connection, _connection_record)
 
 
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, expire_on_commit=False, future=True)

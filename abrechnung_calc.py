@@ -30,23 +30,25 @@ def _round2(x: float) -> float:
 def tagegeld_tage(start: datetime, ende: datetime) -> tuple[int, int]:
     """Liefert (volle_24h_tage, teiltage).
 
-    Ein voller Tag = 24 h Abwesenheit. Eintägig > 8 h zählt als Teiltag.
-    Bei mehrtägigen Reisen sind An- und Abreisetag immer Teiltage,
-    dazwischen liegende Kalendertage sind volle Tage.
+    NRKVO-Logik:
+    - Abwesenheit < 8 h: kein Tagegeld.
+    - 8 h ≤ Abwesenheit < 24 h: 1 Teiltag (auch bei Mitternachts-Ueberquerung —
+      eine 23:00→06:00 Reise sind 7 h und damit unter Tagegeld-Schwelle;
+      eine 18:00→09:00 Reise sind 15 h = 1 Teiltag, nicht 2).
+    - Abwesenheit ≥ 24 h: An- und Abreisetag je Teiltag, dazwischen volle Tage
+      (kalendrisch gezaehlt).
     """
     delta = ende - start
-    total_minutes = delta.total_seconds() / 60
+    total_hours = delta.total_seconds() / 3600.0
 
-    # Eintägig (kein Datum-Übergang)
-    if start.date() == ende.date():
-        if total_minutes > 8 * 60:
-            return (0, 1)
+    if total_hours < 8:
         return (0, 0)
+    if total_hours < 24:
+        # Reise < 24 h zaehlt immer als 1 Teiltag, egal ob Datum-Uebergang.
+        return (0, 1)
 
-    # Mehrtägig: An- und Abreisetag immer als Teiltag
-    voll_tage = (ende.date() - start.date()).days - 1
-    if voll_tage < 0:
-        voll_tage = 0
+    # ≥ 24 h: kalendrisch volle Tage zwischen Anreise- und Abreise-Tag.
+    voll_tage = max(0, (ende.date() - start.date()).days - 1)
     return (voll_tage, 2)
 
 
