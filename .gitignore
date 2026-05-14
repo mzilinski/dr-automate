@@ -31,3 +31,4 @@ tmp/
 # Setuptools-Build-Artefakte (entstehen bei `pip install .`)
 build/
 *.egg-info/
+data/*.db
