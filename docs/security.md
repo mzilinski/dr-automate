@@ -46,6 +46,26 @@ dr-automate selbst macht **kein Password-Handling** – die App liest nur den `R
 
 In Produktion (hinter Traefik) ist `TRUST_REMOTE_USER_HEADER=true` gesetzt. In jeder anderen Umgebung (lokale Entwicklung, Tests) ist das Flag `false`, und die Header werden **ignoriert**. Damit ist ein Header-Spoofing durch einen externen Angreifer nicht möglich – Traefik überschreibt die Header bei jedem eingehenden Request.
 
+## Rate-Limiting (zwei Schichten)
+
+| Schicht | Wo | Konfiguration | Eigenschaften |
+|---|---|---|---|
+| **Edge** | Traefik `rate-limit-strict` (`traefik/dynamic/backend-services.yml`) | Ø 5 req/s, Burst 10, **per Client-IP** | Persistent über App-Restarts, wirkt vor der App, blockt Volumen-Flood am frühesten Punkt |
+| **Endpoint** | Flask-limiter in `app.py` | Pro Endpoint individuell — z.B. `/generate` 10/min, `/account/request` 3/h, `/api/route` 30/h | In-Memory (`memory://`) — pro App-Prozess, resettet bei Container-Restart |
+
+Die Endpoint-Schicht nutzt **bewusst** kein externes Storage-Backend:
+
+- gunicorn läuft mit `--workers 1 --threads 4` → das In-Memory-Storage ist effektiv App-weit konsistent (nicht pro-Worker).
+- Container-Restarts sind selten (Deploy/Update); ein theoretischer Counter-Reset würde nur das Endpoint-Limit kurz lockern, das Traefik-Edge-Limit bleibt aktiv.
+- Ein Redis-Sidecar nur für diesen Zweck würde mehr Ops-Komplexität bringen als Sicherheitsgewinn.
+
+**Wann auf Redis upgraden?** Wenn entweder:
+
+- gunicorn auf >1 Worker hochskaliert wird (dann sind Limits pro-Worker und das Gesamt-Limit wird vervielfacht), oder
+- ein gezielter Audit-Schutz gegen Restart-Reset gefordert ist.
+
+Migrationspfad: `limits[redis]` als Dependency, neuer `dr-automate-redis`-Container im Compose-Stack, `storage_uri="redis://dr-automate-redis:6379/0"` in `app.py`. Erfordert keine DB-Migration, nur Config + Restart.
+
 ## Daten löschen
 
 - Im Dashboard pro Reise auf **„Löschen"** → entfernt Antrag, Abrechnung, PDFs auf Disk und DB-Records (Cascade).
