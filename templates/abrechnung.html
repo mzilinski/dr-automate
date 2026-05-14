@@ -1163,7 +1163,10 @@
         state.wegstrecke.km_rueckreise = km;
         syncFormFromState();
         if (typeof recompute === 'function') recompute();
-        status.innerHTML = `✓ ${km} km pro Strecke (${Math.round(data.duration_min)} min) — Datenquelle <em>${data.source}</em>.`;
+        // textContent statt innerHTML — data.source kommt zwar aus eigener
+        // Server-Response, aber Defense-in-Depth + keine Sonderbehandlung
+        // noetig (das <em> war rein dekorativ).
+        status.textContent = `✓ ${km} km pro Strecke (${Math.round(data.duration_min)} min) — Datenquelle ${data.source}.`;
       } catch (e) {
         status.textContent = '';
         showAlert('Netzwerkfehler: ' + e.message, 'danger');
@@ -1304,19 +1307,36 @@
       w.style.display = proNacht > RATES.UEBERNACHTUNG_BELEG_OHNE_BEGR ? '' : 'none';
     }
 
+    const VALID_BEFOERDERUNG_TYPEN = new Set(['PKW','BAHN','BUS','DIENSTWAGEN','FLUG','MITFAHRT']);
+    const VALID_PARAGRAPH = new Set(['II','III']);
+
+    function _safeTyp(b) {
+      // Enum-Allowlist: kein importierter Wert darf ins DOM, ausser er ist erwartet.
+      return VALID_BEFOERDERUNG_TYPEN.has(b?.typ) ? b.typ : 'UNBEKANNT';
+    }
+    function _safeParagraph(b) {
+      return VALID_PARAGRAPH.has(b?.paragraph_5_nrkvo) ? b.paragraph_5_nrkvo : 'II';
+    }
+
     function updateWegstreckeInfo() {
       const info = document.getElementById('wegstrecke_info');
-      const hin = state.befoerderung.hinreise;
-      const rueck = state.befoerderung.rueckreise;
+      const hin = state.befoerderung.hinreise || {};
+      const rueck = state.befoerderung.rueckreise || {};
       const labelFor = (b) => {
-        if (b.typ === 'PKW') {
-          const satz = b.paragraph_5_nrkvo === 'III' ? RATES.WEGSTRECKE_GROSS : RATES.WEGSTRECKE_KLEIN;
-          return `PKW § ${b.paragraph_5_nrkvo}: ${(satz * 100).toFixed(0)} ct/km`;
+        const typ = _safeTyp(b);
+        if (typ === 'PKW') {
+          const para = _safeParagraph(b);
+          const satz = para === 'III' ? RATES.WEGSTRECKE_GROSS : RATES.WEGSTRECKE_KLEIN;
+          return `PKW § ${para}: ${(satz * 100).toFixed(0)} ct/km`;
         }
-        if (b.typ === 'MITFAHRT') return 'Mitfahrt — keine eigene Wegstreckenentschädigung';
-        return `${b.typ} (keine Wegstrecke)`;
+        if (typ === 'MITFAHRT') return 'Mitfahrt — keine eigene Wegstreckenentschädigung';
+        return `${typ} (keine Wegstrecke)`;
       };
-      info.innerHTML = `Hinreise ${labelFor(hin)}<br>Rückreise ${labelFor(rueck)}`;
+      // textContent + <br> per createElement — keine state-Werte mehr per innerHTML.
+      info.replaceChildren();
+      info.append('Hinreise ' + labelFor(hin));
+      info.appendChild(document.createElement('br'));
+      info.append('Rückreise ' + labelFor(rueck));
     }
 
     // ── Berechnung ──────────────────────────────────────────────────

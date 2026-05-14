@@ -657,9 +657,19 @@
     function validateJSON() {
       const area = document.getElementById('jsonData');
       const hint = document.getElementById('validationHint');
+      // Helper: setzt das hint-Element mit textContent + CSS-Klasse (kein
+      // innerHTML mehr, damit JSON-Parser-Errors und Fieldnames keinen
+      // HTML-Tag in den DOM bekommen).
+      function _setHint(cssClass, text) {
+        hint.replaceChildren();
+        const span = document.createElement('span');
+        span.className = cssClass;
+        span.textContent = text;
+        hint.appendChild(span);
+      }
       if (!area.value.trim()) {
         area.classList.remove('is-valid', 'is-invalid');
-        hint.innerHTML = '';
+        hint.replaceChildren();
         return false;
       }
       try {
@@ -667,22 +677,22 @@
         const miss = REQUIRED_KEYS.filter(k => !(k in obj));
         if (miss.length) {
           area.classList.replace('is-valid', 'is-invalid') || area.classList.add('is-invalid');
-          hint.innerHTML = `<span class="err">Fehlende Felder: ${miss.join(', ')}</span>`;
+          _setHint('err', `Fehlende Felder: ${miss.join(', ')}`);
           return false;
         }
         const rd = obj.reise_details || {};
         const emptyRd = ['zielort', 'reiseweg', 'zweck', 'start_datum', 'start_zeit'].filter(k => !rd[k]);
         if (emptyRd.length) {
           area.classList.replace('is-valid', 'is-invalid') || area.classList.add('is-invalid');
-          hint.innerHTML = `<span class="err">Die KI hat keine Reisedaten geliefert – Ausschreibung nicht mitgeschickt? Leere Felder: ${emptyRd.join(', ')}</span>`;
+          _setHint('err', `Die KI hat keine Reisedaten geliefert – Ausschreibung nicht mitgeschickt? Leere Felder: ${emptyRd.join(', ')}`);
           return false;
         }
         area.classList.remove('is-invalid'); area.classList.add('is-valid');
-        hint.innerHTML = '<span class="ok">JSON ist valide</span>';
+        _setHint('ok', 'JSON ist valide');
         return true;
       } catch(e) {
         area.classList.remove('is-valid'); area.classList.add('is-invalid');
-        hint.innerHTML = `<span class="err">Syntaxfehler: ${e.message}</span>`;
+        _setHint('err', 'Syntaxfehler: ' + e.message);
         return false;
       }
     }

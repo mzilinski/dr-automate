@@ -1122,6 +1122,39 @@ def health_check():
     return jsonify({"status": "healthy", "template_exists": os.path.exists(PDF_TEMPLATE_PATH), "version": "0.1.0"}), 200
 
 
+@app.after_request
+def _set_security_headers(response):
+    """Setzt defensive Browser-Header.
+
+    CSP erlaubt 'unsafe-inline' fuer scripts/styles, weil unsere Templates
+    inline-Skripte und -Styles enthalten — strikte CSP wuerde nonce-based
+    Refactoring der ~1500 Zeilen Wizard-JS erfordern. Trotzdem wirksam
+    gegen externe-Script-Injection und data:-URI-Tricks.
+    """
+    response.headers.setdefault(
+        "Content-Security-Policy",
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline'; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        "font-src 'self' https://fonts.gstatic.com; "
+        "img-src 'self' data:; "
+        "connect-src 'self'; "
+        "form-action 'self'; "
+        "frame-ancestors 'none'; "
+        "base-uri 'self'; "
+        "object-src 'none'",
+    )
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    response.headers.setdefault(
+        "Permissions-Policy",
+        "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), "
+        "microphone=(), payment=(), usb=()",
+    )
+    return response
+
+
 @app.errorhandler(429)
 def ratelimit_handler(e):
     """Handler für Rate Limit Überschreitung."""
