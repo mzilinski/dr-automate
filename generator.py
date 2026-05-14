@@ -47,6 +47,9 @@ FIELD_MAPPING = {
     "reise_details.ende_zeit": "Uhrzeit4",
     # Begründung Pkw
     "befoerderung.sonderfall_begruendung_textfeld": "Begruendung2",
+    # Mitfahrer-Name pro Reise-Richtung (nur relevant bei typ=MITFAHRT)
+    "befoerderung.hinreise.mitfahrer_name": "Mitfahrt_bei",
+    "befoerderung.rueckreise.mitfahrer_name": "Mitfahrt_bei1",
     # Begründung kein Rabatt
     "konfiguration_checkboxen.grosskundenrabatt_begruendung_wenn_nein": "Begruendung3",
     # BEIDE Varianten des Feldes füllen
@@ -121,25 +124,40 @@ def _checkbox_befoerderung(trans: dict) -> dict:
     return cb
 
 
-def _checkbox_konfiguration(config: dict) -> dict:
+def _checkbox_konfiguration(config: dict, befoerderung: dict | None = None) -> dict:
     """Konfigurations-Booleans auf PDF-Field-IDs mappen.
 
-    Bahncard-Felder kreuzen nur die "Nein"-Box an (keine "Ja"-Box im Formular).
-    Die übrigen Felder sind Ja/Nein-Pärchen — eine der beiden Boxen wird immer gesetzt.
+    Bahncard- und Großkundenrabatt-Felder werden nur befüllt, wenn die Reise
+    auch BAHN oder BUS einschließt — bei reinen PKW-/Mitfahrt-/Flug-/Dienst­
+    wagen-Reisen würde "BCB_Nein/BC_Nein"-Ankreuzen sonst Sektionen
+    ankreuzen, die gar nicht ausgefüllt werden sollen.
     """
     cb = {}
 
-    if not config["bahncard_business_vorhanden"]:
-        cb["BCB_Nein"] = "/Yes"
-    if not config["bahncard_privat_vorhanden"]:
-        cb["BC_Nein"] = "/Yes"
-    if not config["bahncard_beschaffung_beantragt"]:
-        cb["Beschaffung_Nein"] = "/Yes"
+    hat_bahn = False
+    if befoerderung:
+        hin = (befoerderung.get("hinreise") or {}).get("typ", "").upper()
+        rueck = (befoerderung.get("rueckreise") or {}).get("typ", "").upper()
+        hat_bahn = hin in ("BAHN", "BUS") or rueck in ("BAHN", "BUS")
 
-    cb["Obj6" if config["grosskundenrabatt_genutzt"] else "Obj7"] = "/Yes"
+    # Bahn-spezifische Felder nur bei Bahn/Bus setzen.
+    if hat_bahn:
+        if not config["bahncard_business_vorhanden"]:
+            cb["BCB_Nein"] = "/Yes"
+        if not config["bahncard_privat_vorhanden"]:
+            cb["BC_Nein"] = "/Yes"
+        if not config["bahncard_beschaffung_beantragt"]:
+            cb["Beschaffung_Nein"] = "/Yes"
+        cb["Obj6" if config["grosskundenrabatt_genutzt"] else "Obj7"] = "/Yes"
+
     cb["Obj8" if config["weitere_ermaessigungen_vorhanden"] else "Obj15"] = "/Yes"
     cb["Obj52" if config["dienstgeschaeft_2km_umkreis"] else "Obj49"] = "/Yes"
     cb["Obj59" if config["anspruch_trennungsgeld"] else "Obj56"] = "/Yes"
+
+    # Obj53: Reisekosten werden ganz/teilweise von anderer Stelle uebernommen
+    # (typischer Fall: Tagungsgebuehr inkl. Uebernachtung/Verpflegung).
+    if config.get("kosten_durch_andere_stelle"):
+        cb["Obj53"] = "/Yes"
 
     if config.get("weitere_anmerkungen_checkbox_aktivieren"):
         cb["Obj39"] = "/Yes"
@@ -163,7 +181,10 @@ def apply_checkbox_logic(data_json: dict) -> dict:
     """Aggregiert alle Checkbox-Felder aus Beförderung, Konfiguration und Verzicht."""
     return {
         **_checkbox_befoerderung(data_json["befoerderung"]),
-        **_checkbox_konfiguration(data_json["konfiguration_checkboxen"]),
+        **_checkbox_konfiguration(
+            data_json["konfiguration_checkboxen"],
+            data_json.get("befoerderung"),
+        ),
         **_checkbox_verzicht(data_json.get("verzicht_erklaerung", {})),
     }
 
