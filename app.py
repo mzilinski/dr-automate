@@ -48,6 +48,9 @@ TRUST_REMOTE_USER_HEADER = os.environ.get("TRUST_REMOTE_USER_HEADER", "false").l
 DATA_DIR = Path(os.environ.get("DR_AUTOMATE_DATA_DIR", "data"))
 DOCS_DIR = Path(os.environ.get("DR_AUTOMATE_DOCS_DIR", "docs"))
 ADMIN_EMAIL = os.environ.get("DR_AUTOMATE_ADMIN_EMAIL", "")
+# Upload-Limits fuer /extract-Endpunkt (PDF-Aufnahme).
+MAX_UPLOAD_BYTES = int(os.environ.get("DR_AUTOMATE_MAX_UPLOAD_BYTES", str(10 * 1024 * 1024)))  # 10 MiB
+MAX_PDF_PAGES = int(os.environ.get("DR_AUTOMATE_MAX_PDF_PAGES", "50"))
 
 # --- LOGGING ---
 logging.basicConfig(
@@ -75,6 +78,7 @@ if not SECRET_KEY:
 app = Flask(__name__)
 app.config["SECRET_KEY"] = SECRET_KEY
 app.config["TRUST_REMOTE_USER_HEADER"] = TRUST_REMOTE_USER_HEADER
+app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_BYTES
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE="Lax",
@@ -822,6 +826,37 @@ def extract():
     freitext = request.form.get("freitext", "")
     sonderwuensche = request.form.get("sonderwuensche", "")
 
+    # Optionaler PDF-Upload: Text aus dem PDF wird an freitext angehaengt.
+    # MIME-Whitelist (application/pdf), Magic-Byte-Check, MAX_UPLOAD_PDF_BYTES
+    # zusaetzlich zum globalen MAX_CONTENT_LENGTH.
+    pdf_file = request.files.get("pdf")
+    if pdf_file and pdf_file.filename:
+        if (pdf_file.mimetype or "").lower() not in ("application/pdf", "application/x-pdf"):
+            return jsonify({"error": "Nur PDF-Dateien werden unterstuetzt."}), 400
+        head = pdf_file.stream.read(5)
+        pdf_file.stream.seek(0)
+        if not head.startswith(b"%PDF-"):
+            return jsonify({"error": "Datei ist kein gueltiges PDF."}), 400
+        try:
+            import pypdf
+
+            reader = pypdf.PdfReader(pdf_file.stream)
+            if len(reader.pages) > MAX_PDF_PAGES:
+                return jsonify({"error": f"PDF zu lang (max {MAX_PDF_PAGES} Seiten)."}), 400
+            pdf_text = "\n\n".join((page.extract_text() or "").strip() for page in reader.pages).strip()
+            if not pdf_text:
+                return jsonify({"error": "Aus dem PDF konnte kein Text extrahiert werden (Scan ohne OCR?)."}), 400
+            # PDF-Text VOR den manuell eingegebenen Freitext setzen (Ausschreibung
+            # ist der Haupt-Input, ggf. Anmerkungen aus dem Textfeld danach).
+            freitext = pdf_text if not freitext else f"{pdf_text}\n\n--- Zusatz-Notizen ---\n{freitext}"
+            logger.info("PDF-Extraktion: %d Seiten, %d Zeichen Text", len(reader.pages), len(pdf_text))
+        except Exception as e:
+            logger.warning("PDF-Parsing fehlgeschlagen: %s", e)
+            return jsonify({"error": "PDF konnte nicht gelesen werden."}), 400
+
+    if not freitext.strip():
+        return jsonify({"error": "Bitte Freitext oder PDF angeben."}), 400
+
     try:
         result = ai_extract.call_deepseek(
             freitext=freitext,
@@ -950,6 +985,14 @@ def ratelimit_handler(e):
     """Handler für Rate Limit Überschreitung."""
     logger.warning(f"Rate limit exceeded: {request.remote_addr}")
     return jsonify({"error": "Zu viele Anfragen. Bitte warte eine Minute."}), 429
+
+
+@app.errorhandler(413)
+def too_large_handler(e):
+    """Handler fuer Upload-Limit-Ueberschreitung (PDF-Upload)."""
+    return jsonify(
+        {"error": f"Datei zu gross (max {MAX_UPLOAD_BYTES // (1024 * 1024)} MB)."}
+    ), 413
 
 
 if __name__ == "__main__":
