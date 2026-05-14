@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Account-Anfragen – Admin{% endblock %}
+{% block head %}
+<style>
+  .admin-wrap{max-width:760px;margin:0 auto;}
+  .admin-wrap h1{font-family:'Fraunces',serif;font-size:1.6rem;font-weight:600;margin:0 0 .4rem;}
+  .admin-wrap .lead{color:var(--muted);margin-bottom:1.4rem;font-size:.95rem;}
+  .req-card{background:var(--surface-hi);border:1px solid var(--border);border-radius:.7rem;
+    padding:1.1rem 1.2rem;margin-bottom:1rem;}
+  .req-card.done{opacity:.55;}
+  .req-head{display:flex;justify-content:space-between;align-items:baseline;gap:.6rem;flex-wrap:wrap;}
+  .req-head .name{font-weight:600;font-size:1.05rem;}
+  .req-head .meta{color:var(--muted);font-size:.82rem;}
+  .req-body{margin-top:.55rem;color:var(--text);font-size:.92rem;white-space:pre-wrap;
+    word-break:break-word;}
+  .req-body.empty{font-style:italic;color:var(--muted);}
+  .req-footer{display:flex;justify-content:space-between;align-items:center;gap:.6rem;margin-top:.9rem;
+    flex-wrap:wrap;}
+  .req-footer .small{color:var(--muted);font-size:.82rem;}
+  .actions{display:flex;gap:.5rem;flex-wrap:wrap;}
+  .btn{padding:.45rem .85rem;border-radius:.45rem;border:0;font-weight:600;cursor:pointer;
+    font-size:.88rem;}
+  .btn-primary{background:var(--accent);color:var(--accent-fg);}
+  .btn-danger{background:#a13a3a;color:#fff;}
+  .badge{display:inline-block;padding:.15rem .55rem;border-radius:.45rem;font-size:.75rem;
+    font-weight:600;letter-spacing:.02em;}
+  .badge-pending{background:#3b3b1a;color:#e6cf6b;}
+  .badge-done{background:#1e3a23;color:#7bc488;}
+  .empty-state{text-align:center;padding:2rem;color:var(--muted);font-style:italic;}
+  /* Mobile: kein extra Sprung */
+  @media (max-width:520px){
+    .req-card{padding:.95rem;}
+    .req-head{flex-direction:column;align-items:flex-start;gap:.15rem;}
+  }
+</style>
+{% endblock %}
+{% block content %}
+<div class="admin-wrap">
+  <h1>Account-Anfragen</h1>
+  <p class="lead">
+    Eingegangene Zugangsanfragen. „Erledigt" markiert die Anfrage als bearbeitet,
+    legt aber keinen Authelia-User an — das passiert weiterhin manuell ueber
+    das ansible/inventory/vault.yml.
+  </p>
+
+  {% if not items %}
+    <div class="empty-state">Keine Anfragen vorhanden.</div>
+  {% else %}
+    {% for it in items %}
+    <div class="req-card{% if it.fulfilled %} done{% endif %}">
+      <div class="req-head">
+        <span class="name">{{ it.display_name }}</span>
+        {% if it.fulfilled %}
+          <span class="badge badge-done">erledigt</span>
+        {% else %}
+          <span class="badge badge-pending">offen</span>
+        {% endif %}
+      </div>
+      <div class="meta">
+        <a href="mailto:{{ it.email }}">{{ it.email }}</a>
+        &middot; IP {{ it.remote_addr or '?' }}
+        &middot; #{{ it.id }}
+      </div>
+      {% if it.begruendung %}
+      <div class="req-body">{{ it.begruendung }}</div>
+      {% else %}
+      <div class="req-body empty">(keine Begründung)</div>
+      {% endif %}
+      <div class="req-footer">
+        <span class="small">
+          eingegangen {{ it.created_at.strftime('%d.%m.%Y %H:%M') if it.created_at else '?' }}
+          {% if it.fulfilled_at %}
+            &middot; erledigt {{ it.fulfilled_at.strftime('%d.%m.%Y %H:%M') }}
+          {% endif %}
+        </span>
+        <div class="actions">
+          {% if not it.fulfilled %}
+          <form method="post" action="{{ url_for('admin_account_request_fulfill', req_id=it.id) }}"
+                style="display:inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-primary">Als erledigt markieren</button>
+          </form>
+          {% endif %}
+          <form method="post" action="{{ url_for('admin_account_request_delete', req_id=it.id) }}"
+                style="display:inline"
+                onsubmit="return confirm('Anfrage #{{ it.id }} ({{ it.display_name }}) wirklich löschen?');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-danger">Löschen</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  {% endif %}
+</div>
+{% endblock %}
