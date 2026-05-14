@@ -20,7 +20,7 @@ Diese Seite erklärt, was dr-automate mit deinen Daten macht – und was nicht.
 | SQLite-DB | **Adresse, IBAN, BIC, BahnCards, DeepSeek-API-Key** | **ja, Fernet (AES-128-CBC + HMAC-SHA256)** |
 | SQLite-DB | Reise-Metadaten (Titel, Zielort, Datum, Status, Genehmigungs-Datum/Aktenzeichen) | nein – wird zum Sortieren/Filtern auf dem Dashboard gebraucht |
 | SQLite-DB | **Volles Antrag-/Abrechnungs-JSON** | **ja, Fernet** |
-| Dateisystem | Generierte PDFs (`data/pdfs/<user_id>/<reise_id>/...`) | nein – PDFs liegen im persistenten Volume, Permissions 0700 für den App-Container-User |
+| Dateisystem | Generierte PDFs (`data/pdfs/<user_id>/<reise_id>/...`) | nein – PDFs liegen im persistenten Volume; Verzeichnisse 0700 + Dateien 0600, nur für den App-Container-User lesbar |
 
 Encryption-Key (`DR_AUTOMATE_ENCRYPTION_KEY`) liegt in einem Ansible-Vault, getrennt vom DB-Dump, und ist nicht im Image enthalten. Verlust des Keys = Datenverlust für die verschlüsselten Felder.
 

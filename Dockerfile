@@ -38,4 +38,9 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
 # Beim Start: Alembic-Migration laufen lassen, dann gunicorn.
 # `alembic upgrade head` ist idempotent (schema_version-Tabelle), kein Risiko
 # bei wiederholten Restarts. Shell-Form, damit ${PORT} expandiert wird.
-CMD alembic upgrade head && gunicorn --bind 0.0.0.0:${PORT} --workers 2 --access-logfile - app:app
+# 1 Worker: flask-limiter mit storage_uri=memory:// arbeitet pro-Worker.
+# Bei mehreren Workern wuerden Rate-Limits multipliziert — solange kein
+# Redis im Stack ist, ist 1 Worker die saubere Loesung. Bei wachsender Last
+# entweder Redis ergaenzen (storage_uri=redis://...) oder gthread/gevent
+# nutzen.
+CMD alembic upgrade head && gunicorn --bind 0.0.0.0:${PORT} --workers 1 --threads 4 --access-logfile - app:app

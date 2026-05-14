@@ -25,6 +25,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_mail import Mail, Message
 from flask_wtf import CSRFProtect
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 import ai_extract
 import auth
@@ -76,6 +77,13 @@ if not SECRET_KEY:
 
 # --- APP SETUP ---
 app = Flask(__name__)
+# ProxyFix: nur aktivieren wenn wir hinter einem vertrauten Reverse-Proxy
+# laufen (TRUST_REMOTE_USER_HEADER=true bedeutet sowieso "wir trauen den
+# Authelia-Headern" → impliziert vertrauter Proxy). So gibt
+# get_remote_address() die echte Client-IP statt der Proxy-IP zurueck,
+# damit das Rate-Limit pro Client greift.
+if TRUST_REMOTE_USER_HEADER:
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 app.config["SECRET_KEY"] = SECRET_KEY
 app.config["TRUST_REMOTE_USER_HEADER"] = TRUST_REMOTE_USER_HEADER
 app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_BYTES
@@ -273,25 +281,21 @@ def _get_dienstreise_or_404(reise_id: int):
 
 
 def _parse_iso_date(value: str):
-    """Akzeptiert ISO 'YYYY-MM-DD' oder deutsches 'DD.MM.YYYY'."""
-    from datetime import date
+    """Akzeptiert ISO 'YYYY-MM-DD' oder deutsches 'DD.MM.YYYY'.
+
+    Beide Formate werden gleichberechtigt versucht — strptime liefert
+    None zurueck wenn nichts passt.
+    """
+    from datetime import datetime as _dt
 
     if not value:
         return None
     for fmt in ("%Y-%m-%d", "%d.%m.%Y"):
         try:
-            return date.fromordinal(date.fromisoformat(value).toordinal()) if fmt == "%Y-%m-%d" else None
-        except (ValueError, TypeError):
-            pass
-    try:
-        return date.fromisoformat(value)
-    except ValueError:
-        from datetime import datetime as _dt
-
-        try:
-            return _dt.strptime(value, "%d.%m.%Y").date()
+            return _dt.strptime(value, fmt).date()
         except ValueError:
-            return None
+            continue
+    return None
 
 
 def _persist_antrag(reise_id_str: str, data: dict, result, pdf_path: str | None) -> int:
@@ -354,14 +358,30 @@ def _persist_antrag(reise_id_str: str, data: dict, result, pdf_path: str | None)
             s.flush()  # damit reise.id verfuegbar ist
 
         if pdf_path:
-            target_dir = DATA_DIR / "pdfs" / str(user.id) / str(reise.id)
-            target_dir.mkdir(parents=True, exist_ok=True)
-            persistent_pdf_path = target_dir / "antrag.pdf"
-            shutil.copy2(pdf_path, persistent_pdf_path)
+            persistent_pdf_path = _persist_pdf(pdf_path, user.id, reise.id, "antrag.pdf")
             reise.antrag_pdf_path = str(persistent_pdf_path)
 
         s.commit()
         return reise.id
+
+
+def _persist_pdf(src_pdf: str, user_id: int, reise_id: int, filename: str) -> Path:
+    """Kopiert PDF in das User-/Reise-Verzeichnis mit restriktiven Perms (0700/0600)."""
+    target_dir = DATA_DIR / "pdfs" / str(user_id) / str(reise_id)
+    target_dir.mkdir(parents=True, exist_ok=True)
+    # Permissions explizit setzen — umask 022 wuerde sonst 0755 daraus machen.
+    try:
+        os.chmod(target_dir.parent, 0o700)  # /pdfs/<user_id>
+        os.chmod(target_dir, 0o700)         # /pdfs/<user_id>/<reise_id>
+    except OSError:
+        pass
+    target = target_dir / filename
+    shutil.copy2(src_pdf, target)
+    try:
+        os.chmod(target, 0o600)
+    except OSError:
+        pass
+    return target
 
 
 def _persist_abrechnung(reise_id_str: str, data: dict, pdf_path: str | None) -> int | None:
@@ -390,10 +410,7 @@ def _persist_abrechnung(reise_id_str: str, data: dict, pdf_path: str | None) -> 
         abr.generated_at = _dt.utcnow()
 
         if pdf_path:
-            target_dir = DATA_DIR / "pdfs" / str(user.id) / str(reise.id)
-            target_dir.mkdir(parents=True, exist_ok=True)
-            persistent = target_dir / "abrechnung.pdf"
-            shutil.copy2(pdf_path, persistent)
+            persistent = _persist_pdf(pdf_path, user.id, reise.id, "abrechnung.pdf")
             abr.abrechnung_pdf_path = str(persistent)
 
         # bezahlt-Reisen NICHT auf abgerechnet zurueckdrehen (User-Bestaetigung
