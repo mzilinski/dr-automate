@@ -110,9 +110,10 @@
         {% if r.antrag_pdf_path %}
           <a href="{{ url_for('dienstreise_antrag_pdf', reise_id=r.id) }}">PDF</a>
         {% endif %}
-        {% if r.status.value == 'genehmigt' or r.status.value == 'abgerechnet' %}
-          <a href="{{ url_for('abrechnung_index', dienstreise=r.id) }}" class="primary">Abrechnung</a>
-        {% endif %}
+        <a href="{{ url_for('abrechnung_index', dienstreise=r.id) }}"
+           class="{% if r.status.value in ('genehmigt','abgerechnet') %}primary{% endif %}">
+          {% if r.status.value == 'abgerechnet' %}Abrechnung bearbeiten{% else %}Abrechnung{% endif %}
+        </a>
         {% if r.abrechnung and r.abrechnung.abrechnung_pdf_path %}
           <a href="{{ url_for('dienstreise_abrechnung_pdf', reise_id=r.id) }}">Abr.-PDF</a>
         {% endif %}

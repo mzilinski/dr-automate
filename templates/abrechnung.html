@@ -1510,7 +1510,57 @@
     attachTips();
     applyProfile();
     syncFormFromState();
-    goStep(1);
+
+    // Auto-Load aus Dashboard: wenn ?dienstreise=N im URL UND User
+    // angemeldet, holen wir Antrag-JSON + ggf. existierende Abrechnung
+    // vom Server, mergen sie in den state und ueberspringen Step 1.
+    (async function autoLoadFromDashboard() {
+      const params = new URLSearchParams(window.location.search);
+      const reiseId = params.get('dienstreise');
+      const isAuth = {{ 'true' if is_authenticated else 'false' }};
+      if (!reiseId || !isAuth) { goStep(1); return; }
+      try {
+        const r = await fetch(`/dienstreisen/${reiseId}/abrechnung-json`, {
+          headers: { 'Accept': 'application/json' },
+        });
+        if (!r.ok) {
+          showAlert('Reise konnte nicht geladen werden — bitte JSON manuell hochladen.', 'warning');
+          goStep(1);
+          return;
+        }
+        const d = await r.json();
+        // dienstreise_id fuer spaeteren Save-Submit merken
+        try { localStorage.setItem('dr_abrechnung_reise_id', reiseId); } catch {}
+        // Wenn schon eine Abrechnung existiert: die nehmen; sonst Antrag-JSON.
+        const payload = d.abrechnung_json || d.antrag_json;
+        if (!payload) {
+          showAlert('Diese Reise hat noch keinen Antrag — bitte erst Antrag erzeugen.', 'warning');
+          goStep(1);
+          return;
+        }
+        mergeIntoState(payload);
+        // Banner statt Step-1-Upload-UI: kennzeichnen, dass alles geladen ist
+        const stepEl = document.querySelector('.wiz-step[data-step="1"]');
+        if (stepEl) {
+          stepEl.innerHTML = `
+            <h2 class="step-title"><span class="step-title-num">01</span>Reise geladen</h2>
+            <div class="info-box" style="background:var(--ok-subtle);border:1px solid var(--ok);">
+              <strong style="color:var(--ok);">✓ Reise #${reiseId}</strong> aus deinem Konto geladen.
+              ${d.genehmigung_datum ? `Genehmigung vom <strong>${d.genehmigung_datum.split('-').reverse().join('.')}</strong>${d.genehmigung_aktenzeichen ? ` · AZ ${d.genehmigung_aktenzeichen}` : ''}.` : ''}
+              <br>Die Abrechnung wird beim Speichern dieser Reise zugeordnet.
+            </div>
+            <div class="nav-row" style="margin-top:1rem;">
+              <a href="/dashboard" class="btn btn-ghost btn-sm">← zurück zum Dashboard</a>
+              <button type="button" class="btn btn-primary btn-sm" onclick="goStep(2)">Weiter zu Schritt 2 →</button>
+            </div>`;
+        }
+        goStep(2);
+        showAlert('Reise geladen — bitte Abrechnung in Schritten 2–8 vervollständigen.', 'success');
+      } catch (e) {
+        showAlert('Fehler beim Laden: ' + e.message, 'danger');
+        goStep(1);
+      }
+    })();
   </script>
 
 </body>
