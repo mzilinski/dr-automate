@@ -36,6 +36,43 @@ def test_models_db_imports():
     assert AbrechnungStatus.abgeschlossen.value == "abgeschlossen"
 
 
+def test_deepseek_key_server_storage(auth_client, auth_headers):
+    """DeepSeek-Key wird verschluesselt gespeichert, leerer Submit ueberschreibt nicht."""
+    import os
+    import sqlite3
+
+    headers = {**auth_headers, "Remote-User": "deepseek_test"}
+    # Initial setzen
+    r = auth_client.post("/profil", data={"deepseek_api_key": "sk-test-1234567890"}, headers=headers)
+    assert r.status_code in (200, 302)
+
+    # JSON ohne Secrets: nur has_-Flag
+    j = auth_client.get("/profil/json", headers=headers).get_json()
+    assert j["has_deepseek_api_key"] is True
+    assert "deepseek_api_key" not in j
+
+    # JSON mit include_secrets: Klar-Key
+    j = auth_client.get("/profil/json?include_secrets=1", headers=headers).get_json()
+    assert j["deepseek_api_key"] == "sk-test-1234567890"
+
+    # On-Disk: verschluesselt
+    db_path = os.environ["DR_AUTOMATE_DATABASE_URL"].removeprefix("sqlite:///")
+    conn = sqlite3.connect(db_path)
+    rows = list(conn.execute("SELECT deepseek_api_key FROM user_profiles WHERE deepseek_api_key IS NOT NULL"))
+    conn.close()
+    assert rows and not any("sk-test" in r[0] for r in rows), "Key NICHT verschluesselt in DB!"
+
+    # Leerer Submit ueberschreibt nicht
+    auth_client.post("/profil", data={"deepseek_api_key": ""}, headers=headers)
+    j = auth_client.get("/profil/json?include_secrets=1", headers=headers).get_json()
+    assert j["deepseek_api_key"] == "sk-test-1234567890"
+
+    # Loeschen via Checkbox
+    auth_client.post("/profil", data={"clear_deepseek_api_key": "1"}, headers=headers)
+    j = auth_client.get("/profil/json", headers=headers).get_json()
+    assert j["has_deepseek_api_key"] is False
+
+
 def test_profile_persistence(auth_client, auth_headers):
     """Profil speichern → IBAN/Adresse sind on-disk verschluesselt, im Read aber Plain."""
     headers = {**auth_headers, "Remote-User": "profiltest"}
