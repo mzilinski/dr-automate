@@ -566,8 +566,22 @@
           </p>
 
           <div class="info-box">
-            Aktuelle Kürzungen: Frühstück 5,60 € · Mittagessen 11,20 € · Abendessen 11,20 €
-            (vom vollen Tagegeld 28 €)
+            <strong>Tagegeld = Verpflegungsmehraufwand</strong> (§§ 6, 9 NRKVO Nds.) — kein
+            Pauschal-Bonus, sondern Ausgleich für unterwegs entstandene Essenskosten.
+            Aktuelle Kürzungen bei gestellten Mahlzeiten:
+            Frühstück 5,60 € · Mittag 11,20 € · Abend 11,20 € (vom vollen Tagegeld 28 €).
+            Sind alle Mahlzeiten gestellt → Tagegeld geht automatisch auf 0.
+          </div>
+
+          <div class="check-row" style="margin-bottom:.7rem;">
+            <input type="checkbox" id="f_verz_tageg_quick" data-bind="verzicht_erklaerung.verzicht_tagegeld">
+            <label for="f_verz_tageg_quick">
+              <strong>Verzicht auf Tagegeld</strong>
+              <span class="wiz-hint" style="display:inline; margin-left:.4rem;">
+                (Alternativer Shortcut: Tagegeld komplett auf 0 setzen, ohne Mahlzeiten zu zählen.
+                Selbe Wirkung wie unter Schritt 8 — dieselbe Checkbox.)
+              </span>
+            </label>
           </div>
 
           <div style="margin-bottom:.7rem; display:flex; align-items:center; gap:.7rem; flex-wrap:wrap;">
@@ -1249,6 +1263,19 @@
     document.addEventListener('change', e => {
       if (!e.target.matches('[data-bind]')) return;
       syncStateFromForm();
+      // Wenn dasselbe data-bind mehrfach im DOM steht (z.B. Verzicht-auf-
+      // Tagegeld in Step 4 + Step 8), die anderen Vorkommen visuell mit-
+      // ziehen, damit nicht jeweils nur die geklickte Checkbox aktualisiert
+      // aussieht.
+      const path = e.target.dataset.bind;
+      document.querySelectorAll(`[data-bind="${path}"]`).forEach(el => {
+        if (el === e.target) return;
+        const v = getPath(state, path);
+        if (el.type === 'checkbox') el.checked = !!v;
+        else if (el.type === 'number') el.value = v ?? 0;
+        else if (el.type === 'date') el.value = germanToIso(v);
+        else el.value = v ?? '';
+      });
     });
 
     function updateBegrUeber100Visibility() {
