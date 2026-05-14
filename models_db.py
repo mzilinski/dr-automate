@@ -94,6 +94,10 @@ class UserProfile(Base):
     # behandelt werden. Fallback in /extract, wenn kein X-DeepSeek-Key-Header
     # mitkommt. Multi-Device-Support: einmal eintragen, ueberall verfuegbar.
     deepseek_api_key: Mapped[str | None] = mapped_column(EncryptedString(512))
+    # Wenn true (Default), persistiert /generate und /abrechnung/generate die
+    # PDFs + JSON im Account. User kann es ausschalten, wenn sie eine Reise
+    # nur lokal abwickeln wollen (z.B. private Probefahrt).
+    auto_save_dienstreisen: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
     )

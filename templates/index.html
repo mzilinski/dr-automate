@@ -25,7 +25,60 @@
     .guest-strip{background:var(--warn-subtle);border-bottom:1px solid var(--border);
       padding:.5rem 1.2rem;font-size:.88rem;}
     .guest-strip a{color:var(--accent);}
+
+    /* ── Workflow je nach AI-Key-Verfuegbarkeit ──────────────────────── */
+    .step[data-step="01"] .step-inner{display:flex;flex-direction:column;}
+    /* MIT key: AI-Block prominent oben, Prompt-Copy als Fallback unten */
+    body.has-ai-key #aiExtractBlock{display:block !important;order:1;
+      border-top:0;padding-top:0;margin-top:.4rem;}
+    body.has-ai-key .prompt-copy-section{order:2;opacity:.85;
+      border-top:1.5px dashed var(--border);padding-top:1rem;margin-top:1.2rem;}
+    body.has-ai-key .prompt-copy-section summary{cursor:pointer;font-weight:600;
+      color:var(--muted);padding:.3rem 0;outline:none;}
+    body.has-ai-key .prompt-copy-section summary:hover{color:var(--text);}
+    body.has-ai-key .prompt-copy-section[open] summary{margin-bottom:.6rem;}
+    /* AI-key-Toggles fuer Step-01-Lead-Text */
+    .lead-no-key{display:block;}
+    .lead-with-key{display:none;}
+    body.has-ai-key .lead-no-key{display:none;}
+    body.has-ai-key .lead-with-key{display:block;}
   </style>
+  {% if wizard_profile_seed %}
+  <script>
+    // Vom Server-Profil seeden BEVOR der Wizard-Hauptcode laeuft (Server ist
+    // fuer eingeloggte User die autoritative Quelle). Bestehende localStorage-
+    // Felder bleiben, wenn der Server-Wert leer ist (Browser-only Werte wie
+    // strasse/plz_ort werden so nicht ueberschrieben).
+    (function() {
+      var seed = {{ wizard_profile_seed | tojson }};
+      try {
+        var existing = JSON.parse(localStorage.getItem('dr_profile') || '{}');
+        Object.keys(seed).forEach(function(k) {
+          if (seed[k]) existing[k] = seed[k];
+        });
+        if (seed.adresse && existing.adresse !== seed.adresse) {
+          var parts = seed.adresse.split(',');
+          if (parts.length > 1) {
+            existing.strasse = parts[0].trim();
+            existing.plz_ort = parts.slice(1).join(',').trim();
+          } else {
+            existing.strasse = seed.adresse.trim();
+            existing.plz_ort = '';
+          }
+          existing.adresse = seed.adresse;
+        }
+        localStorage.setItem('dr_profile', JSON.stringify(existing));
+        // body.has-ai-key sofort setzen, sobald DOM da ist — verhindert
+        // Flash-of-Wrong-Workflow vor applyProfile().
+        if (seed.deepseek_api_key) {
+          document.addEventListener('DOMContentLoaded', function() {
+            document.body.classList.add('has-ai-key');
+          });
+        }
+      } catch (e) { console.error('Profile seed failed:', e); }
+    })();
+  </script>
+  {% endif %}
 </head>
 <body>
 
@@ -82,11 +135,19 @@
         </button>
       </div>
       <div class="modal-body">
+        {% if is_authenticated %}
+        <p class="modal-note" style="background:var(--ok-subtle);border:1px solid var(--ok);">
+          ✓ Du bist angemeldet — die Felder sind aus deinem <a href="{{ url_for('profil_view') }}">Server-Profil</a> vorbefüllt.
+          Änderungen hier landen nur im Browser-Cache; persistente Änderungen bitte über das
+          <a href="{{ url_for('profil_view') }}"><strong>Server-Profil</strong></a> vornehmen.
+        </p>
+        {% else %}
         <p class="modal-note">
           Diese Daten werden im <strong>lokalen Browser-Speicher</strong> gespeichert –
           ausschließlich auf deinem Gerät, nie an den Server übermittelt.
           Sie ersetzen automatisch die Platzhalter im KI-Prompt.
         </p>
+        {% endif %}
 
         <div class="wiz-field">
           <label class="wiz-label" for="wiz_name">Vor- und Nachname <span>*</span></label>
@@ -199,35 +260,26 @@
       <div class="step-inner">
         <h2 class="step-title">
           <span class="step-title-num">01</span>
-          Prompt &amp; KI
+          <span class="lead-no-key">Prompt &amp; KI</span>
+          <span class="lead-with-key">Reise per KI extrahieren</span>
         </h2>
-        <p class="step-lead">
+        <p class="step-lead lead-no-key">
           Kopiere diesen Prompt zusammen mit der Ausschreibung in ein KI-Modell (z.&nbsp;B. ChatGPT oder Claude).<br>
           <strong>Die KI antwortet dann automatisch mit einem JSON</strong> – das kommt in Schritt&nbsp;02.
         </p>
-        <div style="display:flex; justify-content:flex-end; margin-bottom:.4rem;">
-          <button type="button" class="btn btn-ghost btn-sm" id="togglePromptBtn" onclick="toggleFullPrompt()">
-            Vollständigen Prompt anzeigen
-          </button>
-        </div>
-        <textarea id="promptText" rows="10" readonly>{{ prompt_content }}</textarea>
+        <p class="step-lead lead-with-key">
+          Füge die Ausschreibung / E-Mail unten ein – DeepSeek extrahiert daraus
+          automatisch das JSON für Schritt&nbsp;02.
+          <span style="color:var(--muted);font-size:.9em;">
+            (Kein DeepSeek-Key? <a href="{{ url_for('profil_view') if is_authenticated else '#' }}"
+              onclick="{% if not is_authenticated %}openWizard();return false;{% endif %}">
+              im Profil hinterlegen</a> — sonst nur über externe KI.)
+          </span>
+        </p>
 
-        <div style="margin-top:1.25rem; border-top: 1.5px dashed var(--border); padding-top:1.1rem;">
-          <label class="field-label" for="sonderwuensche">
-            Hinweise &amp; Sonderwünsche
-            <span style="font-weight:400; text-transform:none; letter-spacing:0; font-size:.8rem; color:var(--muted);"> – optional, werden beim Kopieren automatisch angehängt</span>
-          </label>
-          <textarea id="sonderwuensche" rows="3" placeholder="z.B. „PKW statt Bahn, da Materialtransport" oder „Rückreise erst am Folgetag""></textarea>
-        </div>
-
-        <div style="margin-top:.85rem;">
-          <button class="btn btn-primary btn-copy" id="copyBtn" onclick="copyPrompt()">Prompt kopieren</button>
-          <p class="copy-warning">Vergiss nicht, die Ausschreibung dazu zu kopieren!</p>
-        </div>
-
-        <!-- AI-Direktextraktion (BYOK) — nur sichtbar wenn DeepSeek-Key im Profil -->
+        <!-- AI-Direktextraktion (BYOK) — DOM-Order spaeter, via CSS bei has-ai-key nach oben -->
         <div id="aiExtractBlock" style="display:none; margin-top:1.5rem; border-top:1.5px dashed var(--border); padding-top:1.1rem;">
-          <p class="step-lead" style="margin-bottom:.6rem;">
+          <p class="step-lead lead-no-key" style="margin-bottom:.6rem;">
             <strong>Oder: AI macht das direkt für dich.</strong>
             Füge die Ausschreibung/E-Mail unten ein – DeepSeek liefert das JSON nach Schritt&nbsp;02.
           </p>
@@ -240,6 +292,31 @@
             <span id="aiExtractStatus" style="margin-left:1rem; color:var(--muted); font-size:.9rem;"></span>
           </div>
         </div>
+
+        <!-- Prompt-Copy-Sektion: ohne Key prominent, mit Key als collapsible Fallback -->
+        <details class="prompt-copy-section" {% if not is_authenticated %}open{% endif %}>
+          <summary class="lead-with-key">Lieber per ChatGPT / Claude statt DeepSeek? Prompt aufklappen</summary>
+          <div class="lead-no-key" style="display:contents;"></div>
+          <div style="display:flex; justify-content:flex-end; margin-bottom:.4rem; margin-top:.4rem;">
+            <button type="button" class="btn btn-ghost btn-sm" id="togglePromptBtn" onclick="toggleFullPrompt()">
+              Vollständigen Prompt anzeigen
+            </button>
+          </div>
+          <textarea id="promptText" rows="10" readonly>{{ prompt_content }}</textarea>
+
+          <div style="margin-top:1.25rem; border-top: 1.5px dashed var(--border); padding-top:1.1rem;">
+            <label class="field-label" for="sonderwuensche">
+              Hinweise &amp; Sonderwünsche
+              <span style="font-weight:400; text-transform:none; letter-spacing:0; font-size:.8rem; color:var(--muted);"> – optional, werden beim Kopieren automatisch angehängt</span>
+            </label>
+            <textarea id="sonderwuensche" rows="3" placeholder="z.B. „PKW statt Bahn, da Materialtransport" oder „Rückreise erst am Folgetag""></textarea>
+          </div>
+
+          <div style="margin-top:.85rem;">
+            <button class="btn btn-primary btn-copy" id="copyBtn" onclick="copyPrompt()">Prompt kopieren</button>
+            <p class="copy-warning">Vergiss nicht, die Ausschreibung dazu zu kopieren!</p>
+          </div>
+        </details>
       </div>
     </div>
 
@@ -268,6 +345,15 @@
           <label class="field-label" for="jsonData">KI-Antwort (JSON) einfügen</label>
           <textarea name="json_data" id="jsonData" rows="15" placeholder='Hier die komplette Antwort der KI (ChatGPT / Claude) einfügen …'></textarea>
           <div class="field-hint" id="validationHint"></div>
+          {% if is_authenticated %}
+          <div id="saveStatus" style="display:none; margin-top:.85rem; padding:.55rem .8rem;
+            background:var(--ok-subtle); border:1px solid var(--ok); border-radius:.4rem;
+            font-size:.88rem; color:var(--text);">
+            <strong style="color:var(--ok);">✓ Auto-Save aktiv</strong> —
+            Diese Reise wird beim Erzeugen in deinem Konto gespeichert
+            (Einstellung im <a href="{{ url_for('profil_view') }}">Profil</a> änderbar).
+          </div>
+          {% endif %}
           <div class="btn-row" style="margin-top:.85rem;">
             <button type="submit" class="btn btn-primary btn-primary-lg" id="submitBtn">
               Antrag generieren (PDF)
@@ -386,9 +472,20 @@
       status.textContent = `${p.name} · ${p.abteilung}`;
       status.classList.remove('missing');
 
-      // AI-Extraktionsblock nur zeigen, wenn DeepSeek-Key hinterlegt ist
+      // AI-Workflow-Modus auf <body> markieren — Styles in CSS-Block oben.
+      // Wenn Key vorhanden: AI-Extract prominent, Prompt-Copy als collapsible Fallback.
+      // Wenn kein Key: Prompt-Copy primaer, AI-Block ausgeblendet.
       const aiBlock = document.getElementById('aiExtractBlock');
-      if (aiBlock) aiBlock.style.display = p.deepseek_api_key ? 'block' : 'none';
+      const promptDetails = document.querySelector('.prompt-copy-section');
+      if (p.deepseek_api_key) {
+        document.body.classList.add('has-ai-key');
+        if (aiBlock) aiBlock.style.display = 'block';
+        if (promptDetails) promptDetails.open = false;
+      } else {
+        document.body.classList.remove('has-ai-key');
+        if (aiBlock) aiBlock.style.display = 'none';
+        if (promptDetails) promptDetails.open = true;
+      }
     }
 
     // ── Wizard ───────────────────────────────────────────────────────
@@ -632,8 +729,21 @@
       spinner.classList.add('active');
       submitBtn.disabled = true;
 
+      // Account-Auto-Save: wenn im Profil aktiv, save_to_account=1 mitschicken.
+      // Bestehende dienstreise_id (aus vorhergehender Generierung derselben
+      // Reise) als hidden-field, damit der Server die Reise updated statt
+      // duplizierter Eintraege anzulegen.
+      const fd = new FormData(this);
+      const profileNow = getProfile();
+      const autoSave = profileNow && profileNow.auto_save_dienstreisen !== false;
+      if ({{ 'true' if is_authenticated else 'false' }} && autoSave) {
+        fd.set('save_to_account', '1');
+        const existingId = document.getElementById('dienstreiseId')?.value;
+        if (existingId) fd.set('dienstreise_id', existingId);
+      }
+
       try {
-        const res = await fetch('/generate', { method: 'POST', body: new FormData(this) });
+        const res = await fetch('/generate', { method: 'POST', body: fd });
         if (res.ok) {
           const blob = await res.blob();
           const cd   = res.headers.get('Content-Disposition') || '';
@@ -643,7 +753,21 @@
           const a    = Object.assign(document.createElement('a'), { href: url, download: name });
           document.body.appendChild(a); a.click(); URL.revokeObjectURL(url); a.remove();
           document.getElementById('successBanner').style.display = 'flex';
-          showAlert(`PDF „${name}" wurde erstellt!`, 'success');
+          // Reise-ID aus Server-Response merken, damit "PDF nochmal erzeugen"
+          // dieselbe Reise updated statt einer neuen.
+          const reiseId = res.headers.get('X-Dienstreise-Id');
+          if (reiseId) {
+            let h = document.getElementById('dienstreiseId');
+            if (!h) {
+              h = document.createElement('input');
+              h.type = 'hidden'; h.id = 'dienstreiseId'; h.name = 'dienstreise_id';
+              this.appendChild(h);
+            }
+            h.value = reiseId;
+            showAlert(`PDF „${name}" erstellt und in deinem Konto gespeichert (Reise #${reiseId}).`, 'success');
+          } else {
+            showAlert(`PDF „${name}" wurde erstellt!`, 'success');
+          }
         } else {
           const err = await res.json();
           showAlert('Fehler: ' + (err.error || 'Unbekannter Fehler'));
@@ -664,11 +788,29 @@
       if (changed) showAlert('KI-Output automatisch bereinigt (Markdown, Begleittext, Zitatmarker).', 'info');
     });
 
+    // ── Save-Status-Indikator (nur fuer eingeloggte User) ────────────
+    function updateSaveStatusBadge() {
+      const badge = document.getElementById('saveStatus');
+      if (!badge) return;
+      const p = getProfile();
+      const autoSave = p && p.auto_save_dienstreisen !== false;
+      badge.style.display = autoSave ? 'block' : 'none';
+    }
+
     // ── Init ─────────────────────────────────────────────────────────
+    const IS_AUTHENTICATED = {{ 'true' if is_authenticated else 'false' }};
     window.addEventListener('DOMContentLoaded', () => {
       const p = getProfile();
-      if (p) { applyProfile(p); }
-      else    { setTimeout(() => openWizard(), 400); }
+      // Auth-User: Server-Profil ist Source-of-Truth. Wenn dort etwas
+      // gepflegt ist, applyProfile aufrufen; sonst stillschweigend ohne
+      // Modal weiterlaufen (Wizard funktioniert auch mit leeren Defaults).
+      // Modal nur fuer Gaeste auto-oeffnen, die noch nie ein Profil hatten.
+      if (p && (p.name || p.abteilung)) {
+        applyProfile(p);
+      } else if (!IS_AUTHENTICATED) {
+        setTimeout(() => openWizard(), 400);
+      }
+      updateSaveStatusBadge();
     });
   </script>
 </body>

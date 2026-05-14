@@ -131,6 +131,49 @@ def _legal_urls():
     }
 
 
+def _build_wizard_profile_seed(user) -> dict | None:
+    """Liefert die Server-Profildaten im localStorage-Schema des Wizards.
+
+    Mapping Server-Spalte → Wizard-Key:
+      vorname + nachname  → name
+      adresse_privat      → adresse (Wizard splittet bei Komma in strasse/plz_ort)
+      mitreisender_name_default → mitreisender
+      User.email          → email (kommt aus Authelia Remote-Email)
+      alle anderen Felder identisch
+    Gibt None zurueck, wenn kein Profil existiert (z.B. Erst-Login ohne Save).
+    """
+    if user is None:
+        return None
+    from db import SessionLocal
+    from models_db import UserProfile
+
+    with SessionLocal() as s:
+        profile = s.query(UserProfile).filter(UserProfile.user_id == user.id).first()
+        if profile is None:
+            return {
+                "name": user.display_name or "",
+                "email": user.email or "",
+                "auto_save_dienstreisen": True,
+            }
+        full_name = " ".join(p for p in (profile.vorname, profile.nachname) if p).strip() or (
+            user.display_name or ""
+        )
+        return {
+            "name": full_name,
+            "abteilung": profile.abteilung or "",
+            "telefon": profile.telefon or "",
+            "adresse": profile.adresse_privat or "",
+            "mitreisender": profile.mitreisender_name_default or "",
+            "iban": profile.iban or "",
+            "bic": profile.bic or "",
+            "email": user.email or "",
+            "abrechnende_dienststelle": profile.abrechnende_dienststelle or "",
+            "rkr_default": profile.rkr_default or "DR",
+            "deepseek_api_key": profile.deepseek_api_key or "",
+            "auto_save_dienstreisen": bool(profile.auto_save_dienstreisen),
+        }
+
+
 def _common_template_ctx():
     user = getattr(g, "current_user", None)
     return {
@@ -139,6 +182,7 @@ def _common_template_ctx():
         "current_user": user,
         "is_authenticated": user is not None,
         "authelia_logout_url": os.environ.get("AUTHELIA_LOGOUT_URL", "/"),
+        "wizard_profile_seed": _build_wizard_profile_seed(user),
     }
 
 
@@ -474,6 +518,7 @@ def _profile_to_dict(profile, include_secrets: bool = False) -> dict:
     base = {f: getattr(profile, f, None) or "" for f in _PROFIL_FIELDS_TEXT}
     base["bahncards"] = profile.bahncards if profile and profile.bahncards else {}
     base["has_deepseek_api_key"] = bool(getattr(profile, "deepseek_api_key", None))
+    base["auto_save_dienstreisen"] = bool(getattr(profile, "auto_save_dienstreisen", True))
     if include_secrets:
         base["deepseek_api_key"] = getattr(profile, "deepseek_api_key", None) or ""
     return base
@@ -519,6 +564,9 @@ def profil_save():
             new_key = (request.form.get("deepseek_api_key") or "").strip()
             if new_key:
                 profile.deepseek_api_key = new_key[:200]
+        # Auto-Save-Flag: Checkbox kommt nur wenn aktiv im Form an;
+        # fehlt sie → User hat sie abgewaehlt → false.
+        profile.auto_save_dienstreisen = request.form.get("auto_save_dienstreisen") == "1"
         # BahnCards als simple flag-Sammlung
         bcs = {
             "bcb_1": request.form.get("bahncard_bcb_1") == "1",

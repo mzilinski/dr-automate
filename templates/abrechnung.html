@@ -216,6 +216,20 @@
       padding:.5rem 1.2rem;font-size:.88rem;}
     .guest-strip a{color:var(--accent);}
   </style>
+  {% if wizard_profile_seed %}
+  <script>
+    (function() {
+      var seed = {{ wizard_profile_seed | tojson }};
+      try {
+        var existing = JSON.parse(localStorage.getItem('dr_profile') || '{}');
+        Object.keys(seed).forEach(function(k) {
+          if (seed[k]) existing[k] = seed[k];
+        });
+        localStorage.setItem('dr_profile', JSON.stringify(existing));
+      } catch (e) { console.error('Profile seed failed:', e); }
+    })();
+  </script>
+  {% endif %}
 </head>
 <body>
 
@@ -1344,6 +1358,19 @@
         const fd = new FormData();
         fd.set('csrf_token', csrf);
         fd.set('json_data', JSON.stringify(state));
+        // Account-Auto-Save: wenn im Profil aktiv, save_to_account=1 mitschicken
+        // und (falls vorhanden) dienstreise_id aus URL ?dienstreise=N oder
+        // aus localStorage.dr_abrechnung_reise_id, damit der Server die
+        // bestehende Reise um die Abrechnung erweitert statt eine neue anzulegen.
+        let profileNow = null;
+        try { profileNow = JSON.parse(localStorage.getItem('dr_profile') || 'null'); } catch {}
+        const autoSave = profileNow && profileNow.auto_save_dienstreisen !== false;
+        if ({{ 'true' if is_authenticated else 'false' }} && autoSave) {
+          fd.set('save_to_account', '1');
+          const urlParams = new URLSearchParams(window.location.search);
+          const reiseId = urlParams.get('dienstreise') || localStorage.getItem('dr_abrechnung_reise_id');
+          if (reiseId) fd.set('dienstreise_id', reiseId);
+        }
         const res = await fetch('/abrechnung/generate', { method: 'POST', body: fd });
         if (!res.ok) {
           const err = await res.json().catch(() => ({ error: res.statusText }));
@@ -1359,7 +1386,12 @@
         a.download = m ? decodeURIComponent(m[1]) : suggestFilename('pdf');
         document.body.appendChild(a); a.click(); a.remove();
         URL.revokeObjectURL(url);
-        showAlert('PDF heruntergeladen — JSON sicherheitshalber auch exportieren!', 'success');
+        const abrId = res.headers.get('X-Abrechnung-Id');
+        if (abrId) {
+          showAlert('PDF heruntergeladen und in deinem Konto gespeichert.', 'success');
+        } else {
+          showAlert('PDF heruntergeladen — JSON sicherheitshalber auch exportieren!', 'success');
+        }
       } catch (err) {
         showAlert('Netzwerk-/Server-Fehler: ' + err.message);
       } finally {
