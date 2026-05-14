@@ -252,7 +252,11 @@
         <div class="avatar empty" id="profileAvatar">?</div>
         <span class="profile-label missing" id="profileStatus">Kein Profil konfiguriert – Platzhalter im Prompt sind noch leer.</span>
       </div>
-      <button class="btn btn-ghost btn-sm" onclick="openWizard()">Profil&nbsp;bearbeiten</button>
+      {% if is_authenticated %}
+        <a class="btn btn-ghost btn-sm" href="{{ url_for('profil_view') }}">Profil&nbsp;bearbeiten</a>
+      {% else %}
+        <button class="btn btn-ghost btn-sm" onclick="openWizard()">Profil&nbsp;bearbeiten</button>
+      {% endif %}
     </div>
 
     <!-- Step 01: Prompt & KI -->
@@ -688,8 +692,13 @@
       const profile = getProfile();
       const apiKey = profile?.deepseek_api_key?.trim();
       if (!apiKey) {
-        showAlert('Kein DeepSeek-API-Key im Profil hinterlegt.', 'warning');
-        openWizard();
+        if (IS_AUTHENTICATED) {
+          showAlert('Kein DeepSeek-API-Key — bitte im Server-Profil hinterlegen.', 'warning');
+          window.location.href = '{{ url_for("profil_view") }}';
+        } else {
+          showAlert('Kein DeepSeek-API-Key im Profil hinterlegt.', 'warning');
+          openWizard();
+        }
         return;
       }
       const freitext = document.getElementById('aiFreitext').value.trim();
