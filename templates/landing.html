@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}dr-automate – Dienstreisen einfach automatisieren{% endblock %}
+{% block head %}
+<style>
+  .hero{max-width:760px;margin:0 auto;text-align:center;padding:2rem 0 1rem;}
+  .hero h1{font-family:'Fraunces',serif;font-size:2.4rem;font-weight:600;line-height:1.1;margin-bottom:.6rem;}
+  .hero p{font-size:1.05rem;color:var(--muted);}
+  .choice-row{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-top:2rem;}
+  @media (max-width:640px){.choice-row{grid-template-columns:1fr;}}
+  .card{background:var(--surface-hi);border:1px solid var(--border);border-radius:.8rem;
+    padding:1.5rem;display:flex;flex-direction:column;}
+  .card.primary{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent-glow);}
+  .card h2{font-family:'Fraunces',serif;font-weight:600;font-size:1.3rem;margin-bottom:.6rem;}
+  .card ul{margin:.8rem 0 1.2rem 1rem;font-size:.95rem;color:var(--text);line-height:1.7;}
+  .card ul li{list-style:disc;margin-left:.2rem;}
+  .card .btn{display:inline-block;text-align:center;padding:.7rem 1.2rem;border-radius:.5rem;
+    text-decoration:none;font-weight:600;font-size:1rem;margin-top:auto;}
+  .btn-primary{background:var(--accent);color:var(--accent-fg);}
+  .btn-primary:hover{filter:brightness(1.08);}
+  .btn-ghost{background:transparent;color:var(--text);border:1px solid var(--border);}
+  .btn-ghost:hover{background:var(--step-ghost);}
+  .meta{margin-top:1.5rem;text-align:center;font-size:.85rem;color:var(--muted);}
+  .meta a{color:var(--muted);text-decoration:underline;}
+</style>
+{% endblock %}
+{% block content %}
+<section class="hero">
+  <h1>Dienstreisen einfach automatisieren</h1>
+  <p>NRKVO-konforme Anträge und Abrechnungen in Minuten – als Gast für den schnellen Versuch oder mit Account für die volle Persistenz.</p>
+</section>
+
+<div class="choice-row">
+  <article class="card primary">
+    <h2>Mit Account</h2>
+    <p>Empfohlen, wenn du regelmäßig Dienstreisen einreichst.</p>
+    <ul>
+      <li>Alle Reisen serverseitig (verschlüsselt) gespeichert</li>
+      <li>Antrag → Genehmigung-Datum → Abrechnung als ein Vorgang</li>
+      <li>Profildaten (Adresse, IBAN) werden vorausgefüllt</li>
+      <li>2-Faktor-Authentifizierung über Authelia</li>
+    </ul>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Anmelden &rarr;</a>
+    <p class="meta">Noch keinen Zugang? <a href="{{ url_for('account_request_get') }}">Account anfragen</a> – Freischaltung durch den Admin.</p>
+  </article>
+
+  <article class="card">
+    <h2>Ohne Account</h2>
+    <p>Schnell-Modus für einmalige Reisen.</p>
+    <ul>
+      <li>Daten bleiben nur in deinem Browser</li>
+      <li>Kein Login, kein Server-Speicher</li>
+      <li>Antrag und Abrechnung als PDF herunterladen</li>
+      <li>Optional eigene KI-Schlüssel (DeepSeek BYOK)</li>
+    </ul>
+    <a href="{{ url_for('index') }}" class="btn btn-ghost">Antrag starten</a>
+    <p class="meta">oder direkt zur <a href="{{ url_for('abrechnung_index') }}">Abrechnung</a></p>
+  </article>
+</div>
+
+<p class="meta" style="margin-top:2.5rem;">
+  Hintergrund &amp; Datenschutz: <a href="{{ url_for('docs_view', slug='security') }}">Was wir speichern</a>
+  · <a href="{{ url_for('docs_view', slug='account') }}">Account vs. Gast</a>
+  · <a href="{{ url_for('docs_view', slug='getting-started') }}">Erste Schritte</a>
+</p>
+{% endblock %}

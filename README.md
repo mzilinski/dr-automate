@@ -23,12 +23,15 @@ Web-Tool für den kompletten Reisekosten-Workflow nach **NRKVO** (niedersächsis
 *   **PDF-Befüllung** des offiziellen Formulars `035_002` inkl. char-für-char-IBAN, Tagegeld-Aufteilung in volle/Teiltage und Wegstrecken-Zeilen für Hin- und Rückreise.
 
 ### Geteilt
+*   **Optionale AI-Direktextraktion (BYOK)**: Mit hinterlegtem DeepSeek-API-Key wird der Freitext direkt im Tool an DeepSeek geschickt — der Copy-Paste-Umweg über ChatGPT/Claude entfällt. Key bleibt im `localStorage` und wird pro Request einmalig im Header durchgereicht; **kein Server-Logging**, **keine Persistierung**. Ohne Key bleibt alles wie gehabt. Sowohl Antrag als auch Abrechnungs-Wizard können den Freitext nutzen — das extrahierte JSON wird **immer** vor der PDF-Erzeugung zur Prüfung angezeigt.
 *   **Robuste Eingabe-Bereinigung**: Markdown-Code-Fences (` ```json ``` `), Begleittext vor/nach dem JSON, Trailing Commas und Zitatmarker (`[cite_start]`, `[cite: 1]` von NotebookLM/Gemini) werden client- und serverseitig entfernt.
-*   **Profil-Assistent (Browser-only)**: Persönliche Daten (Name, Abteilung, Telefon, Adresse, Mitreisender) werden ausschließlich im `localStorage` gespeichert und in den Prompt eingefügt — keine Serverübertragung.
-*   **Optionaler Zugriffsschutz**: Single-Passphrase-Auth über `DR_PASSPHRASE` (Flask-Session). Wenn die Variable leer ist, läuft das Tool ohne Login.
-*   **Web-UI**: Eigene CSS-Komponenten (kein Bootstrap), Dark-/Light-Mode via `prefers-color-scheme`, Live-JSON-Validierung.
+*   **Zwei Nutzungsmodi**:
+    *   **Gast (Default)**: Profil-Assistent im Browser, Daten ausschließlich im `localStorage`. Keine Server-Persistenz.
+    *   **Mit Account**: Login über Authelia (ForwardAuth via Traefik, 2-Faktor). Profil + Dienstreisen werden serverseitig in SQLite gespeichert, sensible Felder (Adresse, IBAN, BIC, Reise-JSONs) mit Fernet verschlüsselt. Dashboard mit Lifecycle (entwurf → genehmigt → abgerechnet).
+*   **Web-UI**: Eigene CSS-Komponenten (kein Bootstrap), Dark-/Light-Mode via `prefers-color-scheme`, Live-JSON-Validierung. Top-Nav mit Dashboard/Profil/Hilfe, Gast-Modus-Banner bei nicht-eingeloggter Nutzung.
+*   **In-App-Doku**: Markdown-basierte Hilfe unter `/docs/<slug>` ([getting-started](docs/getting-started.md), [workflow](docs/workflow.md), [account](docs/account.md), [security](docs/security.md), [admin](docs/admin.md), [faq](docs/faq.md)).
 *   **Smart Naming**: Dateinamen im Format `YYYYMMDD_DR-Antrag_<Stadt>_<Thema>.pdf`.
-*   **Eingabe-Validierung**: Strikte Pydantic-Schemas, CSRF-Schutz (`flask-wtf`), Rate-Limit auf `/generate` und `/login` (`flask-limiter`, In-Memory-Storage — bei Multi-Worker-/Multi-Instance-Deployments einen Redis-Backend setzen).
+*   **Eingabe-Validierung**: Strikte Pydantic-Schemas, CSRF-Schutz (`flask-wtf`), Rate-Limit auf `/generate` und `/account/request` (`flask-limiter`, In-Memory-Storage — bei Multi-Worker-/Multi-Instance-Deployments einen Redis-Backend setzen).
 
 ## Voraussetzungen
 
@@ -47,11 +50,18 @@ Web-Tool für den kompletten Reisekosten-Workflow nach **NRKVO** (niedersächsis
 | `PDF_TEMPLATE_ABRECHNUNG_PATH` | Pfad zur Abrechnungs-PDF-Vorlage | `forms/Reisekostenvordruck.pdf` |
 | `SECRET_KEY` | **Pflicht in Produktion.** Secret für CSRF/Sessions. Generieren mit `python -c "import secrets; print(secrets.token_hex(32))"` | unsicherer Dev-Default |
 | `RATE_LIMIT` | Max. Requests/Minute für `/generate` | `10` |
-| `DR_PASSPHRASE` | Passwort für den Zugriffsschutz (leer = offen, kein Login) | `` |
+| `TRUST_REMOTE_USER_HEADER` | **Nur in Produktion hinter Authelia/Traefik auf `true` setzen.** Erlaubt der App, die Identität aus dem `Remote-User`-Header zu lesen. In Dev/Tests bleibt es `false`, sonst wäre Header-Spoofing möglich. | `false` |
+| `DR_AUTOMATE_ENCRYPTION_KEY` | **Pflicht in Produktion**, wenn Account-Modus genutzt wird. Fernet-Key (32 byte url-safe-base64) für Application-Level-Encryption. Erzeugen mit `python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())'`. Verlust = Datenverlust. | ephemerer Key in Debug |
+| `DR_AUTOMATE_ENCRYPTION_KEY_OLD` | Optional. Alter Fernet-Key für Rotation (App liest mit beiden, schreibt mit dem aktuellen). | leer |
+| `DR_AUTOMATE_DATABASE_URL` | SQLite-URL. Bei Production: in persistentem Volume. | `sqlite:///data/dr-automate.db` |
+| `DR_AUTOMATE_DATA_DIR` | Verzeichnis für SQLite-DB und generierte PDFs. | `data` |
+| `DR_AUTOMATE_ADMIN_EMAIL` | E-Mail-Empfänger für Account-Anfragen aus `/account/request`. | leer |
+| `AUTHELIA_LOGOUT_URL` | Ziel des „Abmelden"-Links in der Nav. | `/` |
+| `MAIL_SERVER`, `MAIL_PORT`, `MAIL_USE_TLS`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_DEFAULT_SENDER` | SMTP-Konfig für Account-Anfrage-Mails. | leer (kein Versand) |
 | `IMPRESSUM_URL` | URL zur Impressumsseite | `#` |
 | `DATENSCHUTZ_URL` | URL zur Datenschutzerklärung | `#` |
 
-> **Sicherheit in Produktion:** `SECRET_KEY` und `DR_PASSPHRASE` müssen gesetzt sein. Ohne `SECRET_KEY` sind Sessions fälschbar; ohne `DR_PASSPHRASE` ist die App offen.
+> **Sicherheit in Produktion:** `SECRET_KEY` und `DR_AUTOMATE_ENCRYPTION_KEY` müssen gesetzt sein. Ohne `SECRET_KEY` sind Sessions fälschbar; ohne Encryption-Key kann der Account-Modus keine sensiblen Felder speichern. `TRUST_REMOTE_USER_HEADER=true` darf nur gesetzt sein, wenn die App ausschließlich hinter einem Reverse-Proxy (Traefik+Authelia) erreichbar ist.
 
 Eine Beispiel-Konfiguration findest du in [.env.example](.env.example).
 
@@ -151,7 +161,13 @@ dr-automate/
 ├── templates/             # HTML-Templates
 │   ├── index.html         # Antrag-Interface (Profil-Wizard, JSON-Editor)
 │   ├── abrechnung.html    # Abrechnungs-Wizard (9 Schritte, Live-Berechnung)
-│   └── login.html         # Login-Seite (nur wenn DR_PASSPHRASE gesetzt)
+│   ├── base.html          # Layout für Dashboard/Landing/Profil/Docs
+│   ├── landing.html       # Startseite mit Account/Gast-Auswahl
+│   ├── dashboard.html     # Reise-Übersicht (Auth-only)
+│   ├── dienstreise_genehmigung.html  # Genehmigungs-Datum vermerken
+│   ├── profil.html        # Server-seitiges Profil (Auth-only)
+│   ├── account_request.html  # Public: Account anfragen
+│   └── docs.html          # Markdown-Doku-Renderer
 ├── tests/                 # Unit-Tests
 │   └── test_app.py
 ├── .github/
@@ -168,17 +184,35 @@ dr-automate/
 
 ## API-Endpunkte
 
+**Public (Gast-Modus erlaubt):**
+
 | Endpunkt | Methode | Beschreibung |
 |----------|---------|-------------|
-| `/` | GET | Antrag-Web-Interface (erfordert Auth wenn `DR_PASSPHRASE` gesetzt) |
+| `/` | GET | Antrag-Wizard (Gast + Auth, mit Save-Banner bei Auth) |
 | `/abrechnung` | GET | Abrechnungs-Wizard |
-| `/abrechnung/generate` | POST | Abrechnungs-PDF generieren (Rate Limited) |
-| `/abrechnung/calc` | POST | Server-autoritative NRKVO-Berechnung (Validierung der Frontend-Anzeige) |
-| `/login` | GET, POST | Login-Seite. Optional: Auto-Login via `?token=<passphrase>` (⚠️ Token landet in Browser-History und ggf. Reverse-Proxy-Logs — nur in vertrauenswürdigen Kontexten verwenden). |
-| `/logout` | GET | Session beenden, zurück zur Login-Seite |
-| `/generate` | POST | Antrags-PDF generieren (Rate Limited: 10/min) |
+| `/abrechnung/generate` | POST | Abrechnungs-PDF generieren (Rate Limited). Mit `save_to_account=1` + Auth: persistiert in DB. |
+| `/abrechnung/calc` | POST | Server-autoritative NRKVO-Berechnung |
+| `/generate` | POST | Antrags-PDF generieren (Rate Limited: 10/min). Mit `save_to_account=1` + Auth: persistiert in DB, Response-Header `X-Dienstreise-Id`. |
+| `/extract` | POST | KI-Extraktion via DeepSeek (BYOK, `X-DeepSeek-Key`-Header) |
 | `/example` | GET | Beispiel-JSON für Frontend |
-| `/health` | GET | Health-Check für Monitoring (kein Auth) |
+| `/landing` | GET | Startseite mit Account/Gast-Auswahl |
+| `/account/request` | GET, POST | Account-Anfrage-Formular (Rate Limited: 3/h, Honeypot) |
+| `/docs/<slug>` | GET | Markdown-Doku (getting-started, workflow, account, security, faq, admin) |
+| `/health` | GET | Health-Check für Monitoring |
+
+**Auth-only (Authelia-Header `Remote-User` erforderlich):**
+
+| Endpunkt | Methode | Beschreibung |
+|----------|---------|-------------|
+| `/dashboard` | GET | Reise-Übersicht des eingeloggten Users |
+| `/dienstreisen/<id>/antrag-json` | GET | Antrag-JSON für Wizard-Pre-Fill (Owner-Check) |
+| `/dienstreisen/<id>/abrechnung-json` | GET | Abrechnungs-JSON für Wizard-Pre-Fill |
+| `/dienstreisen/<id>/genehmigung` | GET, POST | Genehmigungs-Datum/Aktenzeichen vermerken |
+| `/dienstreisen/<id>/antrag.pdf` | GET | Antrag-PDF-Download (Owner-Check) |
+| `/dienstreisen/<id>/abrechnung.pdf` | GET | Abrechnungs-PDF-Download (Owner-Check) |
+| `/dienstreisen/<id>/delete` | POST | Reise + PDFs löschen |
+| `/profil` | GET, POST | Server-seitiges Profil |
+| `/profil/json` | GET | Profil als JSON (für Wizard-Pre-Fill) |
 
 ## NRKVO-Sätze
 

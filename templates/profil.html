@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Profil – dr-automate{% endblock %}
+{% block head %}
+<style>
+  .form-card{max-width:760px;margin:0 auto;background:var(--surface-hi);
+    border:1px solid var(--border);border-radius:.8rem;padding:1.8rem;}
+  .form-card h1{font-family:'Fraunces',serif;font-size:1.6rem;font-weight:600;margin-bottom:.2rem;}
+  .form-card .lead{color:var(--muted);font-size:.92rem;margin-bottom:1.4rem;}
+  .form-card h3{font-size:1rem;font-weight:600;margin:1.6rem 0 .6rem;
+    padding-bottom:.3rem;border-bottom:1px solid var(--border);color:var(--muted);
+    text-transform:uppercase;letter-spacing:.5px;font-size:.78rem;}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem 1rem;}
+  @media(max-width:560px){.grid{grid-template-columns:1fr;}}
+  label{display:block;font-size:.85rem;font-weight:500;}
+  label small{color:var(--muted);font-weight:400;margin-left:.4rem;}
+  input,select{width:100%;padding:.5rem .65rem;border-radius:.4rem;
+    border:1px solid var(--border);background:var(--surface);color:var(--text);
+    font:inherit;margin-top:.25rem;}
+  input:focus,select:focus{outline:2px solid var(--accent);outline-offset:0;}
+  .help{color:var(--muted);font-size:.78rem;margin-top:.25rem;}
+  .check-row{display:flex;flex-wrap:wrap;gap:.7rem 1.2rem;margin-top:.5rem;}
+  .check-row label{display:flex;align-items:center;gap:.4rem;font-size:.88rem;font-weight:400;}
+  .check-row input{width:auto;margin:0;}
+  .actions{display:flex;justify-content:space-between;gap:.6rem;margin-top:1.8rem;}
+  .btn{padding:.6rem 1rem;border-radius:.5rem;border:0;font-weight:600;cursor:pointer;
+    text-decoration:none;font-size:.95rem;}
+  .btn-primary{background:var(--accent);color:var(--accent-fg);}
+  .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);}
+  .note{background:var(--info-subtle);border:1px solid var(--border);
+    padding:.7rem 1rem;border-radius:.5rem;font-size:.88rem;margin-bottom:1rem;}
+  .note strong{color:var(--accent);}
+</style>
+{% endblock %}
+{% block content %}
+<form class="form-card" method="post" action="{{ url_for('profil_save') }}">
+  <h1>Mein Profil</h1>
+  <p class="lead">Diese Daten werden serverseitig verschlüsselt gespeichert (Adresse, IBAN, BIC) und
+  füllen den Antrag- und Abrechnungs-Wizard vor.</p>
+
+  <div class="note">
+    <strong>Sicherheit:</strong> Adresse, IBAN und BIC liegen in der Datenbank verschlüsselt
+    (Fernet AES-128-CBC + HMAC). Siehe <a href="{{ url_for('docs_view', slug='security') }}">Sicherheit</a>.
+  </div>
+
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+  <h3>Stammdaten</h3>
+  <div class="grid">
+    <label>Vorname<input type="text" name="vorname" value="{{ profile.vorname or '' }}" maxlength="100"></label>
+    <label>Nachname<input type="text" name="nachname" value="{{ profile.nachname or '' }}" maxlength="100"></label>
+    <label>Abteilung<input type="text" name="abteilung" value="{{ profile.abteilung or '' }}" maxlength="100"></label>
+    <label>Telefon<input type="text" name="telefon" value="{{ profile.telefon or '' }}" maxlength="50"></label>
+  </div>
+  <label style="margin-top:.8rem;">Privatadresse <small>(verschlüsselt)</small>
+    <input type="text" name="adresse_privat" value="{{ profile.adresse_privat or '' }}" maxlength="200">
+    <span class="help">Straße, Hausnummer, PLZ, Ort</span>
+  </label>
+
+  <h3>Bankverbindung</h3>
+  <div class="grid">
+    <label>IBAN <small>(verschlüsselt)</small>
+      <input type="text" name="iban" value="{{ profile.iban or '' }}" maxlength="34" placeholder="DE..">
+    </label>
+    <label>BIC <small>(verschlüsselt)</small>
+      <input type="text" name="bic" value="{{ profile.bic or '' }}" maxlength="11">
+    </label>
+  </div>
+
+  <h3>Reisekosten-Defaults</h3>
+  <div class="grid">
+    <label>RKR <small>(Reisekostenrecht)</small>
+      <select name="rkr_default">
+        {% set rkrs = [('','— wählen —'),('DR','DR'),('VR','VR'),('AFR','AFR'),('RPR','RPR'),('RRS','RRS'),('GNE','GNE'),('SONSTIGE','SONSTIGE')] %}
+        {% for v, t in rkrs %}
+          <option value="{{ v }}" {% if profile.rkr_default == v %}selected{% endif %}>{{ t }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Abrechnende Dienststelle
+      <input type="text" name="abrechnende_dienststelle" value="{{ profile.abrechnende_dienststelle or '' }}" maxlength="200">
+    </label>
+    <label>Mitreisende:r (Vorbelegung)
+      <input type="text" name="mitreisender_name_default" value="{{ profile.mitreisender_name_default or '' }}" maxlength="200">
+    </label>
+    <label>AI-Provider Default
+      <select name="ai_provider_default">
+        {% set ais = [('',''),('deepseek','DeepSeek (BYOK)'),('manual','Nur manuell (Copy-Paste)')] %}
+        {% for v, t in ais %}
+          <option value="{{ v }}" {% if profile.ai_provider_default == v %}selected{% endif %}>{{ t }}</option>
+        {% endfor %}
+      </select>
+    </label>
+  </div>
+
+  <h3>BahnCards &amp; Großkundenrabatte</h3>
+  {% set bcs = profile.bahncards or {} %}
+  <p style="font-size:.85rem;color:var(--muted);margin-bottom:.4rem;">Person 1 = Antragsteller:in, Person 2 = Mitreisende:r</p>
+  <div class="check-row">
+    <label><input type="checkbox" name="bahncard_bc25_1" value="1" {% if bcs.get('bc25_1') %}checked{% endif %}>BC25 (P1)</label>
+    <label><input type="checkbox" name="bahncard_bc25_2" value="1" {% if bcs.get('bc25_2') %}checked{% endif %}>BC25 (P2)</label>
+    <label><input type="checkbox" name="bahncard_bc50_1" value="1" {% if bcs.get('bc50_1') %}checked{% endif %}>BC50 (P1)</label>
+    <label><input type="checkbox" name="bahncard_bc50_2" value="1" {% if bcs.get('bc50_2') %}checked{% endif %}>BC50 (P2)</label>
+    <label><input type="checkbox" name="bahncard_bc100_1" value="1" {% if bcs.get('bc100_1') %}checked{% endif %}>BC100 (P1)</label>
+    <label><input type="checkbox" name="bahncard_bc100_2" value="1" {% if bcs.get('bc100_2') %}checked{% endif %}>BC100 (P2)</label>
+    <label><input type="checkbox" name="bahncard_bcb_1" value="1" {% if bcs.get('bcb_1') %}checked{% endif %}>BC Business (P1)</label>
+    <label><input type="checkbox" name="bahncard_bcb_2" value="1" {% if bcs.get('bcb_2') %}checked{% endif %}>BC Business (P2)</label>
+  </div>
+  <div class="check-row" style="margin-top:.4rem;">
+    <label><input type="checkbox" name="grosskunde_1" value="1" {% if bcs.get('grosskunde_1') %}checked{% endif %}>Großkundenrabatt (P1)</label>
+    <label><input type="checkbox" name="grosskunde_2" value="1" {% if bcs.get('grosskunde_2') %}checked{% endif %}>Großkundenrabatt (P2)</label>
+  </div>
+
+  <div class="actions">
+    <a href="{{ url_for('dashboard') }}" class="btn btn-ghost">Zurück</a>
+    <button type="submit" class="btn btn-primary">Speichern</button>
+  </div>
+</form>
+{% endblock %}

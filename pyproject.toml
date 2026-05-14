@@ -9,11 +9,16 @@ dependencies = [
     "flask>=3.1.2",
     "flask-wtf>=1.2.1",
     "flask-limiter>=3.5.0",
+    "flask-mail>=0.10.0",
     "gunicorn>=23.0.0",
     "pillow>=12.1.0",
     "pydantic>=2.6.0",
     "pypdf>=6.6.0",
     "reportlab>=4.4.9",
+    "sqlalchemy>=2.0.36",
+    "alembic>=1.14.0",
+    "cryptography>=44.0.0",
+    "markdown>=3.7",
 ]
 
 [dependency-groups]
@@ -27,5 +32,5 @@ dev = [
 # Es ist eine Flask-App, keine Bibliothek — nur die drei Python-Module ins Wheel,
 # nichts aus forms/ oder templates/ versuchen zu packen.
 [tool.setuptools]
-py-modules = ["app", "generator", "models"]
+py-modules = ["app", "generator", "models", "db", "crypto", "models_db", "auth"]
 

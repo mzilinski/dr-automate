@@ -125,9 +125,15 @@ def _build_text_fields(data: AbrechnungData) -> dict:
     fields["EUR"] = _fmt_eur(voll_brutto)
     fields["Tage6"] = str(teil_count) if teil_count else ""
     fields["EUR6"] = _fmt_eur(teil_brutto)
-    # Zeile 3: Netto-Tagegeld nach Kürzungen (Transparenz für Sachbearbeitung)
+    # Zeile 3: Netto-Tagegeld nach Kürzungen (Transparenz für Sachbearbeitung).
+    # Wichtig: auch bei Netto = 0 € füllen, sonst kann die Sachbearbeitung
+    # "keine Kürzung" nicht von "voll gekürzt" unterscheiden.
     fields["Tage7"] = ""
-    fields["EUR7"] = _fmt_eur(data.berechnet.tagegeld_netto_eur) if data.berechnet.kuerzung_eur > 0 else ""
+    if data.berechnet.kuerzung_eur > 0:
+        netto = data.berechnet.tagegeld_netto_eur
+        fields["EUR7"] = f"{netto:.2f}".replace(".", ",")
+    else:
+        fields["EUR7"] = ""
 
     # Reisezeiten
     fields["Beginn_der_Dienstreise"] = _fmt_dt(rd.start_datum, rd.start_zeit)

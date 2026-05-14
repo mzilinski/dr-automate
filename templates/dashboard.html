@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}Dashboard – dr-automate{% endblock %}
+{% block head %}
+<style>
+  .head-row{display:flex;justify-content:space-between;align-items:center;
+    margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem;}
+  .head-row h1{font-family:'Fraunces',serif;font-weight:600;font-size:1.7rem;}
+  .head-row .greet{color:var(--muted);font-size:.9rem;}
+  .btn{display:inline-block;padding:.55rem 1rem;border-radius:.5rem;border:0;
+    text-decoration:none;font-weight:600;cursor:pointer;font-size:.95rem;}
+  .btn-primary{background:var(--accent);color:var(--accent-fg);}
+  .btn-primary:hover{filter:brightness(1.08);}
+  .btn-ghost{background:transparent;color:var(--text);border:1px solid var(--border);}
+  .btn-ghost:hover{background:var(--step-ghost);}
+  .empty{padding:3rem 1.5rem;text-align:center;background:var(--surface-hi);
+    border:1px dashed var(--border);border-radius:.7rem;}
+  .empty h2{font-family:'Fraunces',serif;font-size:1.3rem;margin-bottom:.5rem;}
+  .empty p{color:var(--muted);margin-bottom:1.2rem;}
+  table.reisen{width:100%;border-collapse:collapse;background:var(--surface-hi);
+    border:1px solid var(--border);border-radius:.6rem;overflow:hidden;}
+  table.reisen th{background:var(--surface);text-align:left;padding:.7rem .9rem;
+    font-size:.78rem;font-weight:600;color:var(--muted);letter-spacing:.5px;
+    text-transform:uppercase;border-bottom:1px solid var(--border);}
+  table.reisen td{padding:.8rem .9rem;border-bottom:1px solid var(--border);
+    font-size:.95rem;vertical-align:top;}
+  table.reisen tr:last-child td{border-bottom:0;}
+  .titel{font-weight:600;}
+  .meta{color:var(--muted);font-size:.85rem;margin-top:.2rem;}
+  .badge{display:inline-block;font-size:.72rem;font-weight:600;padding:.18rem .55rem;
+    border-radius:999px;text-transform:uppercase;letter-spacing:.4px;
+    border:1px solid var(--border);background:var(--surface);}
+  .badge.entwurf{color:var(--muted);}
+  .badge.eingereicht{color:var(--accent);border-color:var(--accent);background:var(--accent-subtle);}
+  .badge.genehmigt{color:var(--ok);border-color:var(--ok);background:var(--ok-subtle);}
+  .badge.abgerechnet{color:var(--ok);background:var(--ok-subtle);border-color:var(--ok);}
+  .badge.verworfen{color:var(--err);border-color:var(--err);background:var(--err-subtle);}
+  .actions{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:flex-end;}
+  .actions a, .actions button{font-size:.82rem;padding:.32rem .65rem;border-radius:.35rem;
+    text-decoration:none;border:1px solid var(--border);background:var(--surface);
+    color:var(--text);cursor:pointer;font:inherit;}
+  .actions a:hover, .actions button:hover{background:var(--step-ghost);}
+  .actions a.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent);}
+  .danger-btn{color:var(--err);border-color:var(--err);}
+  .gene-info{color:var(--ok);font-size:.82rem;margin-top:.25rem;}
+</style>
+{% endblock %}
+{% block content %}
+<div class="head-row">
+  <div>
+    <h1>Meine Dienstreisen</h1>
+    <p class="greet">Hallo {{ current_user.display_name or current_user.remote_user }} —
+      hier siehst du alle deine Anträge und Abrechnungen.</p>
+  </div>
+  <a href="{{ url_for('index') }}" class="btn btn-primary">+ Neuen Antrag erstellen</a>
+</div>
+
+{% if not reisen %}
+<div class="empty">
+  <h2>Noch keine Reise angelegt</h2>
+  <p>Erstelle deinen ersten Dienstreise-Antrag. Beim Abschluss wirst du gefragt, ob du ihn deinem Konto zuordnen willst.</p>
+  <a href="{{ url_for('index') }}" class="btn btn-primary">Antrag starten</a>
+  <p class="meta" style="margin-top:1rem;">
+    Hilfe: <a href="{{ url_for('docs_view', slug='workflow') }}">Workflow Antrag → Abrechnung</a>
+  </p>
+</div>
+{% else %}
+<table class="reisen">
+  <thead>
+    <tr>
+      <th>Reise</th>
+      <th>Reisedatum</th>
+      <th>Status</th>
+      <th>Genehmigung</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in reisen %}
+    <tr>
+      <td>
+        <div class="titel">{{ r.titel }}</div>
+        {% if r.zielort %}<div class="meta">{{ r.zielort }}</div>{% endif %}
+      </td>
+      <td>
+        {% if r.start_datum %}{{ r.start_datum.strftime("%d.%m.%Y") }}{% else %}—{% endif %}
+        {% if r.ende_datum and r.ende_datum != r.start_datum %}
+          – {{ r.ende_datum.strftime("%d.%m.%Y") }}
+        {% endif %}
+      </td>
+      <td><span class="badge {{ r.status.value }}">{{ r.status.value }}</span></td>
+      <td>
+        {% if r.genehmigung_datum %}
+          {{ r.genehmigung_datum.strftime("%d.%m.%Y") }}
+          {% if r.genehmigung_aktenzeichen %}
+            <div class="meta">AZ: {{ r.genehmigung_aktenzeichen }}</div>
+          {% endif %}
+        {% else %}
+          <a href="{{ url_for('dienstreise_genehmigung_form', reise_id=r.id) }}">vermerken</a>
+        {% endif %}
+      </td>
+      <td class="actions">
+        <a href="{{ url_for('index', dienstreise=r.id) }}">Antrag</a>
+        {% if r.antrag_pdf_path %}
+          <a href="{{ url_for('dienstreise_antrag_pdf', reise_id=r.id) }}">PDF</a>
+        {% endif %}
+        {% if r.status.value == 'genehmigt' or r.status.value == 'abgerechnet' %}
+          <a href="{{ url_for('abrechnung_index', dienstreise=r.id) }}" class="primary">Abrechnung</a>
+        {% endif %}
+        {% if r.abrechnung and r.abrechnung.abrechnung_pdf_path %}
+          <a href="{{ url_for('dienstreise_abrechnung_pdf', reise_id=r.id) }}">Abr.-PDF</a>
+        {% endif %}
+        <form method="post" action="{{ url_for('dienstreise_delete', reise_id=r.id) }}"
+              style="display:inline;" onsubmit="return confirm('Reise wirklich löschen? Die PDFs werden ebenfalls entfernt.');">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="danger-btn">Löschen</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+{% endblock %}

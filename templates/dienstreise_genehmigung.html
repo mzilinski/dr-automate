@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Genehmigung vermerken – {{ reise.titel }}{% endblock %}
+{% block head %}
+<style>
+  .form-card{max-width:520px;margin:0 auto;background:var(--surface-hi);
+    border:1px solid var(--border);border-radius:.8rem;padding:1.8rem;}
+  .form-card h1{font-family:'Fraunces',serif;font-size:1.5rem;font-weight:600;margin-bottom:.2rem;}
+  .form-card .sub{color:var(--muted);font-size:.92rem;margin-bottom:1.2rem;}
+  .form-card label{display:block;margin-top:1rem;font-size:.88rem;font-weight:500;}
+  .form-card input{width:100%;padding:.55rem .7rem;border-radius:.45rem;
+    border:1px solid var(--border);background:var(--surface);color:var(--text);
+    font:inherit;margin-top:.3rem;}
+  .form-card input:focus{outline:2px solid var(--accent);outline-offset:0;}
+  .form-card .help{color:var(--muted);font-size:.82rem;margin-top:.3rem;}
+  .actions{display:flex;justify-content:space-between;gap:.6rem;margin-top:1.4rem;flex-wrap:wrap;}
+  .btn{padding:.6rem 1rem;border-radius:.5rem;border:0;font-weight:600;cursor:pointer;
+    text-decoration:none;font-size:.95rem;}
+  .btn-primary{background:var(--accent);color:var(--accent-fg);}
+  .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);}
+  .btn-secondary{background:var(--surface);color:var(--text);border:1px solid var(--border);}
+</style>
+{% endblock %}
+{% block content %}
+<form class="form-card" method="post"
+      action="{{ url_for('dienstreise_genehmigung_save', reise_id=reise.id) }}">
+  <h1>Genehmigung vermerken</h1>
+  <p class="sub">{{ reise.titel }}{% if reise.zielort %} · {{ reise.zielort }}{% endif %}</p>
+
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+  <label>Datum der Genehmigung
+    <input type="date" name="genehmigung_datum"
+      value="{{ reise.genehmigung_datum.isoformat() if reise.genehmigung_datum else '' }}"
+      required max="9999-12-31">
+    <span class="help">Das Datum, an dem dein Vorgesetzter die Dienstreise schriftlich/digital bewilligt hat.</span>
+  </label>
+
+  <label>Aktenzeichen <small style="color:var(--muted);">(optional)</small>
+    <input type="text" name="genehmigung_aktenzeichen"
+      value="{{ reise.genehmigung_aktenzeichen or '' }}"
+      maxlength="100" placeholder="z.B. 35-Reise-2026/042">
+    <span class="help">Falls deine Personalstelle ein Aktenzeichen vergibt — landet später ggf. auf der Abrechnung.</span>
+  </label>
+
+  <div class="actions">
+    <a href="{{ url_for('dashboard') }}" class="btn btn-ghost">Abbrechen</a>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+      <button type="submit" name="next" value="dashboard" class="btn btn-secondary">Speichern</button>
+      <button type="submit" name="next" value="abrechnung" class="btn btn-primary">Speichern &amp; zur Abrechnung</button>
+    </div>
+  </div>
+</form>
+{% endblock %}

@@ -8,8 +8,56 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,400&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
+  <style>
+    .global-nav{display:flex;justify-content:space-between;align-items:center;
+      padding:.7rem 1.2rem;background:var(--surface);border-bottom:1px solid var(--border);
+      position:sticky;top:0;z-index:90;font-family:'Figtree',sans-serif;}
+    .global-nav .brand{font-family:'Fraunces',serif;font-weight:600;font-size:1.05rem;
+      color:var(--text);text-decoration:none;}
+    .global-nav nav{display:flex;gap:.8rem;align-items:center;flex-wrap:wrap;}
+    .global-nav nav a{color:var(--text);text-decoration:none;font-size:.92rem;
+      padding:.3rem .55rem;border-radius:.35rem;}
+    .global-nav nav a:hover{background:var(--step-ghost);}
+    .global-nav nav a.active{color:var(--accent);background:var(--accent-subtle);}
+    .global-nav .pill{font-size:.7rem;font-weight:600;padding:.16rem .5rem;border-radius:999px;
+      border:1px solid var(--border);color:var(--muted);background:var(--surface-hi);}
+    .global-nav .pill.auth{color:var(--ok);border-color:var(--ok);background:var(--ok-subtle);}
+    .guest-strip{background:var(--warn-subtle);border-bottom:1px solid var(--border);
+      padding:.5rem 1.2rem;font-size:.88rem;}
+    .guest-strip a{color:var(--accent);}
+  </style>
 </head>
 <body>
+
+  <!-- ── GLOBAL NAV ─────────────────────────────────────────────────── -->
+  <header class="global-nav">
+    <a href="{{ url_for('landing') }}" class="brand">dr-automate</a>
+    <nav>
+      {% if is_authenticated %}
+        <a href="{{ url_for('dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('index') }}" class="active">Neuer Antrag</a>
+        <a href="{{ url_for('abrechnung_index') }}">Abrechnung</a>
+        <a href="{{ url_for('profil_view') }}">Profil</a>
+        <a href="{{ url_for('docs_view', slug='getting-started') }}">Hilfe</a>
+        <span class="pill auth">{{ current_user.display_name or current_user.remote_user }}</span>
+        <a href="{{ authelia_logout_url }}">Abmelden</a>
+      {% else %}
+        <a href="{{ url_for('index') }}" class="active">Neuer Antrag</a>
+        <a href="{{ url_for('abrechnung_index') }}">Abrechnung</a>
+        <a href="{{ url_for('docs_view', slug='getting-started') }}">Hilfe</a>
+        <a href="{{ url_for('account_request_get') }}">Account anfragen</a>
+        <a href="{{ url_for('dashboard') }}">Anmelden</a>
+        <span class="pill">Gast-Modus</span>
+      {% endif %}
+    </nav>
+  </header>
+
+  {% if not is_authenticated %}
+  <div class="guest-strip">
+    <strong>Gast-Modus:</strong> Daten bleiben nur in diesem Browser.
+    <a href="{{ url_for('account_request_get') }}">Account anfragen</a> für serverseitige Persistenz.
+  </div>
+  {% endif %}
 
   <!-- ── ALERTS ─────────────────────────────────────────────────────── -->
   <div class="alert-stack" id="alertStack"></div>
@@ -66,6 +114,22 @@
           <input type="text" id="wiz_mitreisender" placeholder="Erika Musterfrau">
           <p class="wiz-hint">Wird automatisch eingesetzt, wenn der Name in der Ausschreibung erwähnt wird</p>
         </div>
+
+        <details id="wizAIBlock" style="margin-top:1.25rem; border-top:1.5px dashed var(--border); padding-top:1rem;">
+          <summary style="cursor:pointer; font-weight:600; color:var(--muted); user-select:none;">
+            AI-Direktextraktion <em style="font-weight:400;">(optional)</em>
+          </summary>
+          <p class="modal-note" style="margin-top:.75rem;">
+            Mit DeepSeek-API-Key kannst du Freitext direkt im Tool extrahieren lassen –
+            ohne Umweg über ChatGPT/Claude. Der Key bleibt im Browser-Speicher und wird
+            pro Anfrage einmalig durchgereicht (kein Server-Logging, keine Speicherung).
+            Key anlegen unter <a href="https://platform.deepseek.com" target="_blank" rel="noopener">platform.deepseek.com</a>.
+          </p>
+          <div class="wiz-field">
+            <label class="wiz-label" for="wiz_deepseek_key">DeepSeek API-Key</label>
+            <input type="password" id="wiz_deepseek_key" autocomplete="off" placeholder="sk-…">
+          </div>
+        </details>
 
         <details id="wizAbrechnungBlock" style="margin-top:1.25rem; border-top:1.5px dashed var(--border); padding-top:1rem;">
           <summary style="cursor:pointer; font-weight:600; color:var(--muted); user-select:none;">
@@ -160,6 +224,22 @@
           <button class="btn btn-primary btn-copy" id="copyBtn" onclick="copyPrompt()">Prompt kopieren</button>
           <p class="copy-warning">Vergiss nicht, die Ausschreibung dazu zu kopieren!</p>
         </div>
+
+        <!-- AI-Direktextraktion (BYOK) — nur sichtbar wenn DeepSeek-Key im Profil -->
+        <div id="aiExtractBlock" style="display:none; margin-top:1.5rem; border-top:1.5px dashed var(--border); padding-top:1.1rem;">
+          <p class="step-lead" style="margin-bottom:.6rem;">
+            <strong>Oder: AI macht das direkt für dich.</strong>
+            Füge die Ausschreibung/E-Mail unten ein – DeepSeek liefert das JSON nach Schritt&nbsp;02.
+          </p>
+          <label class="field-label" for="aiFreitext">Ausschreibung / E-Mail / Notiz</label>
+          <textarea id="aiFreitext" rows="8" placeholder="Originaltext der Ausschreibung hier einfügen …"></textarea>
+          <div class="btn-row" style="margin-top:.85rem; align-items:center;">
+            <button type="button" class="btn btn-primary" id="aiExtractBtn" onclick="extractWithAI()">
+              Mit AI extrahieren
+            </button>
+            <span id="aiExtractStatus" style="margin-left:1rem; color:var(--muted); font-size:.9rem;"></span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -213,7 +293,16 @@
     </div>
 
     <footer class="app-footer">
-      <small>v0.1.0<span class="sep">·</span><a href="/abrechnung">Abrechnung</a><span class="sep">·</span><a href="/health" target="_blank">Status</a><span class="sep">·</span><a href="/logout">Abmelden</a></small>
+      <small>
+        v0.2.0
+        <span class="sep">·</span><a href="{{ url_for('dashboard') }}">Dashboard</a>
+        <span class="sep">·</span><a href="{{ url_for('abrechnung_index') }}">Zur Abrechnung</a>
+        <span class="sep">·</span><a href="{{ url_for('docs_view', slug='getting-started') }}">Hilfe</a>
+        <span class="sep">·</span><a href="{{ impressum_url }}">Impressum</a>
+        <span class="sep">·</span><a href="{{ datenschutz_url }}">Datenschutz</a>
+        <span class="sep">·</span><a href="{{ url_for('health_check') }}" target="_blank">Status</a>
+        {% if is_authenticated %}<span class="sep">·</span><a href="{{ authelia_logout_url }}">Abmelden</a>{% endif %}
+      </small>
     </footer>
 
   </div><!-- /.app -->
@@ -296,6 +385,10 @@
       const status = document.getElementById('profileStatus');
       status.textContent = `${p.name} · ${p.abteilung}`;
       status.classList.remove('missing');
+
+      // AI-Extraktionsblock nur zeigen, wenn DeepSeek-Key hinterlegt ist
+      const aiBlock = document.getElementById('aiExtractBlock');
+      if (aiBlock) aiBlock.style.display = p.deepseek_api_key ? 'block' : 'none';
     }
 
     // ── Wizard ───────────────────────────────────────────────────────
@@ -329,9 +422,15 @@
         document.getElementById('wiz_abrechnende').value  = p.abrechnende_dienststelle || '';
         document.getElementById('wiz_rkr').value          = p.rkr_default  || 'DR';
 
-        // Block aufklappen, wenn dort schon Daten sind
+        // AI-Key
+        document.getElementById('wiz_deepseek_key').value = p.deepseek_api_key || '';
+
+        // Blöcke aufklappen, wenn dort schon Daten sind
         if (p.iban || p.bic || p.email || p.abrechnende_dienststelle) {
           document.getElementById('wizAbrechnungBlock').open = true;
+        }
+        if (p.deepseek_api_key) {
+          document.getElementById('wizAIBlock').open = true;
         }
       }
       openModal('wizardOverlay');
@@ -357,10 +456,14 @@
       const abrechnende_dienststelle = document.getElementById('wiz_abrechnende').value.trim();
       const rkr_default              = document.getElementById('wiz_rkr').value;
 
+      // AI-Key (optional)
+      const deepseek_api_key = document.getElementById('wiz_deepseek_key').value.trim();
+
       const adresse = `${strasse}, ${plz_ort}`;
       const profile = {
         name, abteilung, telefon, adresse, strasse, plz_ort, mitreisender,
         iban, bic, email, abrechnende_dienststelle, rkr_default,
+        deepseek_api_key,
       };
       saveProfile(profile);
       applyProfile(profile);
@@ -461,6 +564,62 @@
           showAlert('Beispiel-JSON geladen', 'info');
         } else { showAlert('Beispiel nicht verfügbar', 'warning'); }
       } catch(e) { showAlert('Fehler: ' + e.message); }
+    }
+
+    // ── AI-Direktextraktion (BYOK) ───────────────────────────────────
+    async function extractWithAI() {
+      const profile = getProfile();
+      const apiKey = profile?.deepseek_api_key?.trim();
+      if (!apiKey) {
+        showAlert('Kein DeepSeek-API-Key im Profil hinterlegt.', 'warning');
+        openWizard();
+        return;
+      }
+      const freitext = document.getElementById('aiFreitext').value.trim();
+      if (!freitext) {
+        showAlert('Bitte zuerst die Ausschreibung/E-Mail einfügen.', 'warning');
+        return;
+      }
+
+      const btn    = document.getElementById('aiExtractBtn');
+      const status = document.getElementById('aiExtractStatus');
+      btn.disabled = true;
+      btn.textContent = 'Extrahiere …';
+      status.textContent = 'DeepSeek arbeitet, das kann 10–30 Sekunden dauern.';
+
+      try {
+        const fd = new FormData();
+        fd.append('freitext', freitext);
+        fd.append('sonderwuensche', document.getElementById('sonderwuensche').value.trim());
+        fd.append('csrf_token', document.querySelector('input[name="csrf_token"]').value);
+
+        const res = await fetch('/extract', {
+          method: 'POST',
+          headers: { 'X-DeepSeek-Key': apiKey },
+          body: fd,
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          showAlert('AI-Extraktion fehlgeschlagen: ' + (err.error || res.statusText), 'danger');
+          status.textContent = '';
+          return;
+        }
+
+        const data = await res.json();
+        const area = document.getElementById('jsonData');
+        area.value = JSON.stringify(data, null, 2);
+        validateJSON();
+        status.textContent = '✓ JSON erstellt – bitte in Schritt 02 prüfen.';
+        showAlert('AI-Extraktion fertig – JSON in Schritt 02 zur Prüfung.', 'success');
+        area.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch (e) {
+        showAlert('Netzwerkfehler: ' + e.message, 'danger');
+        status.textContent = '';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Mit AI extrahieren';
+      }
     }
 
     // ── Formular absenden ────────────────────────────────────────────

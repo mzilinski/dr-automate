@@ -172,33 +172,9 @@ class TestModels:
 
 
 # --- TESTS: AUTH ---
-
-
-class TestAuth:
-    """Tests für die Passphrase-Auth."""
-
-    def test_check_passphrase_constant_time_returns_false_when_unset(self, monkeypatch):
-        """Wenn keine Passphrase gesetzt ist, lehnt _check_passphrase jeden Wert ab."""
-        from app import _check_passphrase
-
-        monkeypatch.setattr("app.PASSPHRASE", "")
-        assert _check_passphrase("anything") is False
-        assert _check_passphrase("") is False  # leer == leer darf NICHT True ergeben
-
-    def test_check_passphrase_matches(self, monkeypatch):
-        """Korrekte Passphrase wird akzeptiert."""
-        from app import _check_passphrase
-
-        monkeypatch.setattr("app.PASSPHRASE", "geheim")
-        assert _check_passphrase("geheim") is True
-
-    def test_check_passphrase_rejects_wrong(self, monkeypatch):
-        """Falsche Passphrase wird abgelehnt."""
-        from app import _check_passphrase
-
-        monkeypatch.setattr("app.PASSPHRASE", "geheim")
-        assert _check_passphrase("wrong") is False
-        assert _check_passphrase("geheim ") is False  # Whitespace zählt
+# Hinweis: Die alte DR_PASSPHRASE-basierte Auth wurde durch Authelia-ForwardAuth
+# ersetzt (siehe auth.py + tests/test_auth.py). Tests fuer Header-Trust und
+# IDOR-Schutz liegen in test_auth.py und test_dashboard.py.
 
 
 # --- TESTS: GENERATOR ---
