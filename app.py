@@ -170,7 +170,8 @@ def _build_wizard_profile_seed(user) -> dict | None:
             "mitreisender": profile.mitreisender_name_default or "",
             "iban": profile.iban or "",
             "bic": profile.bic or "",
-            "email": user.email or "",
+            # Profil-Email hat Vorrang, sonst Authelia-Email.
+            "email": (profile.email or user.email or ""),
             "abrechnende_dienststelle": profile.abrechnende_dienststelle or "",
             "rkr_default": profile.rkr_default or "DR",
             "deepseek_api_key": profile.deepseek_api_key or "",
@@ -394,7 +395,10 @@ def _persist_abrechnung(reise_id_str: str, data: dict, pdf_path: str | None) -> 
             shutil.copy2(pdf_path, persistent)
             abr.abrechnung_pdf_path = str(persistent)
 
-        reise.status = DienstreiseStatus.abgerechnet
+        # bezahlt-Reisen NICHT auf abgerechnet zurueckdrehen (User-Bestaetigung
+        # wiegt schwerer als ein erneuter PDF-Export).
+        if reise.status != DienstreiseStatus.bezahlt:
+            reise.status = DienstreiseStatus.abgerechnet
         s.commit()
         return abr.id
 
@@ -473,6 +477,39 @@ def dienstreise_genehmigung_save(reise_id: int):
     return redirect(url_for("dashboard"))
 
 
+@app.route("/dienstreisen/<int:reise_id>/bezahlt", methods=["POST"])
+@auth.login_required
+def dienstreise_bezahlt(reise_id: int):
+    """Markiert eine Reise als bezahlt (Geldeingang bestaetigt).
+    Form-Feld 'bezahlt_datum' (YYYY-MM-DD) optional; default heute.
+    Form-Feld 'unmark=1' setzt zurueck auf abgerechnet.
+    """
+    from datetime import date as _date
+
+    from models_db import DienstreiseStatus
+
+    s, reise = _get_dienstreise_or_404(reise_id)
+    try:
+        if request.form.get("unmark") == "1":
+            reise.bezahlt_datum = None
+            if reise.status == DienstreiseStatus.bezahlt:
+                reise.status = DienstreiseStatus.abgerechnet
+            flash("Geldeingang-Markierung entfernt.", "success")
+        else:
+            raw = (request.form.get("bezahlt_datum") or "").strip()
+            d = _parse_iso_date(raw) if raw else _date.today()
+            if d is None:
+                flash("Ungültiges Datum.", "error")
+                return redirect(url_for("dashboard"))
+            reise.bezahlt_datum = d
+            reise.status = DienstreiseStatus.bezahlt
+            flash(f"Geldeingang vermerkt ({d.strftime('%d.%m.%Y')}).", "success")
+        s.commit()
+    finally:
+        s.close()
+    return redirect(url_for("dashboard"))
+
+
 @app.route("/dienstreisen/<int:reise_id>/antrag.pdf", methods=["GET"])
 @auth.login_required
 def dienstreise_antrag_pdf(reise_id: int):
@@ -503,6 +540,7 @@ _PROFIL_FIELDS_TEXT = {
     "nachname",
     "abteilung",
     "telefon",
+    "email",
     "adresse_privat",
     "iban",
     "bic",

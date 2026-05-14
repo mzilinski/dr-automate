@@ -42,7 +42,7 @@ Nach der Reise:
 ## Lifecycle-Zusammenfassung
 
 ```
-entwurf  →  eingereicht  →  genehmigt  →  abgerechnet
+entwurf  →  eingereicht  →  genehmigt  →  abgerechnet  →  bezahlt
    ↓
 verworfen (manuell)
 ```
@@ -50,7 +50,8 @@ verworfen (manuell)
 - `entwurf` – Antrag liegt vor, aber noch nicht eingereicht oder genehmigt.
 - `eingereicht` – Du hast den Antrag bei der Personalstelle abgegeben. (Aktuell wird dieser Status automatisch übersprungen – setzt sich mit Vermerken der Genehmigung direkt auf `genehmigt`.)
 - `genehmigt` – Genehmigungs-Datum eingetragen.
-- `abgerechnet` – Abrechnung erstellt.
+- `abgerechnet` – Abrechnungs-PDF erstellt und (außerhalb der App) bei der Reisekostenstelle eingereicht.
+- `bezahlt` – Du hast den Geldeingang per **„✓ bezahlt"** auf dem Dashboard bestätigt. Finaler Status. Optional: Datum des Eingangs.
 
 ## Was wenn keine Genehmigung erfolgt?
 
