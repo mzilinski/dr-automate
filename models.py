@@ -191,7 +191,11 @@ RKR_CODES = ("DR", "VR", "AFR", "RPR", "RRS", "GNE", "SONSTIGE")
 class Stammdaten(BaseModel):
     """Abrechnungs-spezifische Stammdaten (Profil-Erweiterung)."""
 
-    iban: str = Field(default="", max_length=34)
+    # IBAN: max 22 Zeichen — der amtliche Vordruck 035-002 hat genau 22
+    # Felder (IBAN1..IBAN22) und kann technisch keine laengeren IBANs
+    # abbilden. Deckt DE/AT/UK/CH ab; nicht MT/SA/MU. Strikte Validation
+    # ist sicherer als stilles Abschneiden im Generator.
+    iban: str = Field(default="", max_length=22)
     bic: str = Field(default="", max_length=20)
     email: str = Field(default="", max_length=120)
     abrechnende_dienststelle: str = Field(default="", max_length=200)
@@ -199,10 +203,17 @@ class Stammdaten(BaseModel):
     @field_validator("iban", mode="before")
     @classmethod
     def normalize_iban(cls, v: str) -> str:
-        """IBAN: Whitespace entfernen, Großbuchstaben."""
+        """IBAN: Whitespace entfernen, Großbuchstaben, Pflicht ≤ 22 Zeichen."""
         if not v:
             return ""
-        return "".join(str(v).split()).upper()
+        cleaned = "".join(str(v).split()).upper()
+        if len(cleaned) > 22:
+            raise ValueError(
+                f"IBAN ist {len(cleaned)} Zeichen — Vordruck 035-002 unterstützt "
+                f"nur 22 Zeichen (DE/AT/UK). Längere IBANs (MT, SA, MU) sind "
+                f"nicht abbildbar."
+            )
+        return cleaned
 
 
 class AnlagenBeigefuegt(BaseModel):
