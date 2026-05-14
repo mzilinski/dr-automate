@@ -90,10 +90,17 @@
       <td><span class="badge {{ r.status.value }}">{{ r.status.value }}</span></td>
       <td>
         {% if r.genehmigung_datum %}
-          {{ r.genehmigung_datum.strftime("%d.%m.%Y") }}
+          <a href="{{ url_for('dienstreise_genehmigung_form', reise_id=r.id) }}"
+             title="Datum / Aktenzeichen bearbeiten"
+             style="color:var(--text);text-decoration:none;border-bottom:1px dotted var(--muted);">
+            {{ r.genehmigung_datum.strftime("%d.%m.%Y") }}
+          </a>
           {% if r.genehmigung_aktenzeichen %}
             <div class="meta">AZ: {{ r.genehmigung_aktenzeichen }}</div>
           {% endif %}
+          <div class="meta">
+            <a href="{{ url_for('dienstreise_genehmigung_form', reise_id=r.id) }}">bearbeiten</a>
+          </div>
         {% else %}
           <a href="{{ url_for('dienstreise_genehmigung_form', reise_id=r.id) }}">vermerken</a>
         {% endif %}
