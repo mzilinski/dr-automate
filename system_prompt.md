@@ -65,6 +65,7 @@ Konkrete Trigger pro Feld (alles andere → `false`):
 | `weitere_ermaessigungen_vorhanden` | konkrete Ermäßigung außerhalb BahnCard / Großkundenrabatt (Verbundkarte, Sondertarif, Kundenkarte) — **nicht** automatisch `true`, nur weil Bahn genutzt wird |
 | `dienstgeschaeft_2km_umkreis` | Dienstgeschäftsort liegt nachweislich < 2 km von Dienststätte/Wohnung |
 | `anspruch_trennungsgeld` | Mehrtägige Reise mit auswärtigem Verbleiben + Trennungsgeld-Anspruch im Input |
+| `kosten_durch_andere_stelle` | Veranstalter übernimmt Reisekosten ganz/teilweise — typischer Trigger: Tagungsgebühr inklusive Übernachtung und/oder Verpflegung |
 | `verzicht_tagegeld` / `verzicht_uebernachtungsgeld` / `verzicht_fahrtkosten` | Antragsteller verzichtet im Input ausdrücklich auf den jeweiligen Posten |
 
 **Konsistenz-Regel:** Wenn ein `true`-Wert ein Pflicht-Erklärungs- oder Begründungsfeld nach sich zieht (analog zu `grosskundenrabatt_genutzt: false` → `grosskundenrabatt_begruendung_wenn_nein` gefüllt), und du keinen sinnvollen Inhalt aus dem Input ableiten kannst, setze das Boolean lieber auf `false`, als ein leeres Pflichtfeld zu erzeugen.
@@ -107,11 +108,13 @@ Halte dich strikt an diese Struktur. Schlüssel-Namen dürfen nicht verändert w
   "befoerderung": {
     "hinreise": {
       "typ": "String: 'PKW' (selbst gefahren), 'MITFAHRT' (Mitfahrer im PKW), 'BAHN', 'BUS', 'DIENSTWAGEN' (bei Flug: Zubringer-Typ)",
-      "paragraph_5_nrkvo": "String: 'II' (Standard) oder 'III' (triftiger Grund)"
+      "paragraph_5_nrkvo": "String: 'II' (Standard) oder 'III' (triftiger Grund)",
+      "mitfahrer_name": "String: nur bei typ='MITFAHRT' — Name der Person, in deren Auto man mitgefahren ist. Landet ins Formularfeld 'Mitfahrt_bei'."
     },
     "rueckreise": {
       "typ": "String: 'PKW', 'MITFAHRT', 'BAHN', 'BUS', 'DIENSTWAGEN'",
-      "paragraph_5_nrkvo": "String: 'II' oder 'III'"
+      "paragraph_5_nrkvo": "String: 'II' oder 'III'",
+      "mitfahrer_name": "String: analog hinreise (Feld 'Mitfahrt_bei1')."
     },
     "sonderfall_begruendung_textfeld": "String: Pflicht bei PKW §5 III (z.B. 'Mitnahme Kollege', 'Materialtransport', 'Kein Dienstwagen verfügbar')"
   },
@@ -124,6 +127,7 @@ Halte dich strikt an diese Struktur. Schlüssel-Namen dürfen nicht verändert w
     "weitere_ermaessigungen_vorhanden": "Boolean: nur true bei explizit genannter Sonder-Ermäßigung außerhalb BahnCard/Großkundenrabatt, sonst false",
     "dienstgeschaeft_2km_umkreis": "Boolean: nur true bei nachweislich <2km zwischen Dienstort und Dienststätte/Wohnung, sonst false",
     "anspruch_trennungsgeld": "Boolean: nur true bei mehrtägiger Reise mit auswärtigem Verbleiben, sonst false",
+    "kosten_durch_andere_stelle": "Boolean: true wenn Veranstalter Reisekosten ganz/teilweise übernimmt (typisch: Tagungsgebühr inkl. Übernachtung/Verpflegung), sonst false",
     "weitere_anmerkungen_checkbox_aktivieren": "Boolean: true wenn bemerkungen_feld Inhalt hat, sonst false"
   },
   "verzicht_erklaerung": {

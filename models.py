@@ -105,6 +105,11 @@ class Befoerderungsart(BaseModel):
 
     typ: str = Field(..., pattern=r"^(PKW|BAHN|BUS|DIENSTWAGEN|FLUG|MITFAHRT)$")
     paragraph_5_nrkvo: str = Field(default="II", pattern=r"^(II|III)$")
+    # Bei MITFAHRT: Name der Person, in deren Auto man mitgefahren ist.
+    # Landet im PDF-Feld "Mitfahrt_bei" (Hin) bzw. "Mitfahrt_bei1" (Rueck).
+    mitfahrer_name: str = ""
+    # Bei PKW: freitext-Begruendung, warum kein OePNV. Optional.
+    begruendung_pkw: str = ""
 
     @field_validator("paragraph_5_nrkvo", mode="before")
     @classmethod
@@ -136,6 +141,10 @@ class KonfigurationCheckboxen(BaseModel):
     weitere_ermaessigungen_vorhanden: bool = False
     dienstgeschaeft_2km_umkreis: bool = False
     anspruch_trennungsgeld: bool = False
+    # Obj53-Checkbox im Vordruck: "Reisekosten werden ganz/teilweise von
+    # anderer Stelle uebernommen" — typischer Fall: Tagungsgebuehr enthaelt
+    # bereits Uebernachtung und/oder Verpflegung.
+    kosten_durch_andere_stelle: bool = False
 
     weitere_anmerkungen_checkbox_aktivieren: bool = False
 
