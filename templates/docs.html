@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}{{ slug|replace('-',' ')|title }} – dr-automate Hilfe{% endblock %}
+{% block head %}
+<style>
+  .docs-wrap{display:grid;grid-template-columns:220px 1fr;gap:2rem;}
+  @media (max-width:760px){.docs-wrap{grid-template-columns:1fr;}}
+  .docs-toc{font-size:.92rem;}
+  .docs-toc ul{list-style:none;padding-left:0;}
+  .docs-toc li{margin-bottom:.4rem;}
+  .docs-toc a{display:block;padding:.35rem .5rem;border-radius:.4rem;
+    color:var(--text);text-decoration:none;border:1px solid transparent;}
+  .docs-toc a.active{background:var(--accent-subtle);border-color:var(--accent);color:var(--accent);}
+  .docs-toc a:hover{background:var(--step-ghost);}
+  .docs-body{max-width:780px;line-height:1.7;}
+  .docs-body h1{font-family:'Fraunces',serif;font-weight:600;font-size:1.9rem;
+    margin:0 0 1rem;border-bottom:1px solid var(--border);padding-bottom:.5rem;}
+  .docs-body h2{font-family:'Fraunces',serif;font-weight:600;font-size:1.4rem;margin:1.8rem 0 .6rem;}
+  .docs-body h3{font-size:1.1rem;font-weight:600;margin:1.2rem 0 .4rem;}
+  .docs-body p{margin-bottom:.8rem;}
+  .docs-body ul,.docs-body ol{margin:0 0 .9rem 1.2rem;}
+  .docs-body li{margin-bottom:.3rem;}
+  .docs-body code{font-family:'JetBrains Mono',monospace;font-size:.88em;
+    background:var(--mono-bg);padding:.1em .35em;border-radius:.25rem;}
+  .docs-body pre{background:var(--mono-bg);padding:1rem;border-radius:.5rem;overflow-x:auto;
+    margin-bottom:1rem;border:1px solid var(--border);}
+  .docs-body pre code{background:transparent;padding:0;}
+  .docs-body blockquote{border-left:3px solid var(--accent);padding-left:1rem;
+    color:var(--muted);margin:1rem 0;font-style:italic;}
+  .docs-body table{border-collapse:collapse;margin:1rem 0;width:100%;}
+  .docs-body th,.docs-body td{border:1px solid var(--border);padding:.5rem .7rem;text-align:left;}
+  .docs-body th{background:var(--surface);font-weight:600;}
+</style>
+{% endblock %}
+{% block content %}
+<div class="docs-wrap">
+  <aside class="docs-toc" aria-label="Dokumentations-Navigation">
+    <strong style="display:block;margin-bottom:.6rem;color:var(--muted);font-size:.78rem;
+      letter-spacing:.5px;text-transform:uppercase;">Hilfe</strong>
+    <ul>
+      {% for p in pages %}
+        <li><a href="{{ url_for('docs_view', slug=p) }}"
+              {% if p == slug %}class="active"{% endif %}>
+          {{ p|replace('-',' ')|capitalize }}
+        </a></li>
+      {% endfor %}
+    </ul>
+  </aside>
+  <article class="docs-body">{{ body|safe }}</article>
+</div>
+{% endblock %}

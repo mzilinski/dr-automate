@@ -17,8 +17,13 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Restliche Dateien kopieren
 COPY . /app
 
-# Verzeichnisse erstellen
-RUN mkdir -p forms out
+# Verzeichnisse erstellen.
+# - forms/ enthaelt die PDF-Vorlagen (read-only, im Image)
+# - out/   ist legacy-Scratch
+# - data/  ist persistent: SQLite-DB + verschluesselte JSONs + generierte PDFs.
+#          MUSS bei Production als Volume gemountet werden, sonst Restart =
+#          Datenverlust. Siehe paperless_etal/dr-automate.yml.
+RUN mkdir -p forms out data
 
 # Nicht-Root User für Sicherheit
 RUN useradd --create-home appuser && chown -R appuser:appuser /app
@@ -30,5 +35,7 @@ EXPOSE 5000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
     CMD python -c "import os, urllib.request; urllib.request.urlopen(f'http://localhost:{os.environ.get(\"PORT\", \"5000\")}/health')" || exit 1
 
-# Shell-Form, damit ${PORT} expandiert wird (override via `docker run -e PORT=...`)
-CMD gunicorn --bind 0.0.0.0:${PORT} --workers 2 --access-logfile - app:app
+# Beim Start: Alembic-Migration laufen lassen, dann gunicorn.
+# `alembic upgrade head` ist idempotent (schema_version-Tabelle), kein Risiko
+# bei wiederholten Restarts. Shell-Form, damit ${PORT} expandiert wird.
+CMD alembic upgrade head && gunicorn --bind 0.0.0.0:${PORT} --workers 2 --access-logfile - app:app

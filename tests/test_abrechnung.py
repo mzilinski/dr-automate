@@ -384,6 +384,43 @@ def test_abrechnung_calc_returns_calculation(client, base_data):
     assert "auszahlbetrag_eur" in body
 
 
+def test_abrechnung_generate_rechnet_kuerzung_serverseitig(client, base_data, tmp_path):
+    """Regression: Frontend schickt 'berechnet' nicht zurück → Server muss neu rechnen.
+
+    Vor dem Fix landete Brutto-Tagegeld im PDF, aber die Verpflegungs-Kürzung
+    (Zeile 3 / EUR7) blieb leer, weil das Wizard-State 'berechnet' nicht
+    aktualisiert und der Server-Endpoint dem Default vertraute.
+    """
+    # 4-Tage-Reise, 3 inkludierte Mahlzeiten an einem vollen Tag → 28 € Kürzung
+    base_data["reise_details"]["start_datum"] = "10.05.2026"
+    base_data["reise_details"]["start_zeit"] = "13:30"
+    base_data["reise_details"]["ende_datum"] = "13.05.2026"
+    base_data["reise_details"]["ende_zeit"] = "19:30"
+    base_data["reise_details"]["dienstgeschaeft_beginn_datum"] = "10.05.2026"
+    base_data["reise_details"]["dienstgeschaeft_beginn_zeit"] = "18:00"
+    base_data["reise_details"]["dienstgeschaeft_ende_datum"] = "13.05.2026"
+    base_data["reise_details"]["dienstgeschaeft_ende_zeit"] = "15:00"
+    base_data["verpflegung"] = {"fruehstueck_anzahl": 3, "mittag_anzahl": 3, "abend_anzahl": 3}
+    # Bewusst die Default-Nullen simulieren, die das Frontend mitschickt
+    base_data["berechnet"] = {"tagegeld_brutto_eur": 0, "kuerzung_eur": 0, "tagegeld_netto_eur": 0}
+
+    r = client.post("/abrechnung/generate", data={"json_data": json.dumps(base_data)})
+    assert r.status_code == 200, r.data
+
+    out_pdf = tmp_path / "out.pdf"
+    out_pdf.write_bytes(r.data)
+    fields = PdfReader(str(out_pdf)).get_form_text_fields() or {}
+
+    # Brutto: 2× voller Tag à 28 € + 2× Teiltag à 14 € = 84 €
+    assert fields.get("EUR") == "56,00"
+    assert fields.get("EUR6") == "28,00"
+    # Kürzung 84 € (3×5,60 + 3×11,20 + 3×11,20) → Netto 0,00 €
+    # Der Server muss EUR7 jetzt füllen, weil kuerzung_eur > 0
+    assert fields.get("EUR7") == "0,00", (
+        f"Server hat berechnet nicht überschrieben — EUR7={fields.get('EUR7')!r}"
+    )
+
+
 # ---------- NRKVO-Sätze ----------
 
 def test_nrkvo_kuerzungen_konsistent():

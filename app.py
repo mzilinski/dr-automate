@@ -5,12 +5,29 @@ import re
 import secrets
 import shutil
 import tempfile
+from pathlib import Path
 
-from flask import Flask, after_this_request, jsonify, redirect, render_template, request, send_file, session, url_for
+import markdown as md
+from flask import (
+    Flask,
+    abort,
+    after_this_request,
+    flash,
+    g,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    send_file,
+    url_for,
+)
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from flask_mail import Mail, Message
 from flask_wtf import CSRFProtect
 
+import ai_extract
+import auth
 import generator
 import generator_abrechnung
 import nrkvo_rates
@@ -25,7 +42,12 @@ DEBUG_MODE = os.environ.get("FLASK_DEBUG", "false").lower() == "true"
 PORT = int(os.environ.get("PORT", 5001))
 HOST = os.environ.get("HOST", "0.0.0.0")  # nosec B104 — bind auf alle Interfaces ist für Container/Cloud-Deploys gewünscht
 RATE_LIMIT = os.environ.get("RATE_LIMIT", "10")
-PASSPHRASE = os.environ.get("DR_PASSPHRASE", "")  # Leer = kein Schutz
+# TRUST_REMOTE_USER_HEADER: nur in Produktion hinter Traefik auf `true` setzen.
+# Default `false` schuetzt vor Header-Spoofing in lokalem/Test-Setup.
+TRUST_REMOTE_USER_HEADER = os.environ.get("TRUST_REMOTE_USER_HEADER", "false").lower() == "true"
+DATA_DIR = Path(os.environ.get("DR_AUTOMATE_DATA_DIR", "data"))
+DOCS_DIR = Path(os.environ.get("DR_AUTOMATE_DOCS_DIR", "docs"))
+ADMIN_EMAIL = os.environ.get("DR_AUTOMATE_ADMIN_EMAIL", "")
 
 # --- LOGGING ---
 logging.basicConfig(
@@ -52,11 +74,24 @@ if not SECRET_KEY:
 # --- APP SETUP ---
 app = Flask(__name__)
 app.config["SECRET_KEY"] = SECRET_KEY
+app.config["TRUST_REMOTE_USER_HEADER"] = TRUST_REMOTE_USER_HEADER
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE="Lax",
     SESSION_COOKIE_SECURE=not DEBUG_MODE,
 )
+
+# Flask-Mail fuer Account-Anfragen. Wenn kein MAIL_SERVER gesetzt ist, bleibt
+# der Versand stiller no-op (Anfragen werden trotzdem in DB persistiert).
+app.config.update(
+    MAIL_SERVER=os.environ.get("MAIL_SERVER", ""),
+    MAIL_PORT=int(os.environ.get("MAIL_PORT", "587")),
+    MAIL_USE_TLS=os.environ.get("MAIL_USE_TLS", "true").lower() == "true",
+    MAIL_USERNAME=os.environ.get("MAIL_USERNAME", ""),
+    MAIL_PASSWORD=os.environ.get("MAIL_PASSWORD", ""),
+    MAIL_DEFAULT_SENDER=os.environ.get("MAIL_DEFAULT_SENDER", "noreply@example.org"),
+)
+mail = Mail(app)
 
 # CSRF-Schutz
 csrf = CSRFProtect(app)
@@ -67,13 +102,6 @@ limiter = Limiter(key_func=get_remote_address, app=app, default_limits=[], stora
 # Prüfe ob Template existiert
 if not os.path.exists(PDF_TEMPLATE_PATH):
     logger.warning(f"Template file not found at {PDF_TEMPLATE_PATH}")
-
-
-def _check_passphrase(candidate: str) -> bool:
-    """Konstantzeit-Vergleich gegen DR_PASSPHRASE. False wenn keine Passphrase konfiguriert."""
-    if not PASSPHRASE:
-        return False
-    return secrets.compare_digest(candidate, PASSPHRASE)
 
 
 _CITATION_RE = re.compile(r"\s*\[cite:[^\]]+\]", re.IGNORECASE)
@@ -104,66 +132,509 @@ def _legal_urls():
 
 
 def _common_template_ctx():
-    return {**_legal_urls(), "nrkvo_stand": nrkvo_rates.RATES_STAND}
+    user = getattr(g, "current_user", None)
+    return {
+        **_legal_urls(),
+        "nrkvo_stand": nrkvo_rates.RATES_STAND,
+        "current_user": user,
+        "is_authenticated": user is not None,
+        "authelia_logout_url": os.environ.get("AUTHELIA_LOGOUT_URL", "/"),
+    }
+
+
+def _load_system_prompt() -> str:
+    """Lädt den Antrag-System-Prompt (lokal personalisierte Version bevorzugt)."""
+    prompt_file = "system_prompt.local.md" if os.path.exists("system_prompt.local.md") else "system_prompt.md"
+    try:
+        with open(prompt_file, encoding="utf-8") as f:
+            return f.read()
+    except Exception as e:
+        return f"Error loading prompt file: {e}"
 
 
 # --- AUTH ---
-_OPEN_ENDPOINTS = {"health_check", "login", "logout", "static"}
+# Identitaet kommt aus Authelias `Remote-User`-Header (siehe auth.py).
+# Es gibt kein lokales Login mehr — Authelia uebernimmt Login/Logout/2FA.
 
 
 @app.before_request
-def require_auth():
-    if not PASSPHRASE:
-        return  # Kein Passwort konfiguriert → offen
-    if request.endpoint in _OPEN_ENDPOINTS:
-        return
-    if not session.get("authenticated"):
-        return redirect(url_for("login"))
-
-
-@app.route("/login", methods=["GET", "POST"])
-@limiter.limit("5 per minute", methods=["POST"])
-@limiter.limit("30 per hour", methods=["POST"])
-def login():
-    if session.get("authenticated"):
-        return redirect(url_for("index"))
-    # Auto-Login via URL-Token (z.B. aus Landing-Page-Link).
-    # Achtung: Token landet in Browser-History und ggf. Reverse-Proxy-Logs.
-    url_token = request.args.get("token", "")
-    if url_token and _check_passphrase(url_token):
-        session["authenticated"] = True
-        logger.info(f"Auto-Login via URL-Token von {request.remote_addr}")
-        return redirect(url_for("index"))
-
-    error = False
-    if request.method == "POST":
-        if _check_passphrase(request.form.get("passphrase", "")):
-            session["authenticated"] = True
-            logger.info(f"Erfolgreicher Login von {request.remote_addr}")
-            return redirect(url_for("index"))
-        error = True
-        logger.warning(f"Fehlgeschlagener Login-Versuch von {request.remote_addr}")
-    return render_template("login.html", error=error, **_common_template_ctx())
-
-
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect(url_for("login"))
+def load_user():
+    g.current_user = auth.load_current_user()
 
 
 @app.route("/", methods=["GET"])
 def index():
-    # Prefer local personalized prompt if it exists, otherwise fallback to generic
-    prompt_file = "system_prompt.local.md" if os.path.exists("system_prompt.local.md") else "system_prompt.md"
-    prompt_content = ""
-    try:
-        with open(prompt_file, encoding="utf-8") as f:
-            prompt_content = f.read()
-    except Exception as e:
-        prompt_content = f"Error loading prompt file: {e}"
+    """Antrag-Wizard. Oeffentlich erreichbar (Gast-Modus). Bei Auth zeigt
+    das Template ein "Diese Reise speichern"-Banner."""
+    return render_template("index.html", prompt_content=_load_system_prompt(), **_common_template_ctx())
 
-    return render_template("index.html", prompt_content=prompt_content, **_common_template_ctx())
+
+@app.route("/landing", methods=["GET"])
+def landing():
+    """Startseite mit Wahl: 'Mit Account' / 'Ohne Account'.
+    Authentifizierte User werden direkt aufs Dashboard geleitet."""
+    if auth.is_authenticated():
+        return redirect(url_for("dashboard"))
+    return render_template("landing.html", **_common_template_ctx())
+
+
+# --- DASHBOARD (Auth-only) ---
+
+
+@app.route("/dashboard", methods=["GET"])
+@auth.login_required
+def dashboard():
+    """Reise-Uebersicht des eingeloggten Users."""
+    from sqlalchemy.orm import joinedload
+
+    from db import SessionLocal
+    from models_db import Dienstreise
+
+    with SessionLocal() as session_db:
+        reisen = (
+            session_db.query(Dienstreise)
+            .options(joinedload(Dienstreise.abrechnung))
+            .filter(Dienstreise.user_id == g.current_user.id)
+            .order_by(Dienstreise.created_at.desc())
+            .all()
+        )
+        # Detach, damit kein lazy-load nach session-close
+        session_db.expunge_all()
+    return render_template("dashboard.html", reisen=reisen, **_common_template_ctx())
+
+
+# --- DIENSTREISE-CRUD (Auth-only) ---
+
+
+def _get_dienstreise_or_404(reise_id: int):
+    """IDOR-Schutz: nur eigene Reisen ausliefern. Niemals ueber den Filter hinweg laden."""
+    from db import SessionLocal
+    from models_db import Dienstreise
+
+    user = g.current_user
+    if user is None:
+        abort(401)
+    s = SessionLocal()
+    reise = s.query(Dienstreise).filter(Dienstreise.id == reise_id, Dienstreise.user_id == user.id).first()
+    if reise is None:
+        s.close()
+        abort(404)
+    return s, reise
+
+
+def _parse_iso_date(value: str):
+    """Akzeptiert ISO 'YYYY-MM-DD' oder deutsches 'DD.MM.YYYY'."""
+    from datetime import date
+
+    if not value:
+        return None
+    for fmt in ("%Y-%m-%d", "%d.%m.%Y"):
+        try:
+            return date.fromordinal(date.fromisoformat(value).toordinal()) if fmt == "%Y-%m-%d" else None
+        except (ValueError, TypeError):
+            pass
+    try:
+        return date.fromisoformat(value)
+    except ValueError:
+        from datetime import datetime as _dt
+
+        try:
+            return _dt.strptime(value, "%d.%m.%Y").date()
+        except ValueError:
+            return None
+
+
+def _persist_antrag(reise_id_str: str, data: dict, result, pdf_path: str | None) -> int:
+    """Erstellt oder aktualisiert eine Dienstreise. Gibt die ID zurueck.
+
+    ``data`` ist das schon validierte und citation-bereinigte Antrag-JSON,
+    ``result`` das Pydantic-Modell (fuer Plain-Felder wie Zielort/Datum).
+    """
+    from datetime import datetime as _dt
+
+    from db import SessionLocal
+    from models_db import Dienstreise, DienstreiseStatus
+
+    user = g.current_user
+    reise_id = int(reise_id_str) if reise_id_str and reise_id_str.isdigit() else None
+
+    zielort = result.reise_details.zielort if hasattr(result, "reise_details") else None
+    zweck = result.reise_details.zweck if hasattr(result, "reise_details") else None
+    titel = (zweck or zielort or "Dienstreise")[:200]
+
+    start_d = _parse_iso_date(result.reise_details.start_datum) if hasattr(result, "reise_details") else None
+    if not start_d and hasattr(result, "reise_details"):
+        try:
+            start_d = _dt.strptime(result.reise_details.start_datum, "%d.%m.%Y").date()
+        except (ValueError, AttributeError):
+            start_d = None
+    end_d = None
+    if hasattr(result, "reise_details"):
+        try:
+            end_d = _dt.strptime(result.reise_details.ende_datum, "%d.%m.%Y").date()
+        except (ValueError, AttributeError):
+            end_d = None
+
+    persistent_pdf_path = None
+    if pdf_path:
+        target_dir = DATA_DIR / "pdfs" / str(user.id)
+        target_dir.mkdir(parents=True, exist_ok=True)
+
+    with SessionLocal() as s:
+        if reise_id is not None:
+            reise = s.query(Dienstreise).filter(Dienstreise.id == reise_id, Dienstreise.user_id == user.id).first()
+            if reise is None:
+                abort(404)
+            reise.titel = titel
+            reise.zielort = zielort
+            reise.start_datum = start_d
+            reise.ende_datum = end_d
+            reise.antrag_json = data
+        else:
+            reise = Dienstreise(
+                user_id=user.id,
+                titel=titel,
+                zielort=zielort,
+                start_datum=start_d,
+                ende_datum=end_d,
+                antrag_json=data,
+                status=DienstreiseStatus.entwurf,
+            )
+            s.add(reise)
+            s.flush()  # damit reise.id verfuegbar ist
+
+        if pdf_path:
+            target_dir = DATA_DIR / "pdfs" / str(user.id) / str(reise.id)
+            target_dir.mkdir(parents=True, exist_ok=True)
+            persistent_pdf_path = target_dir / "antrag.pdf"
+            shutil.copy2(pdf_path, persistent_pdf_path)
+            reise.antrag_pdf_path = str(persistent_pdf_path)
+
+        s.commit()
+        return reise.id
+
+
+def _persist_abrechnung(reise_id_str: str, data: dict, pdf_path: str | None) -> int | None:
+    """Persistiert die Abrechnung zu einer bestehenden Dienstreise."""
+    from datetime import datetime as _dt
+
+    from db import SessionLocal
+    from models_db import Abrechnung, AbrechnungStatus, Dienstreise, DienstreiseStatus
+
+    if not reise_id_str or not reise_id_str.isdigit():
+        return None
+    reise_id = int(reise_id_str)
+    user = g.current_user
+
+    with SessionLocal() as s:
+        reise = s.query(Dienstreise).filter(Dienstreise.id == reise_id, Dienstreise.user_id == user.id).first()
+        if reise is None:
+            abort(404)
+        abr = s.query(Abrechnung).filter(Abrechnung.dienstreise_id == reise.id).first()
+        if abr is None:
+            abr = Abrechnung(dienstreise_id=reise.id, status=AbrechnungStatus.abgeschlossen)
+            s.add(abr)
+            s.flush()
+        abr.abrechnung_json = data
+        abr.status = AbrechnungStatus.abgeschlossen
+        abr.generated_at = _dt.utcnow()
+
+        if pdf_path:
+            target_dir = DATA_DIR / "pdfs" / str(user.id) / str(reise.id)
+            target_dir.mkdir(parents=True, exist_ok=True)
+            persistent = target_dir / "abrechnung.pdf"
+            shutil.copy2(pdf_path, persistent)
+            abr.abrechnung_pdf_path = str(persistent)
+
+        reise.status = DienstreiseStatus.abgerechnet
+        s.commit()
+        return abr.id
+
+
+@app.route("/dienstreisen/<int:reise_id>/antrag-json", methods=["GET"])
+@auth.login_required
+def dienstreise_antrag_json(reise_id: int):
+    """Pre-Fill fuer den Wizard. Liefert das gespeicherte Antrag-JSON."""
+    s, reise = _get_dienstreise_or_404(reise_id)
+    try:
+        return jsonify(
+            {
+                "id": reise.id,
+                "titel": reise.titel,
+                "status": reise.status.value,
+                "genehmigung_datum": reise.genehmigung_datum.isoformat() if reise.genehmigung_datum else None,
+                "genehmigung_aktenzeichen": reise.genehmigung_aktenzeichen,
+                "antrag_json": reise.antrag_json,
+            }
+        )
+    finally:
+        s.close()
+
+
+@app.route("/dienstreisen/<int:reise_id>/abrechnung-json", methods=["GET"])
+@auth.login_required
+def dienstreise_abrechnung_json(reise_id: int):
+    """Pre-Fill fuer den Abrechnungs-Wizard."""
+    s, reise = _get_dienstreise_or_404(reise_id)
+    try:
+        abr = reise.abrechnung
+        return jsonify(
+            {
+                "id": reise.id,
+                "antrag_json": reise.antrag_json,
+                "abrechnung_json": abr.abrechnung_json if abr else None,
+                "genehmigung_datum": reise.genehmigung_datum.isoformat() if reise.genehmigung_datum else None,
+                "genehmigung_aktenzeichen": reise.genehmigung_aktenzeichen,
+            }
+        )
+    finally:
+        s.close()
+
+
+@app.route("/dienstreisen/<int:reise_id>/genehmigung", methods=["GET"])
+@auth.login_required
+def dienstreise_genehmigung_form(reise_id: int):
+    s, reise = _get_dienstreise_or_404(reise_id)
+    s.close()
+    return render_template("dienstreise_genehmigung.html", reise=reise, **_common_template_ctx())
+
+
+@app.route("/dienstreisen/<int:reise_id>/genehmigung", methods=["POST"])
+@auth.login_required
+def dienstreise_genehmigung_save(reise_id: int):
+    from models_db import DienstreiseStatus
+
+    s, reise = _get_dienstreise_or_404(reise_id)
+    try:
+        datum_raw = (request.form.get("genehmigung_datum") or "").strip()
+        aktenzeichen = (request.form.get("genehmigung_aktenzeichen") or "").strip()[:100] or None
+        d = _parse_iso_date(datum_raw)
+        if d is None:
+            flash("Bitte ein gültiges Genehmigungs-Datum angeben.", "error")
+            return redirect(url_for("dienstreise_genehmigung_form", reise_id=reise_id))
+        reise.genehmigung_datum = d
+        reise.genehmigung_aktenzeichen = aktenzeichen
+        if reise.status == DienstreiseStatus.entwurf or reise.status == DienstreiseStatus.eingereicht:
+            reise.status = DienstreiseStatus.genehmigt
+        s.commit()
+        flash("Genehmigung vermerkt.", "success")
+    finally:
+        s.close()
+    if request.form.get("next") == "abrechnung":
+        return redirect(url_for("abrechnung_index", dienstreise=reise_id))
+    return redirect(url_for("dashboard"))
+
+
+@app.route("/dienstreisen/<int:reise_id>/antrag.pdf", methods=["GET"])
+@auth.login_required
+def dienstreise_antrag_pdf(reise_id: int):
+    s, reise = _get_dienstreise_or_404(reise_id)
+    path = reise.antrag_pdf_path
+    s.close()
+    if not path or not os.path.isfile(path):
+        abort(404)
+    return send_file(path, as_attachment=True, download_name=f"DR-Antrag-{reise_id}.pdf")
+
+
+@app.route("/dienstreisen/<int:reise_id>/abrechnung.pdf", methods=["GET"])
+@auth.login_required
+def dienstreise_abrechnung_pdf(reise_id: int):
+    s, reise = _get_dienstreise_or_404(reise_id)
+    path = reise.abrechnung.abrechnung_pdf_path if reise.abrechnung else None
+    s.close()
+    if not path or not os.path.isfile(path):
+        abort(404)
+    return send_file(path, as_attachment=True, download_name=f"DR-Abrechnung-{reise_id}.pdf")
+
+
+# --- PROFIL (Auth-only) ---
+
+
+_PROFIL_FIELDS_TEXT = {
+    "vorname",
+    "nachname",
+    "abteilung",
+    "telefon",
+    "adresse_privat",
+    "iban",
+    "bic",
+    "mitreisender_name_default",
+    "rkr_default",
+    "abrechnende_dienststelle",
+    "ai_provider_default",
+}
+
+
+def _profile_to_dict(profile) -> dict:
+    return {f: getattr(profile, f, None) or "" for f in _PROFIL_FIELDS_TEXT} | {
+        "bahncards": profile.bahncards if profile and profile.bahncards else {}
+    }
+
+
+@app.route("/profil", methods=["GET"])
+@auth.login_required
+def profil_view():
+    from db import SessionLocal
+    from models_db import UserProfile
+
+    with SessionLocal() as s:
+        profile = s.query(UserProfile).filter(UserProfile.user_id == g.current_user.id).first()
+        if profile is None:
+            profile = UserProfile(user_id=g.current_user.id)
+            s.add(profile)
+            s.commit()
+            s.refresh(profile)
+        s.expunge_all()
+    return render_template("profil.html", profile=profile, **_common_template_ctx())
+
+
+@app.route("/profil", methods=["POST"])
+@auth.login_required
+def profil_save():
+    from db import SessionLocal
+    from models_db import UserProfile
+
+    with SessionLocal() as s:
+        profile = s.query(UserProfile).filter(UserProfile.user_id == g.current_user.id).first()
+        if profile is None:
+            profile = UserProfile(user_id=g.current_user.id)
+            s.add(profile)
+        for field in _PROFIL_FIELDS_TEXT:
+            val = (request.form.get(field) or "").strip()
+            setattr(profile, field, val[:500] if val else None)
+        # BahnCards als simple flag-Sammlung
+        bcs = {
+            "bcb_1": request.form.get("bahncard_bcb_1") == "1",
+            "bcb_2": request.form.get("bahncard_bcb_2") == "1",
+            "bc25_1": request.form.get("bahncard_bc25_1") == "1",
+            "bc25_2": request.form.get("bahncard_bc25_2") == "1",
+            "bc50_1": request.form.get("bahncard_bc50_1") == "1",
+            "bc50_2": request.form.get("bahncard_bc50_2") == "1",
+            "bc100_1": request.form.get("bahncard_bc100_1") == "1",
+            "bc100_2": request.form.get("bahncard_bc100_2") == "1",
+            "grosskunde_1": request.form.get("grosskunde_1") == "1",
+            "grosskunde_2": request.form.get("grosskunde_2") == "1",
+        }
+        profile.bahncards = bcs
+        s.commit()
+    flash("Profil gespeichert.", "success")
+    return redirect(url_for("profil_view"))
+
+
+@app.route("/profil/json", methods=["GET"])
+@auth.login_required
+def profil_json():
+    """Liefert das Profil als JSON fuer Wizard-Pre-Fill."""
+    from db import SessionLocal
+    from models_db import UserProfile
+
+    with SessionLocal() as s:
+        profile = s.query(UserProfile).filter(UserProfile.user_id == g.current_user.id).first()
+        if profile is None:
+            return jsonify({})
+        return jsonify(_profile_to_dict(profile))
+
+
+@app.route("/dienstreisen/<int:reise_id>/delete", methods=["POST"])
+@auth.login_required
+def dienstreise_delete(reise_id: int):
+    s, reise = _get_dienstreise_or_404(reise_id)
+    try:
+        # PDFs auf Disk mit aufraeumen
+        target_dir = DATA_DIR / "pdfs" / str(g.current_user.id) / str(reise.id)
+        if target_dir.is_dir():
+            shutil.rmtree(target_dir, ignore_errors=True)
+        s.delete(reise)
+        s.commit()
+        flash("Reise gelöscht.", "success")
+    finally:
+        s.close()
+    return redirect(url_for("dashboard"))
+
+
+# --- ACCOUNT-ANFRAGE (Public) ---
+
+
+@app.route("/account/request", methods=["GET"])
+def account_request_get():
+    return render_template("account_request.html", **_common_template_ctx())
+
+
+@app.route("/account/request", methods=["POST"])
+@limiter.limit("3 per hour")
+def account_request_post():
+    from db import SessionLocal
+    from models_db import AccountRequest
+
+    # Honeypot: Feld 'website' ist fuer Bots gedacht. Mensch sieht es nicht.
+    if request.form.get("website", "").strip():
+        logger.warning("Account-Anfrage: Honeypot-Treffer von %s", request.remote_addr)
+        return redirect(url_for("landing"))
+
+    email = (request.form.get("email", "") or "").strip()[:254]
+    display_name = (request.form.get("display_name", "") or "").strip()[:200]
+    begruendung = (request.form.get("begruendung", "") or "").strip()[:2000]
+
+    if not email or "@" not in email or not display_name:
+        flash("Bitte Name und gültige E-Mail angeben.", "error")
+        return redirect(url_for("account_request_get"))
+
+    with SessionLocal() as session_db:
+        req = AccountRequest(
+            email=email,
+            display_name=display_name,
+            begruendung=begruendung,
+            remote_addr=request.remote_addr,
+        )
+        session_db.add(req)
+        session_db.commit()
+        req_id = req.id
+
+    if ADMIN_EMAIL and app.config["MAIL_SERVER"]:
+        try:
+            mail.send(
+                Message(
+                    subject=f"[dr-automate] Account-Anfrage von {display_name}",
+                    recipients=[ADMIN_EMAIL],
+                    body=(
+                        f"Anfrage-ID: {req_id}\n"
+                        f"Name: {display_name}\n"
+                        f"E-Mail: {email}\n"
+                        f"Quell-IP: {request.remote_addr}\n\n"
+                        f"Begründung:\n{begruendung}\n"
+                    ),
+                )
+            )
+        except Exception:  # pragma: no cover
+            logger.exception("Account-Anfrage-Mail an Admin fehlgeschlagen")
+
+    flash("Anfrage abgesendet. Wir melden uns per E-Mail, sobald der Account freigeschaltet ist.", "success")
+    return redirect(url_for("landing"))
+
+
+# --- DOCS (Public) ---
+
+
+@app.route("/docs/", defaults={"slug": "getting-started"}, methods=["GET"])
+@app.route("/docs/<slug>", methods=["GET"])
+def docs_view(slug: str):
+    # Whitelist: nur Slugs ohne Pfad-Tricks.
+    if not re.fullmatch(r"[a-z0-9_-]+", slug):
+        abort(404)
+    path = DOCS_DIR / f"{slug}.md"
+    if not path.is_file():
+        abort(404)
+    text = path.read_text(encoding="utf-8")
+    # Markdown -> HTML mit Standard-Extensions (Tabellen, Fenced Code).
+    body = md.markdown(text, extensions=["fenced_code", "tables", "toc", "sane_lists"])
+    pages = sorted(p.stem for p in DOCS_DIR.glob("*.md")) if DOCS_DIR.is_dir() else []
+    return render_template(
+        "docs.html",
+        body=body,
+        slug=slug,
+        pages=pages,
+        **_common_template_ctx(),
+    )
 
 
 @app.route("/example", methods=["GET"])
@@ -212,6 +683,20 @@ def generate():
             output_path = generator.fill_pdf(result.model_dump(), PDF_TEMPLATE_PATH, temp_dir)
             filename = os.path.basename(output_path)
 
+            # Optional persistieren: nur fuer eingeloggte User und nur wenn das
+            # Frontend ``save_to_account=1`` mitschickt. Header ``X-Dienstreise-Id``
+            # in der Response laesst das Frontend wissen, welche Reise verknuepft wurde.
+            response_headers = {}
+            if auth.is_authenticated() and request.form.get("save_to_account") == "1":
+                try:
+                    reise_id = _persist_antrag(
+                        request.form.get("dienstreise_id", ""), data, result, output_path
+                    )
+                    response_headers["X-Dienstreise-Id"] = str(reise_id)
+                    logger.info("Antrag in DB persistiert: reise_id=%s user=%s", reise_id, g.current_user.id)
+                except Exception:
+                    logger.exception("Persistenz fehlgeschlagen — PDF wird trotzdem ausgeliefert")
+
             # Send file to user
             # We use after_this_request to cleanup the temp dir
             @after_this_request
@@ -223,7 +708,10 @@ def generate():
                 return response
 
             logger.info(f"PDF erfolgreich generiert: {filename}")
-            return send_file(output_path, as_attachment=True, download_name=filename)
+            resp = send_file(output_path, as_attachment=True, download_name=filename)
+            for k, v in response_headers.items():
+                resp.headers[k] = v
+            return resp
 
         except Exception as e:
             shutil.rmtree(temp_dir)
@@ -235,6 +723,40 @@ def generate():
     except Exception as e:
         logger.exception(f"Unerwarteter Fehler bei PDF-Generierung: {e}")
         return jsonify({"error": str(e)}), 500
+
+
+@app.route("/extract", methods=["POST"])
+@limiter.limit(f"{RATE_LIMIT} per minute")
+def extract():
+    """Extrahiert aus Freitext via DeepSeek das Antrag-JSON (BYOK).
+
+    Erwartet:
+      Header 'X-DeepSeek-Key': vom User bereitgestellter API-Key (nie geloggt, nie persistiert).
+      Form 'freitext':         Ausschreibung/E-Mail/Notiz.
+      Form 'sonderwuensche':   optional, wird an die User-Message angehängt.
+    """
+    api_key = request.headers.get("X-DeepSeek-Key", "")
+    freitext = request.form.get("freitext", "")
+    sonderwuensche = request.form.get("sonderwuensche", "")
+
+    try:
+        result = ai_extract.call_deepseek(
+            freitext=freitext,
+            api_key=api_key,
+            system_prompt=_load_system_prompt(),
+            sonderwuensche=sonderwuensche,
+        )
+        # Citation-Marker bereinigen (manche LLMs lassen sich davon nicht abhalten).
+        result = _strip_citations(result)
+        logger.info("AI-Extraktion erfolgreich")
+        return jsonify(result)
+    except ai_extract.AIExtractError as e:
+        # Bewusst kein Logging von freitext/api_key — nur Statusmeldung.
+        logger.warning(f"AI-Extraktion fehlgeschlagen: HTTP {e.status_code} — {e}")
+        return jsonify({"error": str(e)}), e.status_code
+    except Exception as e:
+        logger.exception(f"AI-Extraktion unerwarteter Fehler: {type(e).__name__}")
+        return jsonify({"error": "Interner Fehler bei der AI-Extraktion"}), 500
 
 
 @app.route("/abrechnung", methods=["GET"])
@@ -260,10 +782,28 @@ def abrechnung_generate():
             logger.warning(f"Abrechnung: Ungültige JSON-Struktur: {result}")
             return jsonify({"error": f"Validierungsfehler: {result}"}), 400
 
+        # Server-autoritative Berechnung: das vom Wizard mitgeschickte 'berechnet'
+        # wird verworfen und neu gerechnet, damit Kürzungen (Verpflegung) und
+        # Netto-Tagegeld im PDF garantiert mit der NRKVO-Logik übereinstimmen.
+        from abrechnung_calc import berechnung
+        result.berechnet = berechnung(result)
+
         temp_dir = tempfile.mkdtemp()
         try:
             output_path = generator_abrechnung.fill_pdf(result, PDF_TEMPLATE_ABRECHNUNG_PATH, temp_dir)
             filename = os.path.basename(output_path)
+
+            response_headers = {}
+            if auth.is_authenticated() and request.form.get("save_to_account") == "1":
+                try:
+                    abr_id = _persist_abrechnung(
+                        request.form.get("dienstreise_id", ""), data, output_path
+                    )
+                    if abr_id is not None:
+                        response_headers["X-Abrechnung-Id"] = str(abr_id)
+                        logger.info("Abrechnung in DB persistiert: abr_id=%s user=%s", abr_id, g.current_user.id)
+                except Exception:
+                    logger.exception("Abrechnung-Persistenz fehlgeschlagen — PDF wird trotzdem ausgeliefert")
 
             @after_this_request
             def remove_temp_file(response):
@@ -274,7 +814,10 @@ def abrechnung_generate():
                 return response
 
             logger.info(f"Abrechnungs-PDF erfolgreich generiert: {filename}")
-            return send_file(output_path, as_attachment=True, download_name=filename)
+            resp = send_file(output_path, as_attachment=True, download_name=filename)
+            for k, v in response_headers.items():
+                resp.headers[k] = v
+            return resp
         except Exception as e:
             shutil.rmtree(temp_dir)
             raise e
