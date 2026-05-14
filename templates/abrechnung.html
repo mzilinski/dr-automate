@@ -575,8 +575,9 @@
               📅 Aus Reisezeiten vorschlagen
             </button>
             <span class="wiz-hint" style="margin:0;">
-              Schätzt anhand Start/Ende, wie viele Mahlzeiten typischerweise gestellt werden.
-              Werte kannst du korrigieren.
+              Zählt Mahlzeiten nur während des Dienstgeschäfts (nicht auf der Hin-/Rückreise).
+              Frühstück = Anzahl Übernachtungen; Mittag/Abend = volle DG-Tage + Beginn-/Ende-Tag
+              falls die Mahlzeit ins DG-Fenster fällt. Werte ggf. korrigieren.
             </span>
           </div>
 
@@ -1051,43 +1052,51 @@
     // sinnvoller Startwert gedacht, nicht als finale Antwort.
     function suggestVerpflegung() {
       const rd = state.reise_details || {};
-      const startD = parseGermanDate(rd.start_datum);
-      const endeD = parseGermanDate(rd.ende_datum);
-      const startT = rd.start_zeit || '00:00';
-      const endeT = rd.ende_zeit || '23:59';
-      if (!startD || !endeD || endeD < startD) {
-        showAlert('Reisedaten (Schritt 3) unvollständig — bitte Start- und Endzeit eintragen.', 'warning');
+      // Konvention (NRKVO + dienst): Mahlzeiten gibt's nur waehrend des
+      // Dienstgeschaefts. Auf der Hin-/Rueckreise und nach DG-Ende NICHT.
+      const dgStartD = parseGermanDate(rd.dienstgeschaeft_beginn_datum);
+      const dgEndeD = parseGermanDate(rd.dienstgeschaeft_ende_datum);
+      const dgStartT = rd.dienstgeschaeft_beginn_zeit || '';
+      const dgEndeT = rd.dienstgeschaeft_ende_zeit || '';
+      if (!dgStartD || !dgEndeD || !dgStartT || !dgEndeT || dgEndeD < dgStartD) {
+        showAlert('Dienstgeschäft-Zeiten (Schritt 3) unvollständig — Vorschlag braucht Beginn + Ende.', 'warning');
         return;
       }
       const oneDay = 86400000;
-      const overnight = Math.round((endeD - startD) / oneDay);
-      if (overnight < 1) {
-        // Tagesreise: nichts standardmaessig gestellt, User entscheidet
-        showAlert('Eintägige Reise — typischerweise keine unentgeltlichen Mahlzeiten. Trag manuell ein, falls doch.', 'info');
-        return;
-      }
-      const [sh, sm] = startT.split(':').map(Number);
-      const [eh, em] = endeT.split(':').map(Number);
-      const startMin = sh * 60 + (sm || 0);
-      const endeMin = eh * 60 + (em || 0);
-      // 12:00 = Mittag, 18:00 = Abend
-      const anMittag = startMin < 12 * 60 ? 1 : 0;
-      const anAbend = startMin < 18 * 60 ? 1 : 0;
-      const abMittag = endeMin > 12 * 60 ? 1 : 0;
-      const abAbend = endeMin > 18 * 60 ? 1 : 0;
-      const fruehstueck = overnight;            // morgen nach jeder Übernachtung
-      const mittag = anMittag + (overnight - 1) + abMittag;
-      const abend = anAbend + (overnight - 1) + abAbend;
+      const dgNights = Math.max(0, Math.round((dgEndeD - dgStartD) / oneDay));
+      const toMin = (hhmm) => {
+        const [h, m] = hhmm.split(':').map(Number);
+        return h * 60 + (m || 0);
+      };
+      const startMin = toMin(dgStartT);
+      const endeMin = toMin(dgEndeT);
+
+      // Volle Tage zwischen DG-Beginn-Tag und DG-Ende-Tag.
+      const volleTage = dgNights > 0 ? dgNights - 1 : 0;
+
+      // Anteile am DG-Beginn-Tag (wenn DG dort vor der Mahlzeit beginnt).
+      const mittagBeginnTag = startMin <= 12 * 60 + 30 ? 1 : 0;
+      const abendBeginnTag  = startMin <= 18 * 60 + 30 ? 1 : 0;
+      // Anteile am DG-Ende-Tag (nur wenn anderer Tag als DG-Beginn UND DG
+      // bis zur Mahlzeit lief). Frueh­stueck zaehlt fuer jeden Morgen, an
+      // dem man bereits vor Ort uebernachtet hat (= dgNights).
+      const mittagEndeTag = dgNights > 0 && endeMin >= 12 * 60 ? 1 : 0;
+      const abendEndeTag  = dgNights > 0 && endeMin >= 18 * 60 + 30 ? 1 : 0;
+
+      const fruehstueck = dgNights;
+      const mittag = mittagBeginnTag + volleTage + mittagEndeTag;
+      const abend  = abendBeginnTag  + volleTage + abendEndeTag;
 
       state.verpflegung.fruehstueck_anzahl = fruehstueck;
       state.verpflegung.mittag_anzahl = mittag;
       state.verpflegung.abend_anzahl = abend;
-      // Übernachtungen sind sehr oft auch unentgeltlich bei Tagungshaeusern
-      state.uebernachtungen.anzahl_unentgeltlich = overnight;
+      // Uebernachtungen: typischerweise auch vom Veranstalter gestellt
+      state.uebernachtungen.anzahl_unentgeltlich = dgNights;
       syncFormFromState();
       if (typeof recompute === 'function') recompute();
       showAlert(
-        `Vorschlag: ${fruehstueck}× Frühstück, ${mittag}× Mittag, ${abend}× Abend bei ${overnight} Übernachtungen. Bitte prüfen und korrigieren.`,
+        `Vorschlag: ${fruehstueck}× Frühstück, ${mittag}× Mittag, ${abend}× Abend ` +
+        `(Dienstgeschäft ${dgStartT}–${dgEndeT}, ${dgNights} Übernachtungen). Bitte prüfen.`,
         'info'
       );
     }
