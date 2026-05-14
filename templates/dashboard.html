@@ -26,6 +26,8 @@
   table.reisen tr:last-child td{border-bottom:0;}
   .titel{font-weight:600;}
   .meta{color:var(--muted);font-size:.85rem;margin-top:.2rem;}
+  .meta a{color:var(--accent);text-decoration:underline;}
+  .meta a:hover{text-decoration:none;}
   .badge{display:inline-block;font-size:.72rem;font-weight:600;padding:.18rem .55rem;
     border-radius:999px;text-transform:uppercase;letter-spacing:.4px;
     border:1px solid var(--border);background:var(--surface);}
@@ -40,7 +42,7 @@
     text-decoration:none;border:1px solid var(--border);background:var(--surface);
     color:var(--text);cursor:pointer;font:inherit;}
   .actions a:hover, .actions button:hover{background:var(--step-ghost);}
-  .actions a.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent);}
+  .actions a.primary, .actions button.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent);}
   .danger-btn{color:var(--err);border-color:var(--err);}
   .gene-info{color:var(--ok);font-size:.82rem;margin-top:.25rem;}
 </style>
