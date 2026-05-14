@@ -283,8 +283,28 @@
             <strong>Oder: AI macht das direkt für dich.</strong>
             Füge die Ausschreibung/E-Mail unten ein – DeepSeek liefert das JSON nach Schritt&nbsp;02.
           </p>
-          <label class="field-label" for="aiFreitext">Ausschreibung / E-Mail / Notiz</label>
-          <textarea id="aiFreitext" rows="8" placeholder="Originaltext der Ausschreibung hier einfügen …"></textarea>
+
+          <!-- PDF-Upload-Zone: Klick oder Drag&Drop -->
+          <label class="field-label">Ausschreibung als PDF (optional)</label>
+          <div id="pdfDropZone" style="border:2px dashed var(--border); border-radius:.6rem;
+            padding:1rem; text-align:center; cursor:pointer; transition:all .15s;
+            background:var(--surface); color:var(--muted); font-size:.92rem;">
+            <input type="file" id="pdfFile" accept="application/pdf,.pdf" style="display:none;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+              style="display:inline-block; vertical-align:-5px; margin-right:.4rem;">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            <span id="pdfDropLabel">PDF hierher ziehen oder klicken zum Auswählen</span>
+            <div id="pdfFileInfo" style="margin-top:.4rem; color:var(--ok); font-size:.85rem; display:none;"></div>
+          </div>
+
+          <label class="field-label" for="aiFreitext" style="margin-top:1rem;">
+            Ausschreibung / E-Mail / Notiz <small style="color:var(--muted);">(optional, wenn PDF hochgeladen)</small>
+          </label>
+          <textarea id="aiFreitext" rows="8" placeholder="Originaltext der Ausschreibung hier einfügen — oder PDF oben hochladen, und nur Anmerkungen/Korrekturen hier."></textarea>
           <div class="btn-row" style="margin-top:.85rem; align-items:center;">
             <button type="button" class="btn btn-primary" id="aiExtractBtn" onclick="extractWithAI()">
               Mit AI extrahieren
@@ -673,8 +693,9 @@
         return;
       }
       const freitext = document.getElementById('aiFreitext').value.trim();
-      if (!freitext) {
-        showAlert('Bitte zuerst die Ausschreibung/E-Mail einfügen.', 'warning');
+      const pdfFile = document.getElementById('pdfFile').files[0];
+      if (!freitext && !pdfFile) {
+        showAlert('Bitte Ausschreibung als Text einfügen oder PDF hochladen.', 'warning');
         return;
       }
 
@@ -682,13 +703,16 @@
       const status = document.getElementById('aiExtractStatus');
       btn.disabled = true;
       btn.textContent = 'Extrahiere …';
-      status.textContent = 'DeepSeek arbeitet, das kann 10–30 Sekunden dauern.';
+      status.textContent = pdfFile
+        ? 'PDF wird gelesen + DeepSeek befragt (15–40 Sekunden) …'
+        : 'DeepSeek arbeitet, das kann 10–30 Sekunden dauern.';
 
       try {
         const fd = new FormData();
         fd.append('freitext', freitext);
         fd.append('sonderwuensche', document.getElementById('sonderwuensche').value.trim());
         fd.append('csrf_token', document.querySelector('input[name="csrf_token"]').value);
+        if (pdfFile) fd.append('pdf', pdfFile);
 
         const res = await fetch('/extract', {
           method: 'POST',
@@ -787,6 +811,50 @@
       validateJSON();
       if (changed) showAlert('KI-Output automatisch bereinigt (Markdown, Begleittext, Zitatmarker).', 'info');
     });
+
+    // ── PDF-Upload: File-Input + Drag&Drop ───────────────────────────
+    (function() {
+      const zone = document.getElementById('pdfDropZone');
+      const input = document.getElementById('pdfFile');
+      const label = document.getElementById('pdfDropLabel');
+      const info = document.getElementById('pdfFileInfo');
+      if (!zone || !input) return;
+
+      function setFile(file) {
+        if (!file) return;
+        if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+          showAlert('Nur PDF-Dateien werden akzeptiert.', 'warning');
+          return;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+          showAlert('PDF zu groß (max 10 MB).', 'warning');
+          return;
+        }
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        input.files = dt.files;
+        label.textContent = 'PDF bereit:';
+        info.style.display = 'block';
+        info.textContent = `✓ ${file.name} (${(file.size/1024).toFixed(0)} KB) — beim Klick auf "Mit AI extrahieren" wird der Text extrahiert.`;
+      }
+
+      zone.addEventListener('click', () => input.click());
+      input.addEventListener('change', () => setFile(input.files[0]));
+
+      ['dragenter','dragover'].forEach(ev => zone.addEventListener(ev, e => {
+        e.preventDefault(); e.stopPropagation();
+        zone.style.borderColor = 'var(--accent)';
+        zone.style.background = 'var(--accent-subtle)';
+      }));
+      ['dragleave','drop'].forEach(ev => zone.addEventListener(ev, e => {
+        e.preventDefault(); e.stopPropagation();
+        zone.style.borderColor = 'var(--border)';
+        zone.style.background = 'var(--surface)';
+      }));
+      zone.addEventListener('drop', e => {
+        if (e.dataTransfer.files.length) setFile(e.dataTransfer.files[0]);
+      });
+    })();
 
     // ── Save-Status-Indikator (nur fuer eingeloggte User) ────────────
     function updateSaveStatusBadge() {
