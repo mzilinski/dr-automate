@@ -17,7 +17,7 @@ Diese Seite erklärt, was dr-automate mit deinen Daten macht – und was nicht.
 |---|---|---|
 | SQLite-DB | Benutzername (Authelia-Remote-User), E-Mail, Display-Name, last_login | nein – wird zum Login-Lookup gebraucht |
 | SQLite-DB | Vorname, Nachname, Abteilung, Telefon | nein – non-sensible Identifikation |
-| SQLite-DB | **Adresse, IBAN, BIC, BahnCards** | **ja, Fernet (AES-128-CBC + HMAC-SHA256)** |
+| SQLite-DB | **Adresse, IBAN, BIC, BahnCards, DeepSeek-API-Key** | **ja, Fernet (AES-128-CBC + HMAC-SHA256)** |
 | SQLite-DB | Reise-Metadaten (Titel, Zielort, Datum, Status, Genehmigungs-Datum/Aktenzeichen) | nein – wird zum Sortieren/Filtern auf dem Dashboard gebraucht |
 | SQLite-DB | **Volles Antrag-/Abrechnungs-JSON** | **ja, Fernet** |
 | Dateisystem | Generierte PDFs (`data/pdfs/<user_id>/<reise_id>/...`) | nein – PDFs liegen im persistenten Volume, Permissions 0700 für den App-Container-User |
@@ -26,9 +26,10 @@ Encryption-Key (`DR_AUTOMATE_ENCRYPTION_KEY`) liegt in einem Ansible-Vault, getr
 
 ## Was wird **nicht** gespeichert?
 
-- **Keine DeepSeek-API-Keys.** Der Key kommt per Request-Header `X-DeepSeek-Key` an den Server und wird ausschließlich für den aktuellen API-Call verwendet. Kein Logging des Keys, keine Persistenz, keine Weitergabe.
+- **Im Gast-Modus** keine DeepSeek-API-Keys: Der Key kommt per Request-Header `X-DeepSeek-Key` an den Server, wird ausschließlich für den aktuellen API-Call verwendet und sofort verworfen.
+- **Im Account-Modus** *kann* der DeepSeek-Key optional im Profil hinterlegt werden (Multi-Device-Komfort). Dann liegt er Fernet-verschlüsselt in der `user_profiles`-Tabelle und wird im `/extract`-Endpoint als Fallback genutzt, wenn der Wizard keinen Header mitschickt. Der Key kann jederzeit über das Profil-Formular gelöscht werden.
 - **Keine Freitext-Eingaben aus der KI-Extraktion** über den Request-Scope hinaus. Logs enthalten den HTTP-Status, nicht den Inhalt.
-- **Keine Klartext-IBANs in Backups.** Backup-Tooling sieht nur die verschlüsselten Tokens.
+- **Keine Klartext-IBANs / Klar-Keys in Backups.** Backup-Tooling sieht nur die verschlüsselten Tokens.
 
 ## Authentifizierung
 

@@ -465,10 +465,18 @@ _PROFIL_FIELDS_TEXT = {
 }
 
 
-def _profile_to_dict(profile) -> dict:
-    return {f: getattr(profile, f, None) or "" for f in _PROFIL_FIELDS_TEXT} | {
-        "bahncards": profile.bahncards if profile and profile.bahncards else {}
-    }
+def _profile_to_dict(profile, include_secrets: bool = False) -> dict:
+    """Default: Secrets (Keys) werden NICHT mitgeliefert, nur als bool ``has_deepseek_api_key``.
+
+    Auf ``include_secrets=True`` liefert die Funktion auch den Klar-Key zurueck —
+    fuer Anwendungsfaelle wie der Wizard, der den Key per Header weiterleiten will.
+    """
+    base = {f: getattr(profile, f, None) or "" for f in _PROFIL_FIELDS_TEXT}
+    base["bahncards"] = profile.bahncards if profile and profile.bahncards else {}
+    base["has_deepseek_api_key"] = bool(getattr(profile, "deepseek_api_key", None))
+    if include_secrets:
+        base["deepseek_api_key"] = getattr(profile, "deepseek_api_key", None) or ""
+    return base
 
 
 @app.route("/profil", methods=["GET"])
@@ -502,6 +510,15 @@ def profil_save():
         for field in _PROFIL_FIELDS_TEXT:
             val = (request.form.get(field) or "").strip()
             setattr(profile, field, val[:500] if val else None)
+        # DeepSeek-API-Key: Leave-empty-to-keep — leerer Submit ueberschreibt
+        # einen bestehenden Key NICHT (typische Pattern fuer Password-Felder).
+        # Loeschen geht via separatem Checkbox "clear_deepseek_api_key".
+        if request.form.get("clear_deepseek_api_key") == "1":
+            profile.deepseek_api_key = None
+        else:
+            new_key = (request.form.get("deepseek_api_key") or "").strip()
+            if new_key:
+                profile.deepseek_api_key = new_key[:200]
         # BahnCards als simple flag-Sammlung
         bcs = {
             "bcb_1": request.form.get("bahncard_bcb_1") == "1",
@@ -524,15 +541,23 @@ def profil_save():
 @app.route("/profil/json", methods=["GET"])
 @auth.login_required
 def profil_json():
-    """Liefert das Profil als JSON fuer Wizard-Pre-Fill."""
+    """Liefert das Profil als JSON fuer Wizard-Pre-Fill.
+
+    Der DeepSeek-Key wird NICHT als Klartext ausgeliefert — nur als
+    ``has_deepseek_api_key: bool``. Wer den Key explizit braucht, ruft
+    ``/profil/json?include_secrets=1`` auf; das ist der einzige Pfad,
+    auf dem der Klar-Key den Server verlaesst — und auch nur in eine
+    authenticated Session des Owners.
+    """
     from db import SessionLocal
     from models_db import UserProfile
 
+    include_secrets = request.args.get("include_secrets") == "1"
     with SessionLocal() as s:
         profile = s.query(UserProfile).filter(UserProfile.user_id == g.current_user.id).first()
         if profile is None:
             return jsonify({})
-        return jsonify(_profile_to_dict(profile))
+        return jsonify(_profile_to_dict(profile, include_secrets=include_secrets))
 
 
 @app.route("/dienstreisen/<int:reise_id>/delete", methods=["POST"])
@@ -736,6 +761,16 @@ def extract():
       Form 'sonderwuensche':   optional, wird an die User-Message angehängt.
     """
     api_key = request.headers.get("X-DeepSeek-Key", "")
+    # Fallback: wenn der Header leer ist UND der User authentifiziert ist,
+    # holen wir den Key aus dem verschluesselten Server-Profil.
+    if not api_key and auth.is_authenticated():
+        from db import SessionLocal
+        from models_db import UserProfile
+
+        with SessionLocal() as s:
+            profile = s.query(UserProfile).filter(UserProfile.user_id == g.current_user.id).first()
+            if profile and profile.deepseek_api_key:
+                api_key = profile.deepseek_api_key
     freitext = request.form.get("freitext", "")
     sonderwuensche = request.form.get("sonderwuensche", "")
 

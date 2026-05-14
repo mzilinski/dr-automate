@@ -92,6 +92,31 @@
     </label>
   </div>
 
+  <h3>DeepSeek API-Key</h3>
+  <p style="font-size:.85rem;color:var(--muted);margin-bottom:.4rem;">
+    Optional. Wird nur fuer die KI-Freitextextraktion im Wizard verwendet.
+    Liegt verschlüsselt in der Datenbank (Fernet) — wenn du auf mehreren
+    Geräten arbeitest, brauchst du ihn nur einmal hier eintragen.
+  </p>
+  {% if profile.deepseek_api_key %}
+    <p class="help" style="color:var(--ok);">✓ API-Key ist gesetzt — Feld leer lassen, um ihn beizubehalten.</p>
+  {% else %}
+    <p class="help">Noch kein API-Key gespeichert. Holst du dir bei
+      <a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener">platform.deepseek.com</a>.
+    </p>
+  {% endif %}
+  <label>API-Key
+    <input type="password" name="deepseek_api_key" autocomplete="off"
+      placeholder="{% if profile.deepseek_api_key %}•••• (gesetzt — leer lassen zum Beibehalten){% else %}sk-...{% endif %}"
+      maxlength="200">
+  </label>
+  {% if profile.deepseek_api_key %}
+  <label class="check-row" style="margin-top:.5rem;">
+    <input type="checkbox" name="clear_deepseek_api_key" value="1">
+    <span>Gespeicherten API-Key entfernen</span>
+  </label>
+  {% endif %}
+
   <h3>BahnCards &amp; Großkundenrabatte</h3>
   {% set bcs = profile.bahncards or {} %}
   <p style="font-size:.85rem;color:var(--muted);margin-bottom:.4rem;">Person 1 = Antragsteller:in, Person 2 = Mitreisende:r</p>

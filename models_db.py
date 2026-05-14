@@ -90,6 +90,10 @@ class UserProfile(Base):
     # BahnCards: JSON-Blob fuer flexible Struktur (Type, Klasse, etc.).
     bahncards: Mapped[dict | None] = mapped_column(EncryptedJSON(4096))
     ai_provider_default: Mapped[str | None] = mapped_column(String(50))
+    # DeepSeek-API-Key: verschluesselt, weil API-Credentials wie Finanz-Daten
+    # behandelt werden. Fallback in /extract, wenn kein X-DeepSeek-Key-Header
+    # mitkommt. Multi-Device-Support: einmal eintragen, ueberall verfuegbar.
+    deepseek_api_key: Mapped[str | None] = mapped_column(EncryptedString(512))
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
     )
