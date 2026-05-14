@@ -92,6 +92,18 @@
     </label>
   </div>
 
+  <h3>Speicherung</h3>
+  <label class="check-row" style="margin-top:.4rem;">
+    <input type="checkbox" name="auto_save_dienstreisen" value="1"
+      {% if profile.auto_save_dienstreisen is none or profile.auto_save_dienstreisen %}checked{% endif %}>
+    <span>Reisen + erzeugte PDFs automatisch in meinem Konto speichern</span>
+  </label>
+  <p class="help" style="margin-top:.4rem;">
+    Wenn aktiv: Sobald du im Wizard „PDF erstellen" klickst, wird die Reise
+    inkl. PDF in deinem Dashboard abgelegt. Ausschalten z.B. wenn du eine
+    Probe-Reise nur lokal abwickeln willst.
+  </p>
+
   <h3>DeepSeek API-Key</h3>
   <p style="font-size:.85rem;color:var(--muted);margin-bottom:.4rem;">
     Optional. Wird nur fuer die KI-Freitextextraktion im Wizard verwendet.
