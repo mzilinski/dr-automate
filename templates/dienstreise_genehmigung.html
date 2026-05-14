@@ -23,8 +23,15 @@
 {% block content %}
 <form class="form-card" method="post"
       action="{{ url_for('dienstreise_genehmigung_save', reise_id=reise.id) }}">
-  <h1>Genehmigung vermerken</h1>
+  <h1>Genehmigung {% if reise.genehmigung_datum %}bearbeiten{% else %}vermerken{% endif %}</h1>
   <p class="sub">{{ reise.titel }}{% if reise.zielort %} · {{ reise.zielort }}{% endif %}</p>
+  {% if reise.genehmigung_datum %}
+  <p style="background:var(--info-subtle);border:1px solid var(--border);padding:.55rem .8rem;
+    border-radius:.4rem;font-size:.88rem;margin-bottom:1rem;">
+    Aktuell hinterlegt: <strong>{{ reise.genehmigung_datum.strftime("%d.%m.%Y") }}</strong>{% if reise.genehmigung_aktenzeichen %} · AZ {{ reise.genehmigung_aktenzeichen }}{% endif %}.
+    Du kannst den Eintrag jederzeit korrigieren.
+  </p>
+  {% endif %}
 
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
