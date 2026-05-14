@@ -58,9 +58,13 @@ und nur auf explizite Aktion des Nutzers:
    der Nutzer selbst.
 2. **OpenStreetMap-Stiftung (Nominatim) und OSRM-Demo-Service (Heidelberg
    Institute for Geoinformation Technology)** — beim Klick auf „Entfernung
-   schätzen" werden die eingegebenen Adressen an `nominatim.openstreetmap.org`
-   (Geocoding) und `router.project-osrm.org` (Routing) gesendet.
-   Keine Account-Anlage, keine Cookies, keine Korrelation mit User-Identität.
+   schätzen" werden die in diesem Dialog eingegebenen Adressen
+   (Start + Ziel, vom Nutzer dort *aktiv eingetragen*) an
+   `nominatim.openstreetmap.org` (Geocoding) und `router.project-osrm.org`
+   (Routing) gesendet. **Profildaten werden nicht automatisch übermittelt** —
+   nur was im Routing-Dialog steht. Keine Account-Anlage, keine Cookies,
+   keine Korrelation mit User-Identität auf Empfänger-Seite. Beide Dienste
+   sind in Deutschland gehostet.
 
 Außer diesen Fällen verlassen Daten den Server **nicht**.
 
@@ -82,11 +86,20 @@ Außer diesen Fällen verlassen Daten den Server **nicht**.
 - Application-Logs: User-Aktionen (Reise angelegt/aktualisiert/gelöscht,
   Profil gespeichert), nie sensible Felder.
 
+## Hosting und Server-Standort
+
+- Anwendungs-Server: VPS in **Deutschland**, betrieben unter eigener Verantwortung
+  (kein Public Cloud-Anbieter mit Drittlandbezug, keine Auftragsverarbeitung
+  außerhalb der EU).
+- Reverse-Proxy + Auth-Layer: Traefik + Authelia, gleicher Standort.
+- Daten verlassen den Server nur in den oben unter „Drittanbieter" beschriebenen
+  Fällen — alles andere bleibt on-premise.
+
 ## Backups
 
 Tägliches Backup der SQLite-DB. Verschlüsselte Felder bleiben verschlüsselt
-(gewollt). Aufbewahrung: 30 Tage. Backups liegen ausschließlich auf eigenen,
-in Deutschland betriebenen Servern.
+(gewollt — der Encryption-Key liegt separat im Ansible-Vault, nicht im Backup-
+Image). Aufbewahrung: 30 Tage. Backups liegen ebenfalls in Deutschland.
 
 ## Deine Rechte (DSGVO)
 
@@ -114,6 +127,11 @@ in Deutschland betriebenen Servern.
 - IDOR-Schutz: jeder Account sieht nur seine eigenen Reisen
 
 Technische Details: [/docs/security](/docs/security).
+
+## Haftung und Gewähr
+
+Für die Funktionsweise, Verfügbarkeit und Korrektheit der erzeugten PDFs +
+NRKVO-Berechnungen siehe separate [Haftungs- und Nutzungshinweise](/docs/haftung).
 
 ## Änderungen
 

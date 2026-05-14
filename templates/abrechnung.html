@@ -571,17 +571,8 @@
             Aktuelle Kürzungen bei gestellten Mahlzeiten:
             Frühstück 5,60 € · Mittag 11,20 € · Abend 11,20 € (vom vollen Tagegeld 28 €).
             Sind alle Mahlzeiten gestellt → Tagegeld geht automatisch auf 0.
-          </div>
-
-          <div class="check-row" style="margin-bottom:.7rem;">
-            <input type="checkbox" id="f_verz_tageg_quick" data-bind="verzicht_erklaerung.verzicht_tagegeld">
-            <label for="f_verz_tageg_quick">
-              <strong>Verzicht auf Tagegeld</strong>
-              <span class="wiz-hint" style="display:inline; margin-left:.4rem;">
-                (Alternativer Shortcut: Tagegeld komplett auf 0 setzen, ohne Mahlzeiten zu zählen.
-                Selbe Wirkung wie unter Schritt 8 — dieselbe Checkbox.)
-              </span>
-            </label>
+            Wer komplett darauf verzichten will, nutzt die Checkbox
+            <em>„Verzicht auf Tagegeld"</em> in Schritt 8.
           </div>
 
           <div style="margin-bottom:.7rem; display:flex; align-items:center; gap:.7rem; flex-wrap:wrap;">
@@ -902,6 +893,8 @@
         <a href="{{ impressum_url }}">Impressum</a>
         <span class="sep">·</span>
         <a href="{{ datenschutz_url }}">Datenschutz</a>
+        <span class="sep">·</span>
+        <a href="{{ url_for('docs_view', slug='haftung') }}">Haftung</a>
         <span class="sep">·</span>
         <a href="{{ url_for('health_check') }}" target="_blank">Status</a>
         {% if is_authenticated %}<span class="sep">·</span><a href="{{ authelia_logout_url }}">Abmelden</a>{% endif %}
