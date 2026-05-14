@@ -225,6 +225,8 @@
         Object.keys(seed).forEach(function(k) {
           if (seed[k]) existing[k] = seed[k];
         });
+        // Server-Key-Marker (Klar-Key bleibt serverseitig, hier nur bool)
+        if (seed.has_deepseek_api_key) existing.has_server_deepseek_key = true;
         localStorage.setItem('dr_profile', JSON.stringify(existing));
       } catch (e) { console.error('Profile seed failed:', e); }
     })();
@@ -997,11 +999,22 @@
     });
 
     // ── Alerts ──────────────────────────────────────────────────────
+    // msg wird via textContent gesetzt — KEIN innerHTML, damit
+    // Server-Fehlertexte / Dateinamen nicht als HTML interpretiert werden
+    // (XSS-Schutz). type ist auf Allowlist begrenzt.
     function showAlert(msg, type = 'danger') {
       const stack = document.getElementById('alertStack');
+      const safeType = ['danger','warning','success','info'].includes(type) ? type : 'danger';
       const el = document.createElement('div');
-      el.className = `alert alert-${type}`;
-      el.innerHTML = `<span>${msg}</span><button class="alert-close" onclick="this.closest('.alert').remove()">✕</button>`;
+      el.className = `alert alert-${safeType}`;
+      const span = document.createElement('span');
+      span.textContent = String(msg);
+      const btn = document.createElement('button');
+      btn.className = 'alert-close';
+      btn.textContent = '✕';
+      btn.addEventListener('click', () => el.remove());
+      el.appendChild(span);
+      el.appendChild(btn);
       stack.appendChild(el);
       setTimeout(() => el.remove(), 7000);
     }
@@ -1045,7 +1058,8 @@
 
       // AI-Extraktionsblock nur zeigen, wenn DeepSeek-Key hinterlegt ist
       const aiBlock = document.getElementById('aiExtractBlockAbr');
-      if (aiBlock) aiBlock.style.display = p.deepseek_api_key ? 'block' : 'none';
+      const hasAiKey = !!(p.deepseek_api_key || p.has_server_deepseek_key);
+      if (aiBlock) aiBlock.style.display = hasAiKey ? 'block' : 'none';
     }
 
     // ── Verpflegung-Vorschlag aus Reisezeiten ─────────────────────────
@@ -1156,12 +1170,22 @@
       }
     }
 
-    // ── AI-Direktextraktion (BYOK) ──────────────────────────────────
+    // ── AI-Direktextraktion ──────────────────────────────────────────
+    // Auth-User nutzen Server-Fallback (Key bleibt verschluesselt in DB,
+    // wird NICHT ins Template gerendert). Gast-User: localStorage-Key
+    // als Header (BYOK).
     async function extractWithAIAbr() {
-      const profile = loadProfile();
-      const apiKey = profile?.deepseek_api_key?.trim();
-      if (!apiKey) {
+      const profile = loadProfile() || {};
+      const guestKey = profile.deepseek_api_key?.trim();
+      const hasServerKey = !!profile.has_server_deepseek_key;
+      const isAuth = {{ 'true' if is_authenticated else 'false' }};
+      if (!isAuth && !guestKey) {
         showAlert('Kein DeepSeek-API-Key im Profil hinterlegt. Trag den Key im Antrag-Profil-Wizard ein.', 'warning');
+        return;
+      }
+      if (isAuth && !guestKey && !hasServerKey) {
+        showAlert('Kein DeepSeek-API-Key — bitte im Server-Profil hinterlegen.', 'warning');
+        window.location.href = '{{ url_for("profil_view") }}';
         return;
       }
       const freitext = document.getElementById('aiFreitextAbr').value.trim();
@@ -1181,9 +1205,10 @@
         fd.append('freitext', freitext);
         fd.append('csrf_token', document.querySelector('input[name=csrf_token]').value);
 
+        const headers = guestKey ? { 'X-DeepSeek-Key': guestKey } : {};
         const res = await fetch('/extract', {
           method: 'POST',
-          headers: { 'X-DeepSeek-Key': apiKey },
+          headers: headers,
           body: fd,
         });
 
@@ -1302,9 +1327,14 @@
       return new Date(+m[3], +m[2] - 1, +m[1], +t[1], +t[2]);
     }
     function tagegeldTage(start, ende) {
+      // Spiegelt abrechnung_calc.tagegeld_tage (Python ist autoritativ):
+      //   < 8 h Abwesenheit → kein Tagegeld
+      //   8–24 h            → 1 Teiltag (auch bei Mitternachts-Uebergang)
+      //   ≥ 24 h            → volle Tage zwischen Anreise- und Abreise-Tag + 2 Teiltage
       if (!start || !ende || ende < start) return [0, 0];
-      const sameDay = start.toDateString() === ende.toDateString();
-      if (sameDay) return [0, (ende - start) / 60000 > 8 * 60 ? 1 : 0];
+      const totalHours = (ende - start) / 3600000;
+      if (totalHours < 8) return [0, 0];
+      if (totalHours < 24) return [0, 1];
       const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
       const endeDay = new Date(ende.getFullYear(), ende.getMonth(), ende.getDate());
       const diffDays = Math.round((endeDay - startDay) / (24 * 3600 * 1000));

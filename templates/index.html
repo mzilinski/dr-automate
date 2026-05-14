@@ -67,10 +67,16 @@
           }
           existing.adresse = seed.adresse;
         }
+        // Wenn Auth-User einen Server-Key hat, im localStorage einen
+        // Marker setzen (NICHT den Key selbst — der bleibt serverseitig).
+        // applyProfile() liest das, um den AI-Block sichtbar zu schalten.
+        if (seed.has_deepseek_api_key) {
+          existing.has_server_deepseek_key = true;
+        }
         localStorage.setItem('dr_profile', JSON.stringify(existing));
         // body.has-ai-key sofort setzen, sobald DOM da ist — verhindert
         // Flash-of-Wrong-Workflow vor applyProfile().
-        if (seed.deepseek_api_key) {
+        if (seed.has_deepseek_api_key || existing.deepseek_api_key) {
           document.addEventListener('DOMContentLoaded', function() {
             document.body.classList.add('has-ai-key');
           });
@@ -460,11 +466,22 @@
     });
 
     // ── Alerts ───────────────────────────────────────────────────────
+    // msg wird via textContent gesetzt — KEIN innerHTML, damit
+    // Server-Fehlertexte / Dateinamen nicht als HTML interpretiert werden
+    // (XSS-Schutz). type ist auf Allowlist begrenzt.
     function showAlert(msg, type = 'danger') {
       const stack = document.getElementById('alertStack');
+      const safeType = ['danger','warning','success','info'].includes(type) ? type : 'danger';
       const el = document.createElement('div');
-      el.className = `alert alert-${type}`;
-      el.innerHTML = `<span>${msg}</span><button class="alert-close" onclick="this.closest('.alert').remove()">✕</button>`;
+      el.className = `alert alert-${safeType}`;
+      const span = document.createElement('span');
+      span.textContent = String(msg);
+      const btn = document.createElement('button');
+      btn.className = 'alert-close';
+      btn.textContent = '✕';
+      btn.addEventListener('click', () => el.remove());
+      el.appendChild(span);
+      el.appendChild(btn);
       stack.appendChild(el);
       setTimeout(() => el.remove(), 7000);
     }
@@ -502,7 +519,10 @@
       // Wenn kein Key: Prompt-Copy primaer, AI-Block ausgeblendet.
       const aiBlock = document.getElementById('aiExtractBlock');
       const promptDetails = document.querySelector('.prompt-copy-section');
-      if (p.deepseek_api_key) {
+      // AI verfuegbar, wenn entweder localStorage-Key (Gast-BYOK) ODER
+      // Server-Profil-Key (Auth-User, has_server_deepseek_key Marker).
+      const hasAiKey = !!(p.deepseek_api_key || p.has_server_deepseek_key);
+      if (hasAiKey) {
         document.body.classList.add('has-ai-key');
         if (aiBlock) aiBlock.style.display = 'block';
         if (promptDetails) promptDetails.open = false;
@@ -688,18 +708,23 @@
       } catch(e) { showAlert('Fehler: ' + e.message); }
     }
 
-    // ── AI-Direktextraktion (BYOK) ───────────────────────────────────
+    // ── AI-Direktextraktion ──────────────────────────────────────────
+    // Auth-User: Key bleibt serverseitig im verschluesselten Profil. Wir
+    //   senden den Header gar nicht — /extract holt den Key aus der DB
+    //   (vermindert XSS-Risiko, kein Klartext-Key im HTML).
+    // Gast: Key ist im localStorage (BYOK) und geht als Header mit.
     async function extractWithAI() {
       const profile = getProfile();
-      const apiKey = profile?.deepseek_api_key?.trim();
-      if (!apiKey) {
-        if (IS_AUTHENTICATED) {
-          showAlert('Kein DeepSeek-API-Key — bitte im Server-Profil hinterlegen.', 'warning');
-          window.location.href = '{{ url_for("profil_view") }}';
-        } else {
-          showAlert('Kein DeepSeek-API-Key im Profil hinterlegt.', 'warning');
-          openWizard();
-        }
+      const guestKey = profile?.deepseek_api_key?.trim();
+      const hasServerKey = !!profile?.has_server_deepseek_key;
+      if (!IS_AUTHENTICATED && !guestKey) {
+        showAlert('Kein DeepSeek-API-Key im Profil hinterlegt.', 'warning');
+        openWizard();
+        return;
+      }
+      if (IS_AUTHENTICATED && !guestKey && !hasServerKey) {
+        showAlert('Kein DeepSeek-API-Key — bitte im Server-Profil hinterlegen.', 'warning');
+        window.location.href = '{{ url_for("profil_view") }}';
         return;
       }
       const freitext = document.getElementById('aiFreitext').value.trim();
@@ -724,9 +749,11 @@
         fd.append('csrf_token', document.querySelector('input[name="csrf_token"]').value);
         if (pdfFile) fd.append('pdf', pdfFile);
 
+        // Header nur bei Gast-Modus mitsenden (BYOK). Auth-User: Server-Fallback.
+        const headers = guestKey ? { 'X-DeepSeek-Key': guestKey } : {};
         const res = await fetch('/extract', {
           method: 'POST',
-          headers: { 'X-DeepSeek-Key': apiKey },
+          headers: headers,
           body: fd,
         });
 

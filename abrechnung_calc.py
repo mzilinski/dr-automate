@@ -79,8 +79,22 @@ def berechnung(data: AbrechnungData) -> BerechneteWerte:
         kuerzung = 0.0
         tagegeld_brutto = 0.0
 
-    # 3. Übernachtungsgeld pauschal (20 €/Nacht, max 14)
-    naechte = min(data.uebernachtungen.anzahl_pauschal, r.UEBERNACHTUNG_PAUSCHAL_MAX_NAECHTE)
+    # 3. Übernachtungsgeld pauschal (20 €/Nacht, max 14, plausibilisiert
+    #    gegen tatsaechliche Reisedauer — bei eintaegiger Reise sind 0
+    #    Naechte moeglich, bei n-Tage-Reise max n Naechte).
+    max_naechte_real = max(0, (ende.date() - start.date()).days)
+    naechte_input = data.uebernachtungen.anzahl_pauschal
+    naechte = min(
+        naechte_input,
+        r.UEBERNACHTUNG_PAUSCHAL_MAX_NAECHTE,
+        max_naechte_real,
+    )
+    if naechte < naechte_input:
+        import logging as _logging
+        _logging.getLogger(__name__).warning(
+            "Pauschal-Naechte %d > Reisedauer %d Naechte; auf %d gedeckelt.",
+            naechte_input, max_naechte_real, naechte,
+        )
     uebernachtungsgeld_pauschal = naechte * r.UEBERNACHTUNG_PAUSCHAL_EUR
     if data.verzicht_erklaerung and data.verzicht_erklaerung.verzicht_uebernachtungsgeld:
         uebernachtungsgeld_pauschal = 0.0

@@ -183,7 +183,12 @@ def _build_wizard_profile_seed(user) -> dict | None:
             "abrechnende_dienststelle": profile.abrechnende_dienststelle or "",
             "anordnende_dienststelle": profile.anordnende_dienststelle or "",
             "rkr_default": profile.rkr_default or "DR",
-            "deepseek_api_key": profile.deepseek_api_key or "",
+            # DeepSeek-Key wird BEWUSST NICHT ins Template geseedet — sonst
+            # liegt er als Klartext im HTML und ist bei DOM-XSS sofort
+            # exfiltrierbar. /extract holt ihn serverseitig aus user_profiles
+            # als Fallback, wenn der X-DeepSeek-Key-Header leer ist. Frontend
+            # bekommt nur den has_-Flag.
+            "has_deepseek_api_key": bool(profile.deepseek_api_key),
             "auto_save_dienstreisen": bool(profile.auto_save_dienstreisen),
         }
 

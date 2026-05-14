@@ -51,6 +51,14 @@ def test_iban_normalize_strips_whitespace(base_data):
     assert result.stammdaten.iban == "DE89370400440532013000"
 
 
+def test_iban_too_long_is_rejected(base_data):
+    """IBAN > 22 Zeichen (z.B. MT) ist nicht im Vordruck abbildbar — Validation muss greifen."""
+    base_data["stammdaten"]["iban"] = "MT84MALT011000012345MTLCAST001S"  # 31 Zeichen
+    ok, result = validate_abrechnung(base_data)
+    assert not ok, "31-stellige IBAN haette abgelehnt werden muessen"
+    assert "22" in str(result)  # Fehlertext nennt das Limit
+
+
 def test_validate_abrechnung_rejects_invalid_rkr(base_data):
     base_data["rkr"] = "FOOBAR"
     ok, result = validate_abrechnung(base_data)
@@ -103,6 +111,20 @@ def test_tagegeld_woche():
     s = datetime(2026, 5, 11, 6, 0)
     e = datetime(2026, 5, 17, 20, 0)
     assert tagegeld_tage(s, e) == (5, 2)
+
+
+def test_tagegeld_kurz_ueber_mitternacht_unter_8h():
+    """Bug-Regression: 23:00→06:00 = 7 h, alte Logik gab (0, 2) zurueck."""
+    s = datetime(2026, 5, 15, 23, 0)
+    e = datetime(2026, 5, 16, 6, 0)
+    assert tagegeld_tage(s, e) == (0, 0)
+
+
+def test_tagegeld_ueber_mitternacht_8_bis_24h():
+    """18:00→09:00 = 15 h, einmaliger Teiltag — nicht 2."""
+    s = datetime(2026, 5, 15, 18, 0)
+    e = datetime(2026, 5, 16, 9, 0)
+    assert tagegeld_tage(s, e) == (0, 1)
 
 
 # ---------- Berechnung ----------
@@ -286,6 +308,9 @@ def test_antrag_pdf_mitfahrt_box(base_data, tmp_path):
 
 
 def test_berechnung_uebernachtungsgeld_pauschal(base_data):
+    # Reise auf 4 Tage = 3 Naechte verlaengern (sonst greift Plausibilitaets-Cap)
+    base_data["reise_details"]["start_datum"] = "15.05.2026"
+    base_data["reise_details"]["ende_datum"] = "18.05.2026"
     base_data["uebernachtungen"] = {"anzahl_pauschal": 3}
     ok, d = validate_abrechnung(base_data)
     assert ok
@@ -293,7 +318,40 @@ def test_berechnung_uebernachtungsgeld_pauschal(base_data):
     assert b.uebernachtungsgeld_pauschal_eur == 60.0
 
 
+def test_pauschal_naechte_werden_gegen_reisedauer_gedeckelt(base_data):
+    """Eintaegige Reise + 5 Naechte → max 0 Naechte gewertet (Plausibilisierung)."""
+    # base_data ist eine Tagesreise; falls nicht, hier anpassen
+    rd = base_data["reise_details"]
+    rd["start_datum"] = "10.05.2026"
+    rd["start_zeit"] = "07:00"
+    rd["ende_datum"] = "10.05.2026"
+    rd["ende_zeit"] = "20:00"
+    base_data["uebernachtungen"] = {"anzahl_pauschal": 5}
+    ok, d = validate_abrechnung(base_data)
+    assert ok
+    b = berechnung(d)
+    assert b.uebernachtungsgeld_pauschal_eur == 0.0, "Eintagesreise sollte 0 Pauschal-Naechte ergeben"
+
+
+def test_pauschal_naechte_capped_at_reisedauer(base_data):
+    """4-Tage-Reise (3 Naechte) + 10 Naechte Input → 3 Naechte gewertet."""
+    rd = base_data["reise_details"]
+    rd["start_datum"] = "10.05.2026"
+    rd["start_zeit"] = "07:00"
+    rd["ende_datum"] = "13.05.2026"
+    rd["ende_zeit"] = "20:00"
+    base_data["uebernachtungen"] = {"anzahl_pauschal": 10}
+    ok, d = validate_abrechnung(base_data)
+    assert ok
+    b = berechnung(d)
+    assert b.uebernachtungsgeld_pauschal_eur == 60.0, "Sollte auf 3 Naechte × 20 € = 60 € gedeckelt sein"
+
+
 def test_berechnung_uebernachtungsgeld_max_14_naechte(base_data):
+    # Reise auf 21 Tage = 20 Naechte ziehen, damit das 14-Naechte-Cap greift
+    # (nicht der Plausibilitaets-Cap gegen Reisedauer).
+    base_data["reise_details"]["start_datum"] = "01.05.2026"
+    base_data["reise_details"]["ende_datum"] = "21.05.2026"
     base_data["uebernachtungen"] = {"anzahl_pauschal": 30}
     ok, d = validate_abrechnung(base_data)
     assert ok
