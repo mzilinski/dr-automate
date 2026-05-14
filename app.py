@@ -23,11 +23,11 @@ from flask import (
     send_file,
     url_for,
 )
-from sqlalchemy import select
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_mail import Mail, Message
 from flask_wtf import CSRFProtect
+from sqlalchemy import select
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 import ai_extract
