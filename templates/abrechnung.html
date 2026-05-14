@@ -1050,10 +1050,11 @@
     // User kann jeden Wert nachtraeglich anpassen — der Button ist als
     // sinnvoller Startwert gedacht, nicht als finale Antwort.
     function suggestVerpflegung() {
-      const startD = parseGermanDate(state.reise.start_datum);
-      const endeD = parseGermanDate(state.reise.ende_datum);
-      const startT = state.reise.start_zeit || '00:00';
-      const endeT = state.reise.ende_zeit || '23:59';
+      const rd = state.reise_details || {};
+      const startD = parseGermanDate(rd.start_datum);
+      const endeD = parseGermanDate(rd.ende_datum);
+      const startT = rd.start_zeit || '00:00';
+      const endeT = rd.ende_zeit || '23:59';
       if (!startD || !endeD || endeD < startD) {
         showAlert('Reisedaten (Schritt 3) unvollständig — bitte Start- und Endzeit eintragen.', 'warning');
         return;
@@ -1102,8 +1103,8 @@
     function prefillRouteFields() {
       const fromEl = document.getElementById('r_from');
       const toEl = document.getElementById('r_to');
-      if (fromEl && !fromEl.value) fromEl.value = state.antragsteller.adresse_privat || '';
-      if (toEl && !toEl.value) toEl.value = state.reise.zielort || '';
+      if (fromEl && !fromEl.value) fromEl.value = (state.antragsteller || {}).adresse_privat || '';
+      if (toEl && !toEl.value) toEl.value = (state.reise_details || {}).zielort || '';
     }
     async function estimateDistance() {
       const status = document.getElementById('routeStatus');
@@ -1682,8 +1683,11 @@
         // Block des Wizards uebernehmen — der Wizard fragt dann nicht mehr
         // nach. Anordnende Dienststelle ist schon aus dem Profil gefuellt.
         if (d.genehmigung_datum && state.anordnung) {
-          state.anordnung.datum = d.genehmigung_datum; // ISO YYYY-MM-DD
+          // state haelt Datum im deutschen Format DD.MM.YYYY; Server liefert ISO.
+          state.anordnung.datum = isoToGerman(d.genehmigung_datum);
         }
+        // Re-Sync, damit das Formular die neu gemergten Werte zeigt.
+        syncFormFromState();
         // Banner statt Step-1-Upload-UI: kennzeichnen, dass alles geladen ist
         const stepEl = document.querySelector('.wiz-step[data-step="1"]');
         if (stepEl) {
