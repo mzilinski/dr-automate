@@ -40,7 +40,8 @@ class DienstreiseStatus(str, enum.Enum):
     entwurf = "entwurf"
     eingereicht = "eingereicht"
     genehmigt = "genehmigt"
-    abgerechnet = "abgerechnet"
+    abgerechnet = "abgerechnet"  # Abrechnungs-PDF erzeugt + eingereicht
+    bezahlt = "bezahlt"            # User hat Geldeingang bestaetigt — finaler Status
     verworfen = "verworfen"
 
 
@@ -80,6 +81,9 @@ class UserProfile(Base):
     nachname: Mapped[str | None] = mapped_column(String(100))
     abteilung: Mapped[str | None] = mapped_column(String(100))
     telefon: Mapped[str | None] = mapped_column(String(50))
+    # Optional: Override der Authelia-Email. Wenn None, faellt der Wizard
+    # auf User.email zurueck (kommt aus Authelia Remote-Email).
+    email: Mapped[str | None] = mapped_column(String(254))
     # Encrypted (DSGVO): Adresse, IBAN, BIC sind personenbezogene Finanz-/Wohndaten.
     adresse_privat: Mapped[str | None] = mapped_column(EncryptedString(2048))
     iban: Mapped[str | None] = mapped_column(EncryptedString(512))
@@ -127,6 +131,9 @@ class Dienstreise(Base):
     # DR-Genehmigung (vom Vorgesetzten/Personalstelle erteilt).
     genehmigung_datum: Mapped[date | None] = mapped_column(Date)
     genehmigung_aktenzeichen: Mapped[str | None] = mapped_column(String(100))
+    # Optional: Tag, an dem der Geldeingang (Erstattung) bestaetigt wurde.
+    # Markiert den Uebergang abgerechnet → bezahlt (finaler Lifecycle-Status).
+    bezahlt_datum: Mapped[date | None] = mapped_column(Date)
 
     start_datum: Mapped[date | None] = mapped_column(Date, index=True)
     ende_datum: Mapped[date | None] = mapped_column(Date)

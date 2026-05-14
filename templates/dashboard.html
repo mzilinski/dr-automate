@@ -32,7 +32,8 @@
   .badge.entwurf{color:var(--muted);}
   .badge.eingereicht{color:var(--accent);border-color:var(--accent);background:var(--accent-subtle);}
   .badge.genehmigt{color:var(--ok);border-color:var(--ok);background:var(--ok-subtle);}
-  .badge.abgerechnet{color:var(--ok);background:var(--ok-subtle);border-color:var(--ok);}
+  .badge.abgerechnet{color:var(--accent);background:var(--accent-subtle);border-color:var(--accent);}
+  .badge.bezahlt{color:var(--ok);background:var(--ok-subtle);border-color:var(--ok);font-weight:700;}
   .badge.verworfen{color:var(--err);border-color:var(--err);background:var(--err-subtle);}
   .actions{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:flex-end;}
   .actions a, .actions button{font-size:.82rem;padding:.32rem .65rem;border-radius:.35rem;
@@ -87,7 +88,12 @@
           – {{ r.ende_datum.strftime("%d.%m.%Y") }}
         {% endif %}
       </td>
-      <td><span class="badge {{ r.status.value }}">{{ r.status.value }}</span></td>
+      <td>
+        <span class="badge {{ r.status.value }}">{{ r.status.value }}</span>
+        {% if r.status.value == 'bezahlt' and r.bezahlt_datum %}
+          <div class="meta">am {{ r.bezahlt_datum.strftime("%d.%m.%Y") }}</div>
+        {% endif %}
+      </td>
       <td>
         {% if r.genehmigung_datum %}
           <a href="{{ url_for('dienstreise_genehmigung_form', reise_id=r.id) }}"
@@ -112,10 +118,24 @@
         {% endif %}
         <a href="{{ url_for('abrechnung_index', dienstreise=r.id) }}"
            class="{% if r.status.value in ('genehmigt','abgerechnet') %}primary{% endif %}">
-          {% if r.status.value == 'abgerechnet' %}Abrechnung bearbeiten{% else %}Abrechnung{% endif %}
+          {% if r.status.value in ('abgerechnet','bezahlt') %}Abrechnung bearbeiten{% else %}Abrechnung{% endif %}
         </a>
         {% if r.abrechnung and r.abrechnung.abrechnung_pdf_path %}
           <a href="{{ url_for('dienstreise_abrechnung_pdf', reise_id=r.id) }}">Abr.-PDF</a>
+        {% endif %}
+        {% if r.status.value == 'abgerechnet' %}
+          <form method="post" action="{{ url_for('dienstreise_bezahlt', reise_id=r.id) }}"
+                style="display:inline;" onsubmit="return confirm('Geldeingang heute vermerken?');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="primary" title="Geld ist auf deinem Konto eingegangen">✓ bezahlt</button>
+          </form>
+        {% elif r.status.value == 'bezahlt' %}
+          <form method="post" action="{{ url_for('dienstreise_bezahlt', reise_id=r.id) }}"
+                style="display:inline;" onsubmit="return confirm('Geldeingang-Markierung wirklich entfernen?');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="unmark" value="1">
+            <button type="submit" title="Bezahlt-Markierung zurücksetzen">↺ unbezahlt</button>
+          </form>
         {% endif %}
         <form method="post" action="{{ url_for('dienstreise_delete', reise_id=r.id) }}"
               style="display:inline;" onsubmit="return confirm('Reise wirklich löschen? Die PDFs werden ebenfalls entfernt.');">

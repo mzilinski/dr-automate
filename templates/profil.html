@@ -56,6 +56,15 @@
     <span class="help">Straße, Hausnummer, PLZ, Ort</span>
   </label>
 
+  <label style="margin-top:.8rem;">E-Mail (für Abrechnung)
+    <input type="email" name="email" value="{{ profile.email or '' }}" maxlength="254"
+      placeholder="{{ current_user.email or 'name@beispiel.de' }}">
+    <span class="help">
+      Erscheint auf dem Abrechnungs-Formular. Standard: <code>{{ current_user.email or '—' }}</code>
+      (aus deinem Login). Hier nur eintragen, wenn die Reisekosten-E-Mail davon abweicht.
+    </span>
+  </label>
+
   <h3>Bankverbindung</h3>
   <div class="grid">
     <label>IBAN <small>(verschlüsselt)</small>
