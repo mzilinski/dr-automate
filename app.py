@@ -55,9 +55,7 @@ ADMIN_EMAIL = os.environ.get("DR_AUTOMATE_ADMIN_EMAIL", "")
 # Admin-Routen (/admin/...) sind nur fuer die hier gelisteten Remote-User
 # erreichbar — Authelia kennt aktuell nur eine Gruppe ("adults"), daher
 # enforcement per-User. Leer = niemand hat Admin-Zugang (sicheres default).
-ADMIN_REMOTE_USERS: set[str] = {
-    u.strip() for u in os.environ.get("ADMIN_REMOTE_USERS", "").split(",") if u.strip()
-}
+ADMIN_REMOTE_USERS: set[str] = {u.strip() for u in os.environ.get("ADMIN_REMOTE_USERS", "").split(",") if u.strip()}
 # Telegram-Notifications fuer Admin-Events (z.B. neue Account-Anfrage).
 # Beide leer = Telegram-Versand deaktiviert. SMTP/Mail bleibt unabhaengig.
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
@@ -773,9 +771,7 @@ def _send_telegram(text: str) -> None:
     try:
         resp = requests.post(url, json=payload, timeout=10)
         if not resp.ok:
-            logger.warning(
-                "Telegram-Send fehlgeschlagen: HTTP %s — %s", resp.status_code, resp.text[:200]
-            )
+            logger.warning("Telegram-Send fehlgeschlagen: HTTP %s — %s", resp.status_code, resp.text[:200])
     except Exception:  # pragma: no cover
         logger.exception("Telegram-Send Exception")
 
@@ -812,7 +808,8 @@ def account_request_post():
     if len(begruendung) < 20:
         logger.info(
             "Account-Anfrage abgelehnt: Begründung zu kurz (%d Zeichen) von %s",
-            len(begruendung), request.remote_addr,
+            len(begruendung),
+            request.remote_addr,
         )
         flash(
             "Bitte beschreibe in mindestens 20 Zeichen, warum du dr-automate nutzen möchtest.",
@@ -860,7 +857,7 @@ def account_request_post():
         f"<b>Quell-IP:</b> {_e(request.remote_addr or '?')}\n"
         f"<b>Anfrage-ID:</b> {req_id}\n\n"
         f"<b>Begründung:</b>\n{_e(begruendung) or '<i>(keine)</i>'}\n\n"
-        f"➡️ <a href=\"{admin_url}\">Anfragen verwalten</a>"
+        f'➡️ <a href="{admin_url}">Anfragen verwalten</a>'
     )
 
     flash("Anfrage abgesendet. Wir melden uns per E-Mail, sobald der Account freigeschaltet ist.", "success")
@@ -893,9 +890,11 @@ def admin_account_requests():
 
     with SessionLocal() as session_db:
         # Pending zuerst (alteste zuerst), dann erledigte zur Referenz.
-        rows = session_db.execute(
-            select(AccountRequest).order_by(AccountRequest.fulfilled, AccountRequest.created_at)
-        ).scalars().all()
+        rows = (
+            session_db.execute(select(AccountRequest).order_by(AccountRequest.fulfilled, AccountRequest.created_at))
+            .scalars()
+            .all()
+        )
         items = [
             {
                 "id": r.id,
