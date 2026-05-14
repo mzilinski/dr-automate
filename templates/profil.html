@@ -86,7 +86,14 @@
       </select>
     </label>
     <label>Abrechnende Dienststelle
-      <input type="text" name="abrechnende_dienststelle" value="{{ profile.abrechnende_dienststelle or '' }}" maxlength="200">
+      <input type="text" name="abrechnende_dienststelle" value="{{ profile.abrechnende_dienststelle or '' }}" maxlength="200"
+        placeholder="z.B. NLBV Aurich">
+      <span class="help">Stelle, die die Reisekosten erstattet (auf der Abrechnung).</span>
+    </label>
+    <label>Anordnende Dienststelle
+      <input type="text" name="anordnende_dienststelle" value="{{ profile.anordnende_dienststelle or '' }}" maxlength="200"
+        placeholder="z.B. SL BBS Lingen TG">
+      <span class="help">Stelle, die die Dienstreise genehmigt/angeordnet hat (typischerweise Schulleitung).</span>
     </label>
     <label>Mitreisende:r (Vorbelegung)
       <input type="text" name="mitreisender_name_default" value="{{ profile.mitreisender_name_default or '' }}" maxlength="200">

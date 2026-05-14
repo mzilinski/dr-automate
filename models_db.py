@@ -91,6 +91,10 @@ class UserProfile(Base):
     mitreisender_name_default: Mapped[str | None] = mapped_column(String(200))
     rkr_default: Mapped[str | None] = mapped_column(String(20))
     abrechnende_dienststelle: Mapped[str | None] = mapped_column(String(200))
+    # Anordnende Dienststelle = die Stelle, die die Dienstreise genehmigt hat
+    # (typischerweise Schulleitung / Personalstelle). Erscheint in Step 3 der
+    # Abrechnung neben dem Anordnungs-Datum (= genehmigung_datum der Reise).
+    anordnende_dienststelle: Mapped[str | None] = mapped_column(String(200))
     # BahnCards: JSON-Blob fuer flexible Struktur (Type, Klasse, etc.).
     bahncards: Mapped[dict | None] = mapped_column(EncryptedJSON(4096))
     ai_provider_default: Mapped[str | None] = mapped_column(String(50))

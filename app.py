@@ -173,6 +173,7 @@ def _build_wizard_profile_seed(user) -> dict | None:
             # Profil-Email hat Vorrang, sonst Authelia-Email.
             "email": (profile.email or user.email or ""),
             "abrechnende_dienststelle": profile.abrechnende_dienststelle or "",
+            "anordnende_dienststelle": profile.anordnende_dienststelle or "",
             "rkr_default": profile.rkr_default or "DR",
             "deepseek_api_key": profile.deepseek_api_key or "",
             "auto_save_dienstreisen": bool(profile.auto_save_dienstreisen),
@@ -477,6 +478,36 @@ def dienstreise_genehmigung_save(reise_id: int):
     return redirect(url_for("dashboard"))
 
 
+@app.route("/api/route", methods=["POST"])
+@limiter.limit("30 per hour")
+def api_route():
+    """Schaetzt PKW-Entfernung via OpenStreetMap-Nominatim + OSRM.
+
+    Form / JSON-Felder:
+      from: Start-Adresse (frei-Text, z.B. "Lingen, Am Biener Esch 11")
+      to:   Ziel-Adresse
+
+    Returns: { km: float, duration_min: int, source: "OSM/OSRM" }
+    Datenquelle ist OpenStreetMap (Nominatim) + OSRM Public-Demo. Beide
+    sind ohne Account nutzbar, Demo-Server hat aber keine SLA — als
+    "Schaetzung" deklarieren, nicht als verbindlicher Wert.
+    """
+    import routing as _routing
+
+    src = (request.form.get("from") or (request.get_json(silent=True) or {}).get("from") or "").strip()
+    dst = (request.form.get("to") or (request.get_json(silent=True) or {}).get("to") or "").strip()
+    if not src or not dst:
+        return jsonify({"error": "from/to Adressen erforderlich"}), 400
+    try:
+        result = _routing.route_km(src, dst)
+        return jsonify({**result, "source": "OpenStreetMap / OSRM"})
+    except _routing.RoutingError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception:  # pragma: no cover
+        logger.exception("Routing-API unerwarteter Fehler")
+        return jsonify({"error": "Interner Fehler bei der Entfernungs-Abfrage"}), 500
+
+
 @app.route("/dienstreisen/<int:reise_id>/bezahlt", methods=["POST"])
 @auth.login_required
 def dienstreise_bezahlt(reise_id: int):
@@ -547,6 +578,7 @@ _PROFIL_FIELDS_TEXT = {
     "mitreisender_name_default",
     "rkr_default",
     "abrechnende_dienststelle",
+    "anordnende_dienststelle",
     "ai_provider_default",
 }
 
