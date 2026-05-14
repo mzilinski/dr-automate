@@ -50,6 +50,10 @@ TRUST_REMOTE_USER_HEADER = os.environ.get("TRUST_REMOTE_USER_HEADER", "false").l
 DATA_DIR = Path(os.environ.get("DR_AUTOMATE_DATA_DIR", "data"))
 DOCS_DIR = Path(os.environ.get("DR_AUTOMATE_DOCS_DIR", "docs"))
 ADMIN_EMAIL = os.environ.get("DR_AUTOMATE_ADMIN_EMAIL", "")
+# Telegram-Notifications fuer Admin-Events (z.B. neue Account-Anfrage).
+# Beide leer = Telegram-Versand deaktiviert. SMTP/Mail bleibt unabhaengig.
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
+TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
 # Upload-Limits fuer /extract-Endpunkt (PDF-Aufnahme).
 MAX_UPLOAD_BYTES = int(os.environ.get("DR_AUTOMATE_MAX_UPLOAD_BYTES", str(10 * 1024 * 1024)))  # 10 MiB
 MAX_PDF_PAGES = int(os.environ.get("DR_AUTOMATE_MAX_PDF_PAGES", "50"))
@@ -737,6 +741,37 @@ def dienstreise_delete(reise_id: int):
     return redirect(url_for("dashboard"))
 
 
+# --- ADMIN-NOTIFICATIONS ---
+
+
+def _send_telegram(text: str) -> None:
+    """Schickt eine Telegram-Nachricht an den konfigurierten Admin-Chat.
+
+    No-Op wenn TELEGRAM_BOT_TOKEN oder TELEGRAM_CHAT_ID leer ist.
+    Schluckt alle Fehler — der primaere Request-Pfad (z.B.
+    Account-Anfrage) darf nicht abreissen, nur weil Telegram down ist.
+    """
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        return
+    import requests  # local import: vermeidet Hard-Dep im Modul-Header
+
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    payload = {
+        "chat_id": TELEGRAM_CHAT_ID,
+        "text": text,
+        "parse_mode": "HTML",
+        "disable_web_page_preview": True,
+    }
+    try:
+        resp = requests.post(url, json=payload, timeout=10)
+        if not resp.ok:
+            logger.warning(
+                "Telegram-Send fehlgeschlagen: HTTP %s — %s", resp.status_code, resp.text[:200]
+            )
+    except Exception:  # pragma: no cover
+        logger.exception("Telegram-Send Exception")
+
+
 # --- ACCOUNT-ANFRAGE (Public) ---
 
 
@@ -792,6 +827,18 @@ def account_request_post():
             )
         except Exception:  # pragma: no cover
             logger.exception("Account-Anfrage-Mail an Admin fehlgeschlagen")
+
+    # Telegram parallel zur Mail (eigener Helper, fail-silent).
+    from html import escape as _e
+
+    _send_telegram(
+        "🔔 <b>dr-automate</b>: neue Account-Anfrage\n\n"
+        f"<b>Name:</b> {_e(display_name)}\n"
+        f"<b>E-Mail:</b> {_e(email)}\n"
+        f"<b>Quell-IP:</b> {_e(request.remote_addr or '?')}\n"
+        f"<b>Anfrage-ID:</b> {req_id}\n\n"
+        f"<b>Begründung:</b>\n{_e(begruendung) or '<i>(keine)</i>'}"
+    )
 
     flash("Anfrage abgesendet. Wir melden uns per E-Mail, sobald der Account freigeschaltet ist.", "success")
     return redirect(url_for("landing"))
