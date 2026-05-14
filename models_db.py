@@ -36,7 +36,7 @@ from crypto import EncryptedJSON, EncryptedString
 from db import Base
 
 
-class DienstreiseStatus(str, enum.Enum):
+class DienstreiseStatus(enum.StrEnum):
     entwurf = "entwurf"
     eingereicht = "eingereicht"
     genehmigt = "genehmigt"
@@ -45,7 +45,7 @@ class DienstreiseStatus(str, enum.Enum):
     verworfen = "verworfen"
 
 
-class AbrechnungStatus(str, enum.Enum):
+class AbrechnungStatus(enum.StrEnum):
     entwurf = "entwurf"
     eingereicht = "eingereicht"
     abgeschlossen = "abgeschlossen"
