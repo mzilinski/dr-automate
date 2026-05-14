@@ -29,7 +29,12 @@ def upgrade() -> None:
     #    Werte-Liste — batch_alter_table copy-and-recreates die Tabelle mit
     #    neuer Constraint.
     new_enum = sa.Enum(
-        "entwurf", "eingereicht", "genehmigt", "abgerechnet", "bezahlt", "verworfen",
+        "entwurf",
+        "eingereicht",
+        "genehmigt",
+        "abgerechnet",
+        "bezahlt",
+        "verworfen",
         name="dienstreise_status",
     )
     with op.batch_alter_table("dienstreisen") as batch:
@@ -37,7 +42,11 @@ def upgrade() -> None:
         batch.alter_column(
             "status",
             existing_type=sa.Enum(
-                "entwurf", "eingereicht", "genehmigt", "abgerechnet", "verworfen",
+                "entwurf",
+                "eingereicht",
+                "genehmigt",
+                "abgerechnet",
+                "verworfen",
                 name="dienstreise_status",
             ),
             type_=new_enum,
@@ -47,7 +56,11 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     old_enum = sa.Enum(
-        "entwurf", "eingereicht", "genehmigt", "abgerechnet", "verworfen",
+        "entwurf",
+        "eingereicht",
+        "genehmigt",
+        "abgerechnet",
+        "verworfen",
         name="dienstreise_status",
     )
     with op.batch_alter_table("dienstreisen") as batch:
@@ -56,7 +69,12 @@ def downgrade() -> None:
         batch.alter_column(
             "status",
             existing_type=sa.Enum(
-                "entwurf", "eingereicht", "genehmigt", "abgerechnet", "bezahlt", "verworfen",
+                "entwurf",
+                "eingereicht",
+                "genehmigt",
+                "abgerechnet",
+                "bezahlt",
+                "verworfen",
                 name="dienstreise_status",
             ),
             type_=old_enum,

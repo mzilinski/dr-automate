@@ -41,7 +41,7 @@ class DienstreiseStatus(enum.StrEnum):
     eingereicht = "eingereicht"
     genehmigt = "genehmigt"
     abgerechnet = "abgerechnet"  # Abrechnungs-PDF erzeugt + eingereicht
-    bezahlt = "bezahlt"            # User hat Geldeingang bestaetigt — finaler Status
+    bezahlt = "bezahlt"  # User hat Geldeingang bestaetigt — finaler Status
     verworfen = "verworfen"
 
 

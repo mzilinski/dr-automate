@@ -238,7 +238,9 @@ class Uebernachtungen(BaseModel):
     """Übernachtungs-Posten."""
 
     anzahl_pauschal: int = Field(default=0, ge=0, le=99, description="Nächte ohne Beleg → 20 €/Nacht")
-    anzahl_unentgeltlich: int = Field(default=0, ge=0, le=99, description="Vom Amt gestellte Nächte (kein Übernachtungsgeld)")
+    anzahl_unentgeltlich: int = Field(
+        default=0, ge=0, le=99, description="Vom Amt gestellte Nächte (kein Übernachtungsgeld)"
+    )
     kosten_eur: float = Field(default=0.0, ge=0)
     begruendung_ueber_100: str = Field(default="", max_length=500)
 

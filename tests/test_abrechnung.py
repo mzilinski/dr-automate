@@ -18,6 +18,7 @@ from models import AbrechnungData, validate_abrechnung  # noqa: E402
 
 # ---------- Fixtures ----------
 
+
 @pytest.fixture
 def base_data():
     """Minimaler valider Abrechnungs-Datensatz (1 Tag, PKW §II)."""
@@ -36,6 +37,7 @@ def base_data():
 
 
 # ---------- Pydantic-Modell ----------
+
 
 def test_validate_abrechnung_minimal_valid(base_data):
     ok, result = validate_abrechnung(base_data)
@@ -83,6 +85,7 @@ def test_negative_amounts_rejected(base_data):
 
 # ---------- Tagegeld-Tage ----------
 
+
 def test_tagegeld_eintaegig_unter_8h():
     s = datetime(2026, 5, 15, 9, 0)
     e = datetime(2026, 5, 15, 16, 0)
@@ -128,6 +131,7 @@ def test_tagegeld_ueber_mitternacht_8_bis_24h():
 
 
 # ---------- Berechnung ----------
+
 
 def test_berechnung_eintaegig_unter_8h_kein_tagegeld(base_data):
     base_data["reise_details"]["start_datum"] = "15.05.2026"
@@ -374,6 +378,7 @@ def test_berechnung_zwischensumme_und_auszahl(base_data):
 
 # ---------- PDF-Roundtrip ----------
 
+
 def test_pdf_roundtrip(base_data, tmp_path):
     base_data["wegstrecke"] = {"km_hinreise": 100, "km_rueckreise": 100}
     ok, d = validate_abrechnung(base_data)
@@ -405,6 +410,7 @@ def test_pdf_filename_format(base_data, tmp_path):
 
 
 # ---------- Flask-Endpoints ----------
+
 
 @pytest.fixture
 def client(monkeypatch):
@@ -474,12 +480,11 @@ def test_abrechnung_generate_rechnet_kuerzung_serverseitig(client, base_data, tm
     assert fields.get("EUR6") == "28,00"
     # Kürzung 84 € (3×5,60 + 3×11,20 + 3×11,20) → Netto 0,00 €
     # Der Server muss EUR7 jetzt füllen, weil kuerzung_eur > 0
-    assert fields.get("EUR7") == "0,00", (
-        f"Server hat berechnet nicht überschrieben — EUR7={fields.get('EUR7')!r}"
-    )
+    assert fields.get("EUR7") == "0,00", f"Server hat berechnet nicht überschrieben — EUR7={fields.get('EUR7')!r}"
 
 
 # ---------- NRKVO-Sätze ----------
+
 
 def test_nrkvo_kuerzungen_konsistent():
     assert nrkvo_rates.kuerzung_fruehstueck_eur() == 5.6
