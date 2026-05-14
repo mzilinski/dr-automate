@@ -29,26 +29,50 @@ class Base(DeclarativeBase):
 
 
 def _ensure_data_dir() -> None:
-    """Datenverzeichnis mit restriktiven Permissions (0700) anlegen.
-    Doku verspricht 0700 (docs/security.md). Wir erzwingen das hier explizit,
-    auch wenn umask 022 sonst 0755 setzen wuerde.
+    """Datenverzeichnis mit restriktiven Permissions (0700) anlegen + bestehende
+    Files/Dirs darunter einmalig auf 0700/0600 ziehen.
+
+    Doku verspricht 0700/0600 (docs/security.md). Wir erzwingen das hier explizit,
+    auch wenn umask 022 sonst 0755 setzen wuerde — und reparieren alte Datenstaende
+    aus Zeiten, wo dieser Code noch nicht existierte.
     """
     import os
 
     if DATABASE_URL.startswith("sqlite:///"):
         db_path = Path(DATABASE_URL.removeprefix("sqlite:///"))
-        db_path.parent.mkdir(parents=True, exist_ok=True)
+        base = db_path.parent
+        base.mkdir(parents=True, exist_ok=True)
         try:
-            os.chmod(db_path.parent, 0o700)
+            os.chmod(base, 0o700)
         except OSError:
-            pass  # nicht alle FS unterstuetzen chmod; gemounted Volumes sind ok
+            pass
+        # One-shot Tightening fuer alle bereits liegenden Files unter data/.
+        try:
+            for root, dirs, files in os.walk(base):
+                for d in dirs:
+                    try:
+                        os.chmod(os.path.join(root, d), 0o700)
+                    except OSError:
+                        pass
+                for f in files:
+                    try:
+                        os.chmod(os.path.join(root, f), 0o600)
+                    except OSError:
+                        pass
+        except OSError:
+            pass
 
 
 _ensure_data_dir()
 
 
-def _harden_sqlite_file_perms(dbapi_connection, _connection_record):
-    """Setzt 0600 auf der SQLite-Datei, sobald sie existiert."""
+def _harden_sqlite_file_perms(dbapi_connection=None, _connection_record=None):
+    """Setzt 0600 auf der SQLite-Datei, sobald sie existiert.
+
+    Wird auf zwei Wegen aufgerufen:
+    - SQLAlchemy connect-event (fuer DBs, die spaeter im Lifecycle entstehen)
+    - eager beim Module-Load (fuer schon existierende DBs nach Migration)
+    """
     if not DATABASE_URL.startswith("sqlite:///"):
         return
     import os
@@ -59,6 +83,10 @@ def _harden_sqlite_file_perms(dbapi_connection, _connection_record):
             os.chmod(db_path, 0o600)
         except OSError:
             pass
+
+
+# Eager: chmod gleich beim Import, falls die DB schon nach Migration existiert.
+_harden_sqlite_file_perms()
 
 engine: Engine = create_engine(
     DATABASE_URL,
