@@ -24,7 +24,7 @@
   <h1>Account anfragen</h1>
   <p class="lead">
     Accounts werden manuell durch den Admin freigeschaltet. Bitte gib einen Namen,
-    deine dienstliche E-Mail und (optional) eine kurze Begründung an.
+    deine dienstliche E-Mail und eine kurze Begründung an, warum du Zugang brauchst.
   </p>
 
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -37,8 +37,8 @@
     <input type="email" name="email" required maxlength="254" autocomplete="email">
   </label>
 
-  <label>Begründung (optional)
-    <textarea name="begruendung" maxlength="2000"
+  <label>Begründung (mindestens 20 Zeichen)
+    <textarea name="begruendung" minlength="20" maxlength="2000" required
       placeholder="Z.B. Stelle/Abteilung, warum du dr-automate nutzen möchtest"></textarea>
   </label>
 
