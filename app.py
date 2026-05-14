@@ -7,6 +7,7 @@ import shutil
 import tempfile
 from pathlib import Path
 
+import bleach
 import markdown as md
 from flask import (
     Flask,
@@ -801,6 +802,25 @@ def account_request_post():
 # --- DOCS (Public) ---
 
 
+_BLEACH_ALLOWED_TAGS = frozenset({
+    "h1", "h2", "h3", "h4", "h5", "h6",
+    "p", "br", "hr",
+    "strong", "em", "code", "pre", "blockquote",
+    "ul", "ol", "li",
+    "a",
+    "table", "thead", "tbody", "tr", "th", "td",
+    "div", "span",
+})
+_BLEACH_ALLOWED_ATTRIBUTES = {
+    "a": ["href", "title", "rel", "target"],
+    "code": ["class"],  # fuer fenced_code language classes
+    "th": ["align"],
+    "td": ["align"],
+    "h1": ["id"], "h2": ["id"], "h3": ["id"], "h4": ["id"], "h5": ["id"], "h6": ["id"],
+}
+_BLEACH_ALLOWED_PROTOCOLS = frozenset({"http", "https", "mailto"})
+
+
 @app.route("/docs/", defaults={"slug": "getting-started"}, methods=["GET"])
 @app.route("/docs/<slug>", methods=["GET"])
 def docs_view(slug: str):
@@ -812,7 +832,19 @@ def docs_view(slug: str):
         abort(404)
     text = path.read_text(encoding="utf-8")
     # Markdown -> HTML mit Standard-Extensions (Tabellen, Fenced Code).
-    body = md.markdown(text, extensions=["fenced_code", "tables", "toc", "sane_lists"])
+    raw_html = md.markdown(text, extensions=["fenced_code", "tables", "toc", "sane_lists"])
+    # Defense-in-depth: Markdown-Quelle ist zwar Repo-Code (vertraut), aber wir
+    # sanitisieren trotzdem mit einer Allowlist, damit ein versehentlich
+    # eingeschmuggelter <script>-Tag in einer docs/*.md nicht direkt zu
+    # Stored-XSS wird. Ohne Bleach waere /docs/<slug> ein offener
+    # Vertrauensanker auf einer public-Route.
+    body = bleach.clean(
+        raw_html,
+        tags=_BLEACH_ALLOWED_TAGS,
+        attributes=_BLEACH_ALLOWED_ATTRIBUTES,
+        protocols=_BLEACH_ALLOWED_PROTOCOLS,
+        strip=True,
+    )
     pages = sorted(p.stem for p in DOCS_DIR.glob("*.md")) if DOCS_DIR.is_dir() else []
     return render_template(
         "docs.html",
@@ -832,8 +864,9 @@ def get_example():
             return jsonify(json.load(f))
     except FileNotFoundError:
         return jsonify({"error": "Beispiel-Datei nicht gefunden"}), 404
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    except Exception:
+        logger.exception("Fehler beim Laden des Beispiel-JSON")
+        return jsonify({"error": "Interner Fehler beim Laden des Beispiels."}), 500
 
 
 @app.route("/generate", methods=["POST"])
@@ -906,9 +939,9 @@ def generate():
     except json.JSONDecodeError as e:
         logger.error(f"JSON-Parsing-Fehler: {e}")
         return jsonify({"error": "Invalid JSON format"}), 400
-    except Exception as e:
-        logger.exception(f"Unerwarteter Fehler bei PDF-Generierung: {e}")
-        return jsonify({"error": str(e)}), 500
+    except Exception:
+        logger.exception("Unerwarteter Fehler bei Antrag-PDF-Generierung")
+        return jsonify({"error": "Interner Fehler bei der PDF-Generierung."}), 500
 
 
 @app.route("/extract", methods=["POST"])
@@ -1052,9 +1085,9 @@ def abrechnung_generate():
     except json.JSONDecodeError as e:
         logger.error(f"Abrechnung: JSON-Parsing-Fehler: {e}")
         return jsonify({"error": "Invalid JSON format"}), 400
-    except Exception as e:
-        logger.exception(f"Abrechnung: Unerwarteter Fehler bei PDF-Generierung: {e}")
-        return jsonify({"error": str(e)}), 500
+    except Exception:
+        logger.exception("Abrechnung: Unerwarteter Fehler bei PDF-Generierung")
+        return jsonify({"error": "Interner Fehler bei der Abrechnungs-PDF-Generierung."}), 500
 
 
 @app.route("/abrechnung/calc", methods=["POST"])
@@ -1077,9 +1110,9 @@ def abrechnung_calc():
         return jsonify(b.model_dump())
     except json.JSONDecodeError:
         return jsonify({"error": "Invalid JSON format"}), 400
-    except Exception as e:
-        logger.exception(f"Abrechnung-Calc-Fehler: {e}")
-        return jsonify({"error": str(e)}), 500
+    except Exception:
+        logger.exception("Abrechnung-Calc-Fehler")
+        return jsonify({"error": "Interner Fehler bei der Berechnung."}), 500
 
 
 @app.route("/health", methods=["GET"])

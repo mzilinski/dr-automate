@@ -1747,20 +1747,61 @@
         }
         // Re-Sync, damit das Formular die neu gemergten Werte zeigt.
         syncFormFromState();
-        // Banner statt Step-1-Upload-UI: kennzeichnen, dass alles geladen ist
+        // Banner statt Step-1-Upload-UI — Inhalt wird via createElement +
+        // textContent gebaut, damit aktenzeichen / datum / reiseId
+        // KEIN HTML injizieren koennen (Stored-XSS-Vermeidung). reiseId ist
+        // bereits aus URLSearchParams als String, aber zur Sicherheit auch
+        // dort textContent statt template-literal.
         const stepEl = document.querySelector('.wiz-step[data-step="1"]');
         if (stepEl) {
-          stepEl.innerHTML = `
-            <h2 class="step-title"><span class="step-title-num">01</span>Reise geladen</h2>
-            <div class="info-box" style="background:var(--ok-subtle);border:1px solid var(--ok);">
-              <strong style="color:var(--ok);">✓ Reise #${reiseId}</strong> aus deinem Konto geladen.
-              ${d.genehmigung_datum ? `Genehmigung vom <strong>${d.genehmigung_datum.split('-').reverse().join('.')}</strong>${d.genehmigung_aktenzeichen ? ` · AZ ${d.genehmigung_aktenzeichen}` : ''}.` : ''}
-              <br>Die Abrechnung wird beim Speichern dieser Reise zugeordnet.
-            </div>
-            <div class="nav-row" style="margin-top:1rem;">
-              <a href="/dashboard" class="btn btn-ghost btn-sm">← zurück zum Dashboard</a>
-              <button type="button" class="btn btn-primary btn-sm" onclick="goStep(2)">Weiter zu Schritt 2 →</button>
-            </div>`;
+          stepEl.replaceChildren();  // alten Inhalt entfernen
+
+          const h2 = document.createElement('h2');
+          h2.className = 'step-title';
+          const numSpan = document.createElement('span');
+          numSpan.className = 'step-title-num';
+          numSpan.textContent = '01';
+          h2.appendChild(numSpan);
+          h2.append('Reise geladen');
+          stepEl.appendChild(h2);
+
+          const info = document.createElement('div');
+          info.className = 'info-box';
+          info.style.cssText = 'background:var(--ok-subtle);border:1px solid var(--ok);';
+          const okStrong = document.createElement('strong');
+          okStrong.style.color = 'var(--ok)';
+          okStrong.textContent = `✓ Reise #${String(reiseId)}`;
+          info.appendChild(okStrong);
+          info.append(' aus deinem Konto geladen.');
+          if (d.genehmigung_datum) {
+            info.append(' Genehmigung vom ');
+            const datumStrong = document.createElement('strong');
+            datumStrong.textContent = String(d.genehmigung_datum).split('-').reverse().join('.');
+            info.appendChild(datumStrong);
+            if (d.genehmigung_aktenzeichen) {
+              info.append(` · AZ ${String(d.genehmigung_aktenzeichen)}`);
+            }
+            info.append('.');
+          }
+          info.appendChild(document.createElement('br'));
+          info.append('Die Abrechnung wird beim Speichern dieser Reise zugeordnet.');
+          stepEl.appendChild(info);
+
+          const nav = document.createElement('div');
+          nav.className = 'nav-row';
+          nav.style.marginTop = '1rem';
+          const back = document.createElement('a');
+          back.href = '/dashboard';
+          back.className = 'btn btn-ghost btn-sm';
+          back.textContent = '← zurück zum Dashboard';
+          const next = document.createElement('button');
+          next.type = 'button';
+          next.className = 'btn btn-primary btn-sm';
+          next.textContent = 'Weiter zu Schritt 2 →';
+          next.addEventListener('click', () => goStep(2));
+          nav.appendChild(back);
+          nav.appendChild(next);
+          stepEl.appendChild(nav);
         }
         goStep(2);
         showAlert('Reise geladen — bitte Abrechnung in Schritten 2–8 vervollständigen.', 'success');
