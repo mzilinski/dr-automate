@@ -1711,6 +1711,21 @@
       });
     }
 
+    // Kantenbewusste Platzierung: data-pos verhindert (zusammen mit
+    // shared.css), dass die Tooltip-Blase über den Viewport-Rand ragt.
+    function placeTip(btn) {
+      const r = btn.getBoundingClientRect();
+      const vw = document.documentElement.clientWidth;
+      btn.dataset.pos = r.left < vw * 0.33 ? 'left'
+                      : r.left > vw * 0.67 ? 'right' : 'center';
+    }
+    document.addEventListener('mouseover', e => {
+      if (e.target.matches && e.target.matches('.tip')) placeTip(e.target);
+    });
+    document.addEventListener('focusin', e => {
+      if (e.target.matches && e.target.matches('.tip')) placeTip(e.target);
+    });
+
     // Tooltips per Klick toggeln (Mobile, ohne Hover)
     document.addEventListener('click', e => {
       const isTip = e.target.matches('.tip');
@@ -1718,6 +1733,7 @@
         if (t !== e.target) t.classList.remove('active');
       });
       if (isTip) {
+        placeTip(e.target);
         e.target.classList.toggle('active');
         e.preventDefault();
         e.stopPropagation();
