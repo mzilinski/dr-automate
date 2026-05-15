@@ -156,17 +156,22 @@
       padding: 1.75rem 1.75rem 1.5rem;
       margin-bottom: 1.25rem;
       position: relative;
-      overflow: hidden;
       animation: fadeUp .4s ease both;
     }
     .step:nth-child(3) { animation-delay: .1s; }
     .step:nth-child(4) { animation-delay: .18s; }
 
+    /* Deko-Ziffer voll innerhalb der Card halten (kein overflow:hidden auf
+       .step nötig — das würde sonst die .tip-Tooltips abschneiden, die über
+       den Step-Rand hinausragen). Eigener overflow auf dem Pseudo behält den
+       angeschnittenen Riesenziffer-Look, ohne Kinder zu clippen. */
     .step::before {
       content: attr(data-step);
       position: absolute;
-      top: -.22em;
-      right: -.05em;
+      top: 0;
+      right: .4rem;
+      max-height: 6.4rem;
+      overflow: hidden;
       font-family: 'Fraunces', serif;
       font-size: 9rem;
       font-weight: 600;
