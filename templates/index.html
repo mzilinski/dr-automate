@@ -1011,8 +1011,70 @@
       zone.addEventListener('drop', e => { if (e.dataTransfer.files.length) setFile(e.dataTransfer.files[0]); });
     })();
 
+    // ── Tooltips (Muster aus abrechnung.html, .tip-CSS in shared.css) ─
+    const TIPS = {
+      // Step 1 — Eingabe
+      'aiFreitext': 'Originaltext der Ausschreibung / E-Mail / Notiz. Die KI extrahiert daraus die Reisedaten. Optional, wenn oben ein PDF hochgeladen wurde.',
+      'sonderwuensche': 'Freitext-Hinweise an die KI, z.B. „Rückreise erst am Folgetag" oder „Hotel bereits gebucht". Wird nicht 1:1 ins Formular übernommen.',
+      // Step 2 — Beförderung
+      'hin_typ': 'Hauptverkehrsmittel der Hinreise. PKW = selbst gefahren. MITFAHRT = im PKW eines anderen mitgefahren. Steht nicht in der Ausschreibung — deine Wahl.',
+      'rueck_typ': 'Hauptverkehrsmittel der Rückreise — kann von der Hinreise abweichen.',
+      'hin_para': 'II = kleine Wegstrecke (0,25 €/km, max 125 €). III = große Wegstrecke (0,38 €/km), nur bei triftigem Grund (Materialtransport, schlechte ÖPNV-Anbindung, Mitnahme Kollege).',
+      'rueck_para': 'Wie Hinreise — II = kleine, III = große Wegstrecke.',
+      'hin_mitfahrer': 'Name der Person, in deren PKW du auf der Hinreise mitgefahren bist.',
+      'rueck_mitfahrer': 'Name der Person, in deren PKW du auf der Rückreise mitgefahren bist.',
+      'sonderfall': 'Pflicht bei § 5 III. Bsp.: „Schlechte ÖPNV-Anbindung Fähranleger Harlesiel, Materialtransport (Präsentationstechnik)"',
+      // Step 4 — Reisedaten (KI, editierbar)
+      'r_zielort': 'Vollständige Anschrift des Dienstgeschäfts mit PLZ. Bsp.: 30159 Hannover, Akademie für Lehrerfortbildung, Richthofenstr. 29',
+      'r_reiseweg': 'Verlauf der Reise mit Pfeilen. Bsp.: Lingen -> Hannover Hbf -> Lingen',
+      'r_zweck': 'Anlass der Reise. Bsp.: Fortbildung: Digitale Prüfungsformate',
+      'r_start_datum': 'Tatsächlicher Reisebeginn (Abfahrt von zu Hause), kann von der Genehmigung abweichen.',
+      'r_start_zeit': 'Uhrzeit der Abfahrt von zu Hause. Bsp.: 06:30',
+      'r_ende_datum': 'Tatsächliche Rückkehr zu Hause.',
+      'r_ende_zeit': 'Uhrzeit der Rückkehr zu Hause. Bsp.: 19:30',
+      'r_dg_beginn_datum': 'Beginn des eigentlichen Dienstgeschäfts (z.B. Tagungsbeginn), nicht der Reise.',
+      'r_dg_beginn_zeit': 'Uhrzeit des Tagungs-/Sitzungsbeginns. Bsp.: 09:00',
+      'r_dg_ende_datum': 'Ende des Dienstgeschäfts.',
+      'r_dg_ende_zeit': 'Uhrzeit des Dienstgeschäfts-Endes. Bsp.: 17:00',
+      'r_bemerkungen': 'Erscheint unverändert im amtlichen Formular. Konkrete Verbindungs-/Fähr-/Hotelinfos — keine KI- oder Schätzhinweise.',
+      // Step 4 — Angaben & Verzicht
+      'k_kosten_andere': 'Veranstalter trägt Reisekosten ganz/teilweise — typisch: Tagungsgebühr inkl. Übernachtung/Verpflegung.',
+      'k_2km': 'Dienstgeschäft im Umkreis von 2 km zur Dienststätte oder Wohnung — kein Tagegeld nach § 6 NRKVO.',
+      'k_trennungsgeld': 'Anspruch auf Trennungsgeld bei mehrtägigen Reisen mit auswärtigem Verbleiben.',
+      'v_tagegeld': 'Verzicht auf Tagegeld (z.B. weil komplette Verpflegung gestellt wurde).',
+      'v_uebernachtung': 'Verzicht auf Übernachtungsgeld.',
+      'v_fahrtkosten': 'Verzicht auf Fahrtkosten.',
+    };
+    function attachTips() {
+      Object.entries(TIPS).forEach(([id, text]) => {
+        const label = document.querySelector(`label[for="${id}"]`);
+        if (!label || label.querySelector('.tip')) return;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'tip';
+        btn.tabIndex = 0;
+        btn.setAttribute('data-tip', text);
+        btn.setAttribute('aria-label', `Hinweis: ${text}`);
+        btn.textContent = '?';
+        label.appendChild(btn);
+      });
+    }
+    // Tooltips per Klick toggeln (Mobile, ohne Hover)
+    document.addEventListener('click', e => {
+      const isTip = e.target.matches('.tip');
+      document.querySelectorAll('.tip.active').forEach(t => {
+        if (t !== e.target) t.classList.remove('active');
+      });
+      if (isTip) {
+        e.target.classList.toggle('active');
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    });
+
     // ── Init ─────────────────────────────────────────────────────────
     window.addEventListener('DOMContentLoaded', () => {
+      attachTips();
       const p = getProfile();
       applyProfile(p);
       prefillBefoerderung();
