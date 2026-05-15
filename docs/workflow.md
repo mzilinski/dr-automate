@@ -4,12 +4,15 @@ dr-automate begleitet drei Stufen einer Dienstreise. Jede ist ein eigener Schrit
 
 ## Stufe 1: Antrag erstellen
 
-1. **Daten erfassen** – im Wizard alle Felder ausfüllen.
-2. Wer ist Antragsteller? Wo ist das Reiseziel? Wann startet die Reise? Welche Beförderungsmittel werden genutzt?
-3. **JSON validieren** – die App prüft strikt nach Pydantic-Schema. Fehler werden inline angezeigt.
-4. **PDF generieren** – Klick auf „PDF erstellen". Im Account-Modus wird die Reise zusätzlich gespeichert (Status: `entwurf`).
+Der Antrag-Wizard hat fünf Schritte:
 
-> **Tipp:** Wer eine offizielle Ausschreibung als Text vorliegen hat, kann diesen ins KI-Feld werfen. Mit eigenem DeepSeek-Key (BYOK) erzeugt die App den JSON automatisch.
+1. **Eingabe** – Ausschreibung als PDF hochladen oder als Text einfügen (plus optionale Hinweise/Sonderwünsche).
+2. **Reise** – Verkehrsmittel für Hin- und Rückreise wählen (PKW/Bahn/Bus/Dienstwagen/Mitfahrt), bei PKW § 5 II/III, bei Mitfahrt der Name. Vorbelegt aus dem Profilfeld „Standard-Verkehrsmittel", pro Reise änderbar. Diese Angaben fließen **vor** der Extraktion in die KI, damit sie realistische Reisezeiten schätzen kann.
+3. **KI-Extraktion** – DeepSeek (BYOK) oder Copy-Paste-Prompt für ChatGPT/Claude. Die KI liefert nur die Reisedaten; **Antragsteller- und Beförderungsdaten erzeugt sie nicht** – die kommen aus deinem Profil bzw. aus Schritt 2.
+4. **Prüfen** – Antragsteller (read-only aus dem Profil) und Beförderung (deine Wahl) werden angezeigt; die KI-Reisedaten und Bemerkungen sind editierbar. Verzicht auf Tagegeld/Übernachtung/Fahrtkosten wird hier gesetzt. Roh-JSON siehst du nicht mehr.
+5. **PDF** – Klick auf „Antrag generieren". Bei eingeloggten Usern überschreibt der Server die Antragsteller-/BahnCard-/Großkundenrabatt-Felder autoritativ aus dem Profil (manipulationssicher); Platzhalter wie `[DEIN NAME]` werden abgewiesen. Im Account-Modus wird die Reise gespeichert (Status: `entwurf`).
+
+> **Tipp:** Das Profil (Name, Abteilung, Adresse, BahnCards, Standard-Verkehrsmittel) einmal sauber pflegen — es füllt jeden Antrag automatisch, ohne dass die KI es kennt oder Tokens dafür verbraucht.
 
 ## Stufe 2: Genehmigung vermerken
 

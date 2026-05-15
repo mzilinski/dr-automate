@@ -109,6 +109,15 @@
         {% endfor %}
       </select>
     </label>
+    <label>Standard-Verkehrsmittel
+      <select name="standard_verkehrsmittel">
+        {% set vms = [('','— keine Vorauswahl —'),('PKW','PKW (selbst gefahren)'),('BAHN','Bahn'),('BUS','Bus'),('DIENSTWAGEN','Dienstwagen'),('MITFAHRT','Mitfahrt')] %}
+        {% for v, t in vms %}
+          <option value="{{ v }}" {% if profile.standard_verkehrsmittel == v %}selected{% endif %}>{{ t }}</option>
+        {% endfor %}
+      </select>
+      <span class="help">Vorbelegung für die Reise-Abfrage im Antrag-Wizard. Pro Reise änderbar.</span>
+    </label>
   </div>
 
   <h3>Speicherung</h3>
