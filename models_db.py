@@ -98,6 +98,10 @@ class UserProfile(Base):
     # BahnCards: JSON-Blob fuer flexible Struktur (Type, Klasse, etc.).
     bahncards: Mapped[dict | None] = mapped_column(EncryptedJSON(4096))
     ai_provider_default: Mapped[str | None] = mapped_column(String(50))
+    # Default-Verkehrsmittel fuer die Reise-Abfrage im Antrag-Wizard
+    # (PKW|BAHN|BUS|DIENSTWAGEN|MITFAHRT). Nur Typ — §5 bleibt II als
+    # Default, abweichende Rueck-/§III-/Mitfahrt-Faelle pro Reise.
+    standard_verkehrsmittel: Mapped[str | None] = mapped_column(String(20))
     # DeepSeek-API-Key: verschluesselt, weil API-Credentials wie Finanz-Daten
     # behandelt werden. Fallback in /extract, wenn kein X-DeepSeek-Key-Header
     # mitkommt. Multi-Device-Support: einmal eintragen, ueberall verfuegbar.

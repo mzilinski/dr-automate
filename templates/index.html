@@ -9,6 +9,72 @@
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,400&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
   <style>
+    /* Wizard-spezifisch (Muster aus abrechnung.html) */
+    .stepper {
+      display: flex; gap: .35rem; flex-wrap: wrap;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: .65rem; margin-bottom: 1.25rem;
+      animation: fadeDown .4s .05s ease both;
+    }
+    .stepper-item {
+      flex: 1 1 auto; min-width: 90px; background: transparent;
+      color: var(--muted); border: 1.5px solid transparent; border-radius: 8px;
+      padding: .45rem .55rem; font-family: 'Figtree', sans-serif;
+      font-size: .76rem; font-weight: 600; cursor: pointer; text-align: center;
+      transition: background .15s, color .15s, border-color .15s; line-height: 1.25;
+    }
+    .stepper-item:hover { background: var(--surface-hi); color: var(--text); }
+    .stepper-item.is-active {
+      background: var(--accent-subtle); color: var(--accent); border-color: var(--accent);
+    }
+    .stepper-item.is-done { color: var(--ok); }
+    .stepper-item-num {
+      display: block; font-family: 'Fraunces', serif; font-size: 1rem;
+      font-weight: 600; margin-bottom: .15rem;
+    }
+
+    .wiz-step { display: none; }
+    .wiz-step.is-active { display: block; }
+
+    .field-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: .75rem 1rem; margin-bottom: 1rem;
+    }
+    .field-grid > .full { grid-column: 1 / -1; }
+    @media (max-width: 540px) { .field-grid { grid-template-columns: 1fr; } }
+
+    input[type="text"], input[type="email"], input[type="date"], input[type="time"], select, textarea {
+      width: 100%; background: var(--mono-bg); border: 1.5px solid var(--border);
+      border-radius: 8px; color: var(--text); font-family: 'JetBrains Mono', monospace;
+      font-size: .82rem; line-height: 1.65; padding: .65rem .8rem; outline: none;
+      transition: border-color .18s, box-shadow .18s;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+    select { font-family: 'Figtree', sans-serif; }
+    textarea { resize: vertical; }
+
+    .check-row { display: flex; align-items: flex-start; gap: .6rem; padding: .5rem 0; }
+    .check-row input[type="checkbox"] {
+      width: 1.05rem; height: 1.05rem; accent-color: var(--accent);
+      flex-shrink: 0; margin-top: .15rem;
+    }
+    .check-row label { font-size: .88rem; cursor: pointer; color: var(--text); }
+
+    .nav-row {
+      display: flex; justify-content: space-between; gap: .65rem; margin-top: 1.25rem;
+      padding-top: 1rem; border-top: 1px dashed var(--border); flex-wrap: wrap;
+    }
+
+    .ro-table { width: 100%; border-collapse: collapse; font-size: .86rem; margin: .5rem 0; }
+    .ro-table td { padding: .5rem .25rem; border-bottom: 1px solid var(--border); }
+    .ro-table td:first-child { color: var(--muted); width: 38%; }
+
+    .info-box {
+      background: var(--info-subtle); border: 1px solid var(--border); border-radius: 8px;
+      padding: .65rem .85rem; font-size: .82rem; line-height: 1.5; margin: .75rem 0; color: var(--text);
+    }
+
     .global-nav{display:flex;justify-content:space-between;align-items:center;
       padding:.7rem 1.2rem;background:var(--surface);border-bottom:1px solid var(--border);
       position:sticky;top:0;z-index:90;font-family:'Figtree',sans-serif;}
@@ -26,61 +92,33 @@
       padding:.5rem 1.2rem;font-size:.88rem;}
     .guest-strip a{color:var(--accent);}
 
-    /* ── Workflow je nach AI-Key-Verfuegbarkeit ──────────────────────── */
-    .step[data-step="01"] .step-inner{display:flex;flex-direction:column;}
-    /* MIT key: AI-Block prominent oben, Prompt-Copy als Fallback unten */
-    body.has-ai-key #aiExtractBlock{display:block !important;order:1;
-      border-top:0;padding-top:0;margin-top:.4rem;}
-    body.has-ai-key .prompt-copy-section{order:2;opacity:.85;
-      border-top:1.5px dashed var(--border);padding-top:1rem;margin-top:1.2rem;}
-    body.has-ai-key .prompt-copy-section summary{cursor:pointer;font-weight:600;
-      color:var(--muted);padding:.3rem 0;outline:none;}
-    body.has-ai-key .prompt-copy-section summary:hover{color:var(--text);}
-    body.has-ai-key .prompt-copy-section[open] summary{margin-bottom:.6rem;}
-    /* AI-key-Toggles fuer Step-01-Lead-Text */
-    .lead-no-key{display:block;}
-    .lead-with-key{display:none;}
-    body.has-ai-key .lead-no-key{display:none;}
-    body.has-ai-key .lead-with-key{display:block;}
+    .file-drop {
+      display: block; border: 2px dashed var(--border); border-radius: 12px;
+      padding: 1.5rem 1rem; text-align: center; background: var(--mono-bg);
+      cursor: pointer; user-select: none; transition: border-color .15s, background .15s;
+    }
+    .file-drop:hover, .file-drop.dragover { border-color: var(--accent); background: var(--accent-subtle); }
+    .file-drop p { font-size: .85rem; color: var(--muted); margin: 0; }
   </style>
   {% if wizard_profile_seed %}
   <script>
-    // Vom Server-Profil seeden BEVOR der Wizard-Hauptcode laeuft (Server ist
-    // fuer eingeloggte User die autoritative Quelle). Bestehende localStorage-
-    // Felder bleiben, wenn der Server-Wert leer ist (Browser-only Werte wie
-    // strasse/plz_ort werden so nicht ueberschrieben).
+    // Server-Profil ins localStorage seeden, bevor der Wizard-Code laeuft
+    // (Server ist fuer eingeloggte User die autoritative Quelle).
     (function() {
       var seed = {{ wizard_profile_seed | tojson }};
       try {
         var existing = JSON.parse(localStorage.getItem('dr_profile') || '{}');
-        Object.keys(seed).forEach(function(k) {
-          if (seed[k]) existing[k] = seed[k];
-        });
+        Object.keys(seed).forEach(function(k) { if (seed[k]) existing[k] = seed[k]; });
         if (seed.adresse && existing.adresse !== seed.adresse) {
           var parts = seed.adresse.split(',');
           if (parts.length > 1) {
             existing.strasse = parts[0].trim();
             existing.plz_ort = parts.slice(1).join(',').trim();
-          } else {
-            existing.strasse = seed.adresse.trim();
-            existing.plz_ort = '';
-          }
+          } else { existing.strasse = seed.adresse.trim(); existing.plz_ort = ''; }
           existing.adresse = seed.adresse;
         }
-        // Wenn Auth-User einen Server-Key hat, im localStorage einen
-        // Marker setzen (NICHT den Key selbst — der bleibt serverseitig).
-        // applyProfile() liest das, um den AI-Block sichtbar zu schalten.
-        if (seed.has_deepseek_api_key) {
-          existing.has_server_deepseek_key = true;
-        }
+        if (seed.has_deepseek_api_key) existing.has_server_deepseek_key = true;
         localStorage.setItem('dr_profile', JSON.stringify(existing));
-        // body.has-ai-key sofort setzen, sobald DOM da ist — verhindert
-        // Flash-of-Wrong-Workflow vor applyProfile().
-        if (seed.has_deepseek_api_key || existing.deepseek_api_key) {
-          document.addEventListener('DOMContentLoaded', function() {
-            document.body.classList.add('has-ai-key');
-          });
-        }
       } catch (e) { console.error('Profile seed failed:', e); }
     })();
   </script>
@@ -88,7 +126,6 @@
 </head>
 <body>
 
-  <!-- ── GLOBAL NAV ─────────────────────────────────────────────────── -->
   <header class="global-nav">
     <a href="{{ url_for('landing') }}" class="brand">dr-automate</a>
     <nav>
@@ -118,10 +155,8 @@
   </div>
   {% endif %}
 
-  <!-- ── ALERTS ─────────────────────────────────────────────────────── -->
   <div class="alert-stack" id="alertStack"></div>
 
-  <!-- ── SPINNER ────────────────────────────────────────────────────── -->
   <div class="spinner-overlay" id="loadingSpinner">
     <div class="spinner-box">
       <div class="spinner"></div>
@@ -129,7 +164,7 @@
     </div>
   </div>
 
-  <!-- ── WIZARD MODAL ───────────────────────────────────────────────── -->
+  <!-- ── PROFIL-WIZARD MODAL ─────────────────────────────────────────── -->
   <div class="modal-overlay" id="wizardOverlay" role="dialog" aria-modal="true" aria-labelledby="wizardTitle">
     <div class="modal-box">
       <div class="modal-head">
@@ -144,14 +179,12 @@
         {% if is_authenticated %}
         <p class="modal-note" style="background:var(--ok-subtle);border:1px solid var(--ok);">
           ✓ Du bist angemeldet — die Felder sind aus deinem <a href="{{ url_for('profil_view') }}">Server-Profil</a> vorbefüllt.
-          Änderungen hier landen nur im Browser-Cache; persistente Änderungen bitte über das
-          <a href="{{ url_for('profil_view') }}"><strong>Server-Profil</strong></a> vornehmen.
+          Persistente Änderungen bitte im <a href="{{ url_for('profil_view') }}"><strong>Server-Profil</strong></a>.
         </p>
         {% else %}
         <p class="modal-note">
-          Diese Daten werden im <strong>lokalen Browser-Speicher</strong> gespeichert –
-          ausschließlich auf deinem Gerät, nie an den Server übermittelt.
-          Sie ersetzen automatisch die Platzhalter im KI-Prompt.
+          Diese Daten bleiben im <strong>lokalen Browser-Speicher</strong> – nie an den Server übermittelt.
+          Der Antragsteller-Block wird daraus befüllt; die KI sieht ihn nicht.
         </p>
         {% endif %}
 
@@ -174,12 +207,23 @@
         <div class="wiz-field">
           <label class="wiz-label" for="wiz_plz_ort">PLZ &amp; Ort <span>*</span></label>
           <input type="text" id="wiz_plz_ort" placeholder="49808 Lingen">
-          <p class="wiz-hint">Start- und Endpunkt aller Dienstreisen laut Formular. <strong>Wichtig:</strong> Bitte PLZ und Ort nicht vergessen!</p>
+          <p class="wiz-hint">Start- und Endpunkt aller Dienstreisen. <strong>PLZ und Ort nicht vergessen!</strong></p>
         </div>
         <div class="wiz-field">
-          <label class="wiz-label" for="wiz_mitreisender">Mitreisende <em>(optional, mehrere mit Komma trennen)</em></label>
-          <input type="text" id="wiz_mitreisender" placeholder="z.B. Erika Musterfrau, Max Beispiel">
-          <p class="wiz-hint">Wird automatisch eingesetzt, wenn der Name in der Ausschreibung erwähnt wird</p>
+          <label class="wiz-label" for="wiz_mitreisender">Mitreisende <em>(optional, mehrere mit Komma)</em></label>
+          <input type="text" id="wiz_mitreisender" placeholder="z.B. Erika Musterfrau">
+        </div>
+        <div class="wiz-field">
+          <label class="wiz-label" for="wiz_standard_verkehrsmittel">Standard-Verkehrsmittel</label>
+          <select id="wiz_standard_verkehrsmittel">
+            <option value="">— keine Vorauswahl —</option>
+            <option value="PKW">PKW (selbst gefahren)</option>
+            <option value="BAHN">Bahn</option>
+            <option value="BUS">Bus</option>
+            <option value="DIENSTWAGEN">Dienstwagen</option>
+            <option value="MITFAHRT">Mitfahrt</option>
+          </select>
+          <p class="wiz-hint">Vorbelegung für Schritt „Reise" — pro Reise änderbar.</p>
         </div>
 
         <details id="wizAIBlock" style="margin-top:1.25rem; border-top:1.5px dashed var(--border); padding-top:1rem;">
@@ -187,10 +231,9 @@
             AI-Direktextraktion <em style="font-weight:400;">(optional)</em>
           </summary>
           <p class="modal-note" style="margin-top:.75rem;">
-            Mit DeepSeek-API-Key kannst du Freitext direkt im Tool extrahieren lassen –
-            ohne Umweg über ChatGPT/Claude. Der Key bleibt im Browser-Speicher und wird
-            pro Anfrage einmalig durchgereicht (kein Server-Logging, keine Speicherung).
-            Key anlegen unter <a href="https://platform.deepseek.com" target="_blank" rel="noopener">platform.deepseek.com</a>.
+            Mit DeepSeek-API-Key extrahierst du direkt im Tool – ohne Umweg über ChatGPT/Claude.
+            Key bleibt im Browser-Speicher, wird pro Anfrage einmalig durchgereicht (kein Server-Logging).
+            Key unter <a href="https://platform.deepseek.com" target="_blank" rel="noopener">platform.deepseek.com</a>.
           </p>
           <div class="wiz-field">
             <label class="wiz-label" for="wiz_deepseek_key">DeepSeek API-Key</label>
@@ -203,9 +246,7 @@
             Daten für die Abrechnung <em style="font-weight:400;">(optional)</em>
           </summary>
           <p class="modal-note" style="margin-top:.75rem;">
-            Diese Felder werden nur für die <a href="/abrechnung">Reisekostenabrechnung</a> benötigt
-            und sind beim Antrag nicht erforderlich. Sie bleiben — wie alle Profil-Daten —
-            ausschließlich im Browser.
+            Nur für die <a href="/abrechnung">Reisekostenabrechnung</a> nötig, beim Antrag nicht.
           </p>
           <div class="wiz-field">
             <label class="wiz-label" for="wiz_iban">IBAN</label>
@@ -239,12 +280,11 @@
       </div>
       <div class="modal-foot">
         <button class="btn btn-ghost btn-sm" onclick="closeModal('wizardOverlay')">Später</button>
-        <button class="btn btn-primary btn-sm" onclick="saveWizard()">Speichern &amp; Prompt aktualisieren</button>
+        <button class="btn btn-primary btn-sm" onclick="saveWizard()">Speichern</button>
       </div>
     </div>
   </div>
 
-  <!-- ── APP ────────────────────────────────────────────────────────── -->
   <div class="app">
 
     <header class="app-header">
@@ -252,11 +292,10 @@
       <h1 class="app-title">Dienstreise-<em>Antrag</em> Assistent</h1>
     </header>
 
-    <!-- Profil-Banner -->
     <div class="profile-banner">
       <div class="profile-left">
         <div class="avatar empty" id="profileAvatar">?</div>
-        <span class="profile-label missing" id="profileStatus">Kein Profil konfiguriert – Platzhalter im Prompt sind noch leer.</span>
+        <span class="profile-label missing" id="profileStatus">Kein Profil konfiguriert.</span>
       </div>
       {% if is_authenticated %}
         <a class="btn btn-ghost btn-sm" href="{{ url_for('profil_view') }}">Profil&nbsp;bearbeiten</a>
@@ -265,152 +304,271 @@
       {% endif %}
     </div>
 
-    <!-- Step 01: Prompt & KI -->
-    <div class="step" data-step="01">
-      <div class="step-inner">
-        <h2 class="step-title">
-          <span class="step-title-num">01</span>
-          <span class="lead-no-key">Prompt &amp; KI</span>
-          <span class="lead-with-key">Reise per KI extrahieren</span>
-        </h2>
-        <p class="step-lead lead-no-key">
-          Kopiere diesen Prompt zusammen mit der Ausschreibung in ein KI-Modell (z.&nbsp;B. ChatGPT oder Claude).<br>
-          <strong>Die KI antwortet dann automatisch mit einem JSON</strong> – das kommt in Schritt&nbsp;02.
-        </p>
-        <p class="step-lead lead-with-key">
-          Füge die Ausschreibung / E-Mail unten ein – DeepSeek extrahiert daraus
-          automatisch das JSON für Schritt&nbsp;02.
-          <span style="color:var(--muted);font-size:.9em;">
-            (Kein DeepSeek-Key? <a href="{{ url_for('profil_view') if is_authenticated else '#' }}"
-              onclick="{% if not is_authenticated %}openWizard();return false;{% endif %}">
-              im Profil hinterlegen</a> — sonst nur über externe KI.)
-          </span>
-        </p>
+    <nav class="stepper" id="stepper" aria-label="Wizard-Navigation">
+      <button class="stepper-item is-active" type="button" data-go="1"><span class="stepper-item-num">1</span>Eingabe</button>
+      <button class="stepper-item" type="button" data-go="2"><span class="stepper-item-num">2</span>Reise</button>
+      <button class="stepper-item" type="button" data-go="3"><span class="stepper-item-num">3</span>KI</button>
+      <button class="stepper-item" type="button" data-go="4"><span class="stepper-item-num">4</span>Prüfen</button>
+      <button class="stepper-item" type="button" data-go="5"><span class="stepper-item-num">5</span>PDF</button>
+    </nav>
 
-        <!-- AI-Direktextraktion (BYOK) — DOM-Order spaeter, via CSS bei has-ai-key nach oben -->
-        <div id="aiExtractBlock" style="display:none; margin-top:1.5rem; border-top:1.5px dashed var(--border); padding-top:1.1rem;">
-          <p class="step-lead lead-no-key" style="margin-bottom:.6rem;">
-            <strong>Oder: AI macht das direkt für dich.</strong>
-            Füge die Ausschreibung/E-Mail unten ein – DeepSeek liefert das JSON nach Schritt&nbsp;02.
+    <div class="step">
+      <div class="step-inner">
+
+        <!-- Step 1: Eingabe ──────────────────────────────────────────── -->
+        <section class="wiz-step is-active" data-step="1">
+          <h2 class="step-title"><span class="step-title-num">01</span>Ausschreibung eingeben</h2>
+          <p class="step-lead">
+            Lade die Ausschreibung als PDF hoch oder füge den Text ein. Die KI extrahiert
+            daraus die Reisedaten — Antragsteller- und Beförderungsdaten kommen separat.
           </p>
 
-          <!-- PDF-Upload-Zone: Klick oder Drag&Drop -->
           <label class="field-label">Ausschreibung als PDF (optional)</label>
-          <div id="pdfDropZone" style="border:2px dashed var(--border); border-radius:.6rem;
-            padding:1rem; text-align:center; cursor:pointer; transition:all .15s;
-            background:var(--surface); color:var(--muted); font-size:.92rem;">
-            <input type="file" id="pdfFile" accept="application/pdf,.pdf" style="display:none;">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
-              style="display:inline-block; vertical-align:-5px; margin-right:.4rem;">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="17 8 12 3 7 8"/>
-              <line x1="12" y1="3" x2="12" y2="15"/>
-            </svg>
-            <span id="pdfDropLabel">PDF hierher ziehen oder klicken zum Auswählen</span>
-            <div id="pdfFileInfo" style="margin-top:.4rem; color:var(--ok); font-size:.85rem; display:none;"></div>
-          </div>
+          <label for="pdfFile" class="file-drop" id="pdfDropZone">
+            <input type="file" id="pdfFile" accept="application/pdf,.pdf" hidden>
+            <p><strong id="pdfDropLabel">PDF hierher ziehen oder klicken</strong></p>
+            <p id="pdfFileInfo" style="color:var(--ok); display:none; margin-top:.35rem;"></p>
+          </label>
 
           <label class="field-label" for="aiFreitext" style="margin-top:1rem;">
             Ausschreibung / E-Mail / Notiz <small style="color:var(--muted);">(optional, wenn PDF hochgeladen)</small>
           </label>
-          <textarea id="aiFreitext" rows="8" placeholder="Originaltext der Ausschreibung hier einfügen — oder PDF oben hochladen, und nur Anmerkungen/Korrekturen hier."></textarea>
-          <div class="btn-row" style="margin-top:.85rem; align-items:center;">
-            <button type="button" class="btn btn-primary" id="aiExtractBtn" onclick="extractWithAI()">
-              Mit AI extrahieren
-            </button>
-            <span id="aiExtractStatus" style="margin-left:1rem; color:var(--muted); font-size:.9rem;"></span>
-          </div>
-        </div>
+          <textarea id="aiFreitext" rows="8" placeholder="Originaltext der Ausschreibung hier einfügen — oder PDF oben hochladen."></textarea>
 
-        <!-- Prompt-Copy-Sektion: ohne Key prominent, mit Key als collapsible Fallback -->
-        <details class="prompt-copy-section" {% if not is_authenticated %}open{% endif %}>
-          <summary class="lead-with-key">Lieber per ChatGPT / Claude statt DeepSeek? Prompt aufklappen</summary>
-          <div class="lead-no-key" style="display:contents;"></div>
-          <div style="display:flex; justify-content:flex-end; margin-bottom:.4rem; margin-top:.4rem;">
-            <button type="button" class="btn btn-ghost btn-sm" id="togglePromptBtn" onclick="toggleFullPrompt()">
-              Vollständigen Prompt anzeigen
-            </button>
-          </div>
-          <textarea id="promptText" rows="10" readonly>{{ prompt_content }}</textarea>
+          <label class="field-label" for="sonderwuensche" style="margin-top:1rem;">
+            Hinweise &amp; Sonderwünsche <small style="color:var(--muted);">(optional)</small>
+          </label>
+          <textarea id="sonderwuensche" rows="3" placeholder="z.B. „Rückreise erst am Folgetag" oder „Hotel bereits gebucht"."></textarea>
 
-          <div style="margin-top:1.25rem; border-top: 1.5px dashed var(--border); padding-top:1.1rem;">
-            <label class="field-label" for="sonderwuensche">
-              Hinweise &amp; Sonderwünsche
-              <span style="font-weight:400; text-transform:none; letter-spacing:0; font-size:.8rem; color:var(--muted);"> – optional, werden beim Kopieren automatisch angehängt</span>
-            </label>
-            <textarea id="sonderwuensche" rows="3" placeholder="z.B. „PKW statt Bahn, da Materialtransport" oder „Rückreise erst am Folgetag""></textarea>
+          <div class="nav-row">
+            <span></span>
+            <button type="button" class="btn btn-primary" onclick="goStep(2)">Weiter zur Reise →</button>
           </div>
+        </section>
 
-          <div style="margin-top:.85rem;">
-            <button class="btn btn-primary btn-copy" id="copyBtn" onclick="copyPrompt()">Prompt kopieren</button>
-            <p class="copy-warning">Vergiss nicht, die Ausschreibung dazu zu kopieren!</p>
-          </div>
-        </details>
-      </div>
-    </div>
+        <!-- Step 2: Reise / Beförderung ──────────────────────────────── -->
+        <section class="wiz-step" data-step="2">
+          <h2 class="step-title"><span class="step-title-num">02</span>Reise &amp; Beförderung</h2>
+          <p class="step-lead">
+            Wie reist du an? Das steht nicht in der Ausschreibung und entscheidest du —
+            die KI nutzt es, um realistische Reisezeiten zu schätzen.
+          </p>
 
-    <!-- Verbindungspfeil -->
-    <div style="text-align:center; color:var(--muted); font-size:.85rem; margin: -.4rem 0; line-height:1; position:relative; z-index:1; padding-bottom:.35rem;">
-      <svg width="20" height="28" viewBox="0 0 20 28" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto;">
-        <line x1="10" y1="0" x2="10" y2="20" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3"/>
-        <polyline points="4,16 10,24 16,16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-      </svg>
-      KI-Antwort (JSON) hier einfügen
-    </div>
+          <div class="field-grid">
+            <div>
+              <label class="field-label" for="hin_typ">Hinreise — Verkehrsmittel</label>
+              <select id="hin_typ" onchange="updateBefoerderungUI()">
+                <option value="PKW">PKW (selbst gefahren)</option>
+                <option value="BAHN">Bahn</option>
+                <option value="BUS">Bus</option>
+                <option value="DIENSTWAGEN">Dienstwagen</option>
+                <option value="MITFAHRT">Mitfahrt</option>
+              </select>
+            </div>
+            <div>
+              <label class="field-label" for="rueck_typ">Rückreise — Verkehrsmittel</label>
+              <select id="rueck_typ" onchange="updateBefoerderungUI()">
+                <option value="PKW">PKW (selbst gefahren)</option>
+                <option value="BAHN">Bahn</option>
+                <option value="BUS">Bus</option>
+                <option value="DIENSTWAGEN">Dienstwagen</option>
+                <option value="MITFAHRT">Mitfahrt</option>
+              </select>
+            </div>
 
-    <!-- Step 02: Daten & Erstellen -->
-    <div class="step" data-step="02">
-      <div class="step-inner">
-        <h2 class="step-title">
-          <span class="step-title-num">02</span>
-          KI-Antwort einfügen &amp; PDF erstellen
-        </h2>
-        <p class="step-lead">
-          Kopiere die <strong>komplette Antwort der KI</strong> aus Schritt&nbsp;01 in das Feld unten.
-          Du musst hier <em>nichts</em> selbst ausfüllen – die KI hat das schon erledigt.
-        </p>
-        <form id="genForm">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <label class="field-label" for="jsonData">KI-Antwort (JSON) einfügen</label>
-          <textarea name="json_data" id="jsonData" rows="15" placeholder='Hier die komplette Antwort der KI (ChatGPT / Claude) einfügen …'></textarea>
-          <div class="field-hint" id="validationHint"></div>
-          {% if is_authenticated %}
-          <div id="saveStatus" style="display:none; margin-top:.85rem; padding:.55rem .8rem;
-            background:var(--ok-subtle); border:1px solid var(--ok); border-radius:.4rem;
-            font-size:.88rem; color:var(--text);">
-            <strong style="color:var(--ok);">✓ Auto-Save aktiv</strong> —
-            Diese Reise wird beim Erzeugen in deinem Konto gespeichert
-            (Einstellung im <a href="{{ url_for('profil_view') }}">Profil</a> änderbar).
-          </div>
-          {% endif %}
-          <div class="btn-row" style="margin-top:.85rem;">
-            <button type="submit" class="btn btn-primary btn-primary-lg" id="submitBtn">
-              Antrag generieren (PDF)
-            </button>
-            <div class="btn-secondary-row">
-              <button type="button" class="btn btn-ghost" onclick="formatJSON()">JSON formatieren</button>
-              <button type="button" class="btn btn-outline btn-sm" onclick="loadExample()">Beispiel laden</button>
-              <button type="button" class="btn btn-ghost btn-sm" onclick="neuerAntrag()" id="neuerAntragBtn" style="margin-left:auto;">
-                ↩ Neuer Antrag
-              </button>
+            <div id="hin_para_wrap">
+              <label class="field-label" for="hin_para">Hinreise — § 5 NRKVO</label>
+              <select id="hin_para" onchange="updateBefoerderungUI()">
+                <option value="II">§ 5 II (Standard)</option>
+                <option value="III">§ 5 III (große Wegstrecke, triftiger Grund)</option>
+              </select>
+            </div>
+            <div id="rueck_para_wrap">
+              <label class="field-label" for="rueck_para">Rückreise — § 5 NRKVO</label>
+              <select id="rueck_para" onchange="updateBefoerderungUI()">
+                <option value="II">§ 5 II (Standard)</option>
+                <option value="III">§ 5 III (große Wegstrecke, triftiger Grund)</option>
+              </select>
+            </div>
+
+            <div id="hin_mitfahrer_wrap" class="full" style="display:none;">
+              <label class="field-label" for="hin_mitfahrer">Hinreise — Mitfahrt bei (Name)</label>
+              <input type="text" id="hin_mitfahrer" placeholder="z.B. Erika Musterfrau">
+            </div>
+            <div id="rueck_mitfahrer_wrap" class="full" style="display:none;">
+              <label class="field-label" for="rueck_mitfahrer">Rückreise — Mitfahrt bei (Name)</label>
+              <input type="text" id="rueck_mitfahrer" placeholder="z.B. Erika Musterfrau">
+            </div>
+
+            <div id="sonderfall_wrap" class="full" style="display:none;">
+              <label class="field-label" for="sonderfall">Begründung § 5 III (Pflicht)</label>
+              <input type="text" id="sonderfall" placeholder="z.B. Materialtransport, kein Dienstwagen verfügbar">
             </div>
           </div>
 
-          <!-- Erfolgs-Banner nach PDF-Download -->
-          <div id="successBanner" style="display:none; margin-top:1.25rem; padding:1rem 1.25rem; background:var(--ok-subtle); border:1.5px solid var(--ok); border-radius:12px; display:none; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
-            <span style="color:var(--ok); font-weight:600;">✓ PDF erfolgreich erstellt!</span>
-            <button type="button" class="btn btn-primary" onclick="neuerAntrag()" style="background:var(--ok);">
-              ↩ Neuen Antrag erstellen
-            </button>
+          <div class="nav-row">
+            <button type="button" class="btn btn-ghost" onclick="goStep(1)">← Zurück</button>
+            <button type="button" class="btn btn-primary" onclick="goStep(3)">Weiter zur KI →</button>
           </div>
-        </form>
+        </section>
+
+        <!-- Step 3: KI-Extraktion ───────────────────────────────────── -->
+        <section class="wiz-step" data-step="3">
+          <h2 class="step-title"><span class="step-title-num">03</span>KI-Extraktion</h2>
+
+          <div id="aiExtractBlock" style="display:none;">
+            <p class="step-lead">DeepSeek extrahiert die Reisedaten direkt aus deiner Eingabe.</p>
+            <div class="btn-row" style="align-items:center;">
+              <button type="button" class="btn btn-primary" id="aiExtractBtn" onclick="extractWithAI()">
+                Mit KI extrahieren
+              </button>
+              <span id="aiExtractStatus" style="margin-left:1rem; color:var(--muted); font-size:.9rem;"></span>
+            </div>
+          </div>
+
+          <details class="prompt-copy-section" {% if not is_authenticated %}open{% endif %} style="margin-top:1.25rem;">
+            <summary style="cursor:pointer; font-weight:600; color:var(--muted);">
+              Per ChatGPT / Claude (ohne DeepSeek-Key)
+            </summary>
+            <p class="step-lead" style="margin-top:.6rem;">
+              Prompt kopieren, zusammen mit der Ausschreibung in ChatGPT/Claude einfügen,
+              die JSON-Antwort unten einfügen.
+            </p>
+            <textarea id="promptText" rows="9" readonly>{{ prompt_content }}</textarea>
+            <div style="margin-top:.7rem;">
+              <button type="button" class="btn btn-primary btn-copy" id="copyBtn" onclick="copyPrompt()">Prompt kopieren</button>
+              <span class="copy-warning">Ausschreibung nicht vergessen mitzukopieren!</span>
+            </div>
+            <label class="field-label" for="pasteJson" style="margin-top:1rem;">KI-Antwort (JSON) einfügen</label>
+            <textarea id="pasteJson" rows="7" placeholder="Komplette Antwort der KI hier einfügen …"></textarea>
+            <div class="btn-row" style="margin-top:.7rem;">
+              <button type="button" class="btn btn-primary" onclick="usePastedJson()">Übernehmen &amp; prüfen →</button>
+            </div>
+          </details>
+
+          <div class="nav-row">
+            <button type="button" class="btn btn-ghost" onclick="goStep(2)">← Zurück</button>
+            <span></span>
+          </div>
+        </section>
+
+        <!-- Step 4: Prüfen ──────────────────────────────────────────── -->
+        <section class="wiz-step" data-step="4">
+          <h2 class="step-title"><span class="step-title-num">04</span>Prüfen &amp; korrigieren</h2>
+          <p class="step-lead">Antragsteller &amp; Beförderung sind gesetzt. Prüfe die KI-Reisedaten und korrigiere bei Bedarf.</p>
+
+          <h3 style="font-size:.92rem; margin:1rem 0 .3rem; color:var(--muted);">Antragsteller (aus Profil)</h3>
+          <table class="ro-table"><tbody id="roAntragsteller"></tbody></table>
+
+          <h3 style="font-size:.92rem; margin:1.2rem 0 .3rem; color:var(--muted);">Beförderung (deine Wahl)</h3>
+          <table class="ro-table"><tbody id="roBefoerderung"></tbody></table>
+
+          <h3 style="font-size:.92rem; margin:1.2rem 0 .5rem; color:var(--muted);">Reisedaten (KI — editierbar)</h3>
+          <div class="field-grid">
+            <div class="full">
+              <label class="field-label" for="r_zielort">Zielort</label>
+              <input type="text" id="r_zielort">
+            </div>
+            <div class="full">
+              <label class="field-label" for="r_reiseweg">Reiseweg</label>
+              <input type="text" id="r_reiseweg">
+            </div>
+            <div class="full">
+              <label class="field-label" for="r_zweck">Zweck</label>
+              <input type="text" id="r_zweck">
+            </div>
+            <div>
+              <label class="field-label" for="r_start_datum">Abfahrt — Datum</label>
+              <input type="text" id="r_start_datum" placeholder="TT.MM.JJJJ">
+            </div>
+            <div>
+              <label class="field-label" for="r_start_zeit">Abfahrt — Zeit</label>
+              <input type="text" id="r_start_zeit" placeholder="HH:MM">
+            </div>
+            <div>
+              <label class="field-label" for="r_ende_datum">Rückkehr — Datum</label>
+              <input type="text" id="r_ende_datum" placeholder="TT.MM.JJJJ">
+            </div>
+            <div>
+              <label class="field-label" for="r_ende_zeit">Rückkehr — Zeit</label>
+              <input type="text" id="r_ende_zeit" placeholder="HH:MM">
+            </div>
+            <div>
+              <label class="field-label" for="r_dg_beginn_datum">Dienstgeschäft Beginn — Datum</label>
+              <input type="text" id="r_dg_beginn_datum" placeholder="TT.MM.JJJJ">
+            </div>
+            <div>
+              <label class="field-label" for="r_dg_beginn_zeit">Dienstgeschäft Beginn — Zeit</label>
+              <input type="text" id="r_dg_beginn_zeit" placeholder="HH:MM">
+            </div>
+            <div>
+              <label class="field-label" for="r_dg_ende_datum">Dienstgeschäft Ende — Datum</label>
+              <input type="text" id="r_dg_ende_datum" placeholder="TT.MM.JJJJ">
+            </div>
+            <div>
+              <label class="field-label" for="r_dg_ende_zeit">Dienstgeschäft Ende — Zeit</label>
+              <input type="text" id="r_dg_ende_zeit" placeholder="HH:MM">
+            </div>
+            <div class="full">
+              <label class="field-label" for="r_bemerkungen">Bemerkungen (erscheinen im Formular)</label>
+              <textarea id="r_bemerkungen" rows="4"></textarea>
+            </div>
+          </div>
+
+          <h3 style="font-size:.92rem; margin:1.2rem 0 .3rem; color:var(--muted);">Angaben</h3>
+          <div class="check-row"><input type="checkbox" id="k_kosten_andere"><label for="k_kosten_andere">Reisekosten ganz/teilweise von anderer Stelle (z.B. Tagungsgebühr inkl. Übernachtung/Verpflegung)</label></div>
+          <div class="check-row"><input type="checkbox" id="k_2km"><label for="k_2km">Dienstort &lt; 2 km von Dienststätte/Wohnung</label></div>
+          <div class="check-row"><input type="checkbox" id="k_trennungsgeld"><label for="k_trennungsgeld">Anspruch auf Trennungsgeld</label></div>
+
+          <h3 style="font-size:.92rem; margin:1.2rem 0 .3rem; color:var(--muted);">Verzichtserklärung</h3>
+          <div class="check-row"><input type="checkbox" id="v_tagegeld"><label for="v_tagegeld">Verzicht auf Tagegeld</label></div>
+          <div class="check-row"><input type="checkbox" id="v_uebernachtung"><label for="v_uebernachtung">Verzicht auf Übernachtungsgeld</label></div>
+          <div class="check-row"><input type="checkbox" id="v_fahrtkosten"><label for="v_fahrtkosten">Verzicht auf Fahrtkosten</label></div>
+
+          <div class="nav-row">
+            <button type="button" class="btn btn-ghost" onclick="goStep(3)">← Zurück</button>
+            <button type="button" class="btn btn-primary" onclick="goStep(5)">Weiter zum PDF →</button>
+          </div>
+        </section>
+
+        <!-- Step 5: PDF ─────────────────────────────────────────────── -->
+        <section class="wiz-step" data-step="5">
+          <h2 class="step-title"><span class="step-title-num">05</span>PDF erzeugen</h2>
+          <p class="step-lead">Alles geprüft? Antrag als ausgefülltes PDF erzeugen.</p>
+
+          {% if is_authenticated %}
+          <div id="saveStatus" class="info-box" style="display:none;">
+            <strong style="color:var(--ok);">✓ Auto-Save aktiv</strong> —
+            die Reise wird in deinem Konto gespeichert
+            (Einstellung im <a href="{{ url_for('profil_view') }}">Profil</a>).
+          </div>
+          {% endif %}
+
+          <form id="genForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="json_data" id="json_data">
+            <div class="btn-row">
+              <button type="submit" class="btn btn-primary btn-primary-lg" id="submitBtn">Antrag generieren (PDF)</button>
+              <button type="button" class="btn btn-ghost btn-sm" onclick="neuerAntrag()" style="margin-left:auto;">↩ Neuer Antrag</button>
+            </div>
+          </form>
+
+          <div id="successBanner" class="info-box" style="display:none; background:var(--ok-subtle); border-color:var(--ok); margin-top:1rem;">
+            <span style="color:var(--ok); font-weight:600;">✓ PDF erfolgreich erstellt!</span>
+          </div>
+
+          <div class="nav-row">
+            <button type="button" class="btn btn-ghost" onclick="goStep(4)">← Zurück</button>
+            <span></span>
+          </div>
+        </section>
+
       </div>
     </div>
 
     <footer class="app-footer">
       <small>
-        v0.2.0
+        v0.3.0
         <span class="sep">·</span><a href="{{ url_for('dashboard') }}">Dashboard</a>
         <span class="sep">·</span><a href="{{ url_for('abrechnung_index') }}">Zur Abrechnung</a>
         <span class="sep">·</span><a href="{{ url_for('docs_view', slug='getting-started') }}">Hilfe</a>
@@ -425,507 +583,442 @@
   </div><!-- /.app -->
 
   <script>
-    const REQUIRED_KEYS  = ['antragsteller', 'reise_details', 'befoerderung', 'konfiguration_checkboxen'];
-    const PROFILE_KEY    = 'dr_profile';
+    const PROFILE_KEY = 'dr_profile';
+    const IS_AUTHENTICATED = {{ 'true' if is_authenticated else 'false' }};
     const promptTemplate = document.getElementById('promptText').value;
-    let   fullPromptForCopy = promptTemplate;
-
-    let showingFullPrompt = false;
-
-    function toggleFullPrompt() {
-      const area = document.getElementById('promptText');
-      const btn  = document.getElementById('togglePromptBtn');
-      showingFullPrompt = !showingFullPrompt;
-      area.value = showingFullPrompt ? fullPromptForCopy : makeDisplayPrompt(fullPromptForCopy);
-      area.rows  = showingFullPrompt ? 28 : 10;
-      btn.textContent = showingFullPrompt ? 'Kurzansicht' : 'Vollständigen Prompt anzeigen';
-    }
-
-    function makeDisplayPrompt(full) {
-      const dataLines = full.split('\n')
-        .filter(l => /^- (Name|Abteilung|Telefon|Privatadresse|Mitreisende Person|Mitreisender):/.test(l))
-        .map(l => l.replace(/\s*\(nur einsetzen,[^)]*\)/, '').trimEnd());
-      return dataLines.join('\n');
-    }
+    let aiData = null;  // Teil-JSON aus der KI (ohne antragsteller/befoerderung)
 
     // ── Modal ────────────────────────────────────────────────────────
-    function openModal(id) {
-      document.getElementById(id).classList.add('is-open');
-      document.body.style.overflow = 'hidden';
-    }
-    function closeModal(id) {
-      document.getElementById(id).classList.remove('is-open');
-      document.body.style.overflow = '';
-    }
+    function openModal(id){ document.getElementById(id).classList.add('is-open'); document.body.style.overflow='hidden'; }
+    function closeModal(id){ document.getElementById(id).classList.remove('is-open'); document.body.style.overflow=''; }
     document.querySelectorAll('.modal-overlay').forEach(el =>
-      el.addEventListener('click', e => { if (e.target === el) closeModal(el.id); })
-    );
+      el.addEventListener('click', e => { if (e.target === el) closeModal(el.id); }));
     document.addEventListener('keydown', e => {
-      if (e.key === 'Escape')
-        document.querySelectorAll('.modal-overlay.is-open').forEach(el => closeModal(el.id));
+      if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.is-open').forEach(el => closeModal(el.id));
     });
 
-    // ── Alerts ───────────────────────────────────────────────────────
-    // msg wird via textContent gesetzt — KEIN innerHTML, damit
-    // Server-Fehlertexte / Dateinamen nicht als HTML interpretiert werden
-    // (XSS-Schutz). type ist auf Allowlist begrenzt.
+    // ── Alerts (XSS-sicher: textContent) ─────────────────────────────
     function showAlert(msg, type = 'danger') {
       const stack = document.getElementById('alertStack');
       const safeType = ['danger','warning','success','info'].includes(type) ? type : 'danger';
       const el = document.createElement('div');
       el.className = `alert alert-${safeType}`;
-      const span = document.createElement('span');
-      span.textContent = String(msg);
-      const btn = document.createElement('button');
-      btn.className = 'alert-close';
-      btn.textContent = '✕';
+      const span = document.createElement('span'); span.textContent = String(msg);
+      const btn = document.createElement('button'); btn.className = 'alert-close'; btn.textContent = '✕';
       btn.addEventListener('click', () => el.remove());
-      el.appendChild(span);
-      el.appendChild(btn);
-      stack.appendChild(el);
+      el.appendChild(span); el.appendChild(btn); stack.appendChild(el);
       setTimeout(() => el.remove(), 7000);
     }
 
-    // ── localStorage ─────────────────────────────────────────────────
-    function getProfile() {
-      try { const r = localStorage.getItem(PROFILE_KEY); return r ? JSON.parse(r) : null; }
-      catch { return null; }
-    }
-    function saveProfile(p) { localStorage.setItem(PROFILE_KEY, JSON.stringify(p)); }
+    // ── localStorage-Profil ──────────────────────────────────────────
+    function getProfile(){ try { return JSON.parse(localStorage.getItem(PROFILE_KEY) || 'null'); } catch { return null; } }
+    function saveProfile(p){ localStorage.setItem(PROFILE_KEY, JSON.stringify(p)); }
 
-    // ── Profil anwenden ──────────────────────────────────────────────
     function applyProfile(p) {
-      let prompt = promptTemplate;
-      prompt = prompt.replace(/\[DEIN NAME\]/g,           p.name);
-      prompt = prompt.replace(/\[DEINE ABTEILUNG\]/g,     p.abteilung);
-      prompt = prompt.replace(/\[DEINE TELEFONNUMMER\]/g, p.telefon);
-      prompt = prompt.replace(/\[DEINE PRIVATADRESSE\]/g, p.adresse);
-      prompt = prompt.replace(/\[OPTIONALER NAME\]/g,     p.mitreisender || '(keiner)');
-      fullPromptForCopy = prompt;
-      document.getElementById('promptText').value = makeDisplayPrompt(prompt);
-
-      const parts    = p.name.trim().split(/\s+/);
-      const initials = (parts[0]?.[0] || '') + (parts[parts.length - 1]?.[0] || '');
-      const avatar   = document.getElementById('profileAvatar');
-      avatar.textContent = initials.toUpperCase();
+      const status = document.getElementById('profileStatus');
+      const avatar = document.getElementById('profileAvatar');
+      if (!p || !(p.name || p.abteilung)) {
+        status.textContent = 'Kein Profil konfiguriert.'; status.classList.add('missing');
+        return;
+      }
+      status.textContent = `${p.name || ''} · ${p.abteilung || ''}`;
+      status.classList.remove('missing');
+      const parts = (p.name || '').trim().split(/\s+/);
+      avatar.textContent = ((parts[0]?.[0] || '') + (parts[parts.length-1]?.[0] || '')).toUpperCase() || '?';
       avatar.classList.remove('empty');
 
-      const status = document.getElementById('profileStatus');
-      status.textContent = `${p.name} · ${p.abteilung}`;
-      status.classList.remove('missing');
-
-      // AI-Workflow-Modus auf <body> markieren — Styles in CSS-Block oben.
-      // Wenn Key vorhanden: AI-Extract prominent, Prompt-Copy als collapsible Fallback.
-      // Wenn kein Key: Prompt-Copy primaer, AI-Block ausgeblendet.
+      const hasAiKey = !!(p.deepseek_api_key || p.has_server_deepseek_key);
       const aiBlock = document.getElementById('aiExtractBlock');
       const promptDetails = document.querySelector('.prompt-copy-section');
-      // AI verfuegbar, wenn entweder localStorage-Key (Gast-BYOK) ODER
-      // Server-Profil-Key (Auth-User, has_server_deepseek_key Marker).
-      const hasAiKey = !!(p.deepseek_api_key || p.has_server_deepseek_key);
-      if (hasAiKey) {
-        document.body.classList.add('has-ai-key');
-        if (aiBlock) aiBlock.style.display = 'block';
-        if (promptDetails) promptDetails.open = false;
-      } else {
-        document.body.classList.remove('has-ai-key');
-        if (aiBlock) aiBlock.style.display = 'none';
-        if (promptDetails) promptDetails.open = true;
-      }
+      if (aiBlock) aiBlock.style.display = hasAiKey ? 'block' : 'none';
+      if (promptDetails) promptDetails.open = !hasAiKey;
     }
 
-    // ── Wizard ───────────────────────────────────────────────────────
+    // ── Profil-Wizard ────────────────────────────────────────────────
     function openWizard() {
       const p = getProfile();
       if (p) {
-        document.getElementById('wiz_name').value         = p.name         || '';
-        document.getElementById('wiz_abteilung').value    = p.abteilung    || '';
-        document.getElementById('wiz_telefon').value      = p.telefon      || '';
-        document.getElementById('wiz_mitreisender').value = p.mitreisender || '';
-
-        // Handle splitting for backward compatibility
-        if (p.strasse && p.plz_ort) {
-          document.getElementById('wiz_strasse').value = p.strasse;
-          document.getElementById('wiz_plz_ort').value = p.plz_ort;
-        } else if (p.adresse) {
+        wiz_name.value = p.name || ''; wiz_abteilung.value = p.abteilung || '';
+        wiz_telefon.value = p.telefon || ''; wiz_mitreisender.value = p.mitreisender || '';
+        if (p.strasse && p.plz_ort) { wiz_strasse.value = p.strasse; wiz_plz_ort.value = p.plz_ort; }
+        else if (p.adresse) {
           const parts = p.adresse.split(',');
-          if (parts.length > 1) {
-            document.getElementById('wiz_strasse').value = parts[0].trim();
-            document.getElementById('wiz_plz_ort').value = parts.slice(1).join(',').trim();
-          } else {
-            document.getElementById('wiz_strasse').value = p.adresse.trim();
-            document.getElementById('wiz_plz_ort').value = '';
-          }
+          if (parts.length > 1) { wiz_strasse.value = parts[0].trim(); wiz_plz_ort.value = parts.slice(1).join(',').trim(); }
+          else { wiz_strasse.value = p.adresse.trim(); wiz_plz_ort.value = ''; }
         }
-
-        // Abrechnungs-Felder
-        document.getElementById('wiz_iban').value         = p.iban         || '';
-        document.getElementById('wiz_bic').value          = p.bic          || '';
-        document.getElementById('wiz_email').value        = p.email        || '';
-        document.getElementById('wiz_abrechnende').value  = p.abrechnende_dienststelle || '';
-        document.getElementById('wiz_rkr').value          = p.rkr_default  || 'DR';
-
-        // AI-Key
-        document.getElementById('wiz_deepseek_key').value = p.deepseek_api_key || '';
-
-        // Blöcke aufklappen, wenn dort schon Daten sind
-        if (p.iban || p.bic || p.email || p.abrechnende_dienststelle) {
-          document.getElementById('wizAbrechnungBlock').open = true;
-        }
-        if (p.deepseek_api_key) {
-          document.getElementById('wizAIBlock').open = true;
-        }
+        wiz_standard_verkehrsmittel.value = p.standard_verkehrsmittel || '';
+        wiz_iban.value = p.iban || ''; wiz_bic.value = p.bic || '';
+        wiz_email.value = p.email || ''; wiz_abrechnende.value = p.abrechnende_dienststelle || '';
+        wiz_rkr.value = p.rkr_default || 'DR';
+        wiz_deepseek_key.value = p.deepseek_api_key || '';
+        if (p.iban || p.bic || p.email || p.abrechnende_dienststelle) wizAbrechnungBlock.open = true;
+        if (p.deepseek_api_key) wizAIBlock.open = true;
       }
       openModal('wizardOverlay');
     }
 
     function saveWizard() {
-      const name         = document.getElementById('wiz_name').value.trim();
-      const abteilung    = document.getElementById('wiz_abteilung').value.trim();
-      const telefon      = document.getElementById('wiz_telefon').value.trim();
-      const strasse      = document.getElementById('wiz_strasse').value.trim();
-      const plz_ort      = document.getElementById('wiz_plz_ort').value.trim();
-      const mitreisender = document.getElementById('wiz_mitreisender').value.trim();
-
+      const name = wiz_name.value.trim(), abteilung = wiz_abteilung.value.trim(),
+            telefon = wiz_telefon.value.trim(), strasse = wiz_strasse.value.trim(),
+            plz_ort = wiz_plz_ort.value.trim();
       if (!name || !abteilung || !telefon || !strasse || !plz_ort) {
-        showAlert('Bitte alle Pflichtfelder (*) ausfüllen.', 'warning');
-        return;
+        showAlert('Bitte alle Pflichtfelder (*) ausfüllen.', 'warning'); return;
       }
-
-      // Abrechnungs-Felder (optional, keine Pflicht)
-      const iban                     = document.getElementById('wiz_iban').value.trim().replace(/\s+/g, '').toUpperCase();
-      const bic                      = document.getElementById('wiz_bic').value.trim().toUpperCase();
-      const email                    = document.getElementById('wiz_email').value.trim();
-      const abrechnende_dienststelle = document.getElementById('wiz_abrechnende').value.trim();
-      const rkr_default              = document.getElementById('wiz_rkr').value;
-
-      // AI-Key (optional)
-      const deepseek_api_key = document.getElementById('wiz_deepseek_key').value.trim();
-
-      const adresse = `${strasse}, ${plz_ort}`;
-      const profile = {
-        name, abteilung, telefon, adresse, strasse, plz_ort, mitreisender,
-        iban, bic, email, abrechnende_dienststelle, rkr_default,
-        deepseek_api_key,
-      };
-      saveProfile(profile);
-      applyProfile(profile);
+      const p = getProfile() || {};
+      Object.assign(p, {
+        name, abteilung, telefon, strasse, plz_ort,
+        adresse: `${strasse}, ${plz_ort}`,
+        mitreisender: wiz_mitreisender.value.trim(),
+        standard_verkehrsmittel: wiz_standard_verkehrsmittel.value,
+        iban: wiz_iban.value.trim().replace(/\s+/g,'').toUpperCase(),
+        bic: wiz_bic.value.trim().toUpperCase(),
+        email: wiz_email.value.trim(),
+        abrechnende_dienststelle: wiz_abrechnende.value.trim(),
+        rkr_default: wiz_rkr.value,
+        deepseek_api_key: wiz_deepseek_key.value.trim(),
+      });
+      saveProfile(p); applyProfile(p); prefillBefoerderung();
       closeModal('wizardOverlay');
-      showAlert('Profil gespeichert – Prompt wurde aktualisiert.', 'success');
+      showAlert('Profil gespeichert.', 'success');
     }
 
-    // ── Prompt kopieren ──────────────────────────────────────────────
+    // ── Stepper ──────────────────────────────────────────────────────
+    let currentStep = 1;
+    function goStep(n) {
+      if (n === 4 && !aiData) { showAlert('Erst die KI-Extraktion in Schritt 3 abschließen.', 'warning'); return; }
+      if (n === 5) syncFinalJson();
+      currentStep = n;
+      document.querySelectorAll('.wiz-step').forEach(s => s.classList.remove('is-active'));
+      const t = document.querySelector(`.wiz-step[data-step="${n}"]`);
+      if (t) t.classList.add('is-active');
+      document.querySelectorAll('.stepper-item').forEach((b,i) => {
+        b.classList.toggle('is-active', i+1 === n);
+        b.classList.toggle('is-done', i+1 < n);
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    document.querySelectorAll('.stepper-item').forEach(b =>
+      b.addEventListener('click', () => goStep(parseInt(b.dataset.go))));
+
+    // ── Beförderung (Step 2) ─────────────────────────────────────────
+    function prefillBefoerderung() {
+      const p = getProfile();
+      const def = (p && p.standard_verkehrsmittel) || '';
+      if (def) { hin_typ.value = def; rueck_typ.value = def; }
+      updateBefoerderungUI();
+    }
+    function updateBefoerderungUI() {
+      const hp = hin_typ.value === 'PKW', rp = rueck_typ.value === 'PKW';
+      hin_para_wrap.style.display = hp ? '' : 'none';
+      rueck_para_wrap.style.display = rp ? '' : 'none';
+      hin_mitfahrer_wrap.style.display = hin_typ.value === 'MITFAHRT' ? '' : 'none';
+      rueck_mitfahrer_wrap.style.display = rueck_typ.value === 'MITFAHRT' ? '' : 'none';
+      const needSonderfall = (hp && hin_para.value === 'III') || (rp && rueck_para.value === 'III');
+      sonderfall_wrap.style.display = needSonderfall ? '' : 'none';
+    }
+    function getReiseAnswers() {
+      const mk = (typSel, paraSel, mfId) => {
+        const typ = typSel.value;
+        const o = { typ, paragraph_5_nrkvo: (typ === 'PKW' ? paraSel.value : 'II') };
+        if (typ === 'MITFAHRT') o.mitfahrer_name = document.getElementById(mfId).value.trim();
+        return o;
+      };
+      return {
+        hinreise: mk(hin_typ, hin_para, 'hin_mitfahrer'),
+        rueckreise: mk(rueck_typ, rueck_para, 'rueck_mitfahrer'),
+        sonderfall_begruendung_textfeld: sonderfall.value.trim(),
+      };
+    }
+    const VM_LABEL = { PKW:'PKW (selbst gefahren)', BAHN:'Bahn', BUS:'Bus', DIENSTWAGEN:'Dienstwagen', MITFAHRT:'Mitfahrt', FLUG:'Flug' };
+    function formatReiseKontext(ra) {
+      const line = (richtung, t) => {
+        if (!t.typ) return '';
+        let s = `${richtung}: ${VM_LABEL[t.typ] || t.typ}`;
+        if (t.typ === 'PKW') s += `, § 5 ${t.paragraph_5_nrkvo} NRKVO`;
+        if (t.typ === 'MITFAHRT' && t.mitfahrer_name) s += ` bei ${t.mitfahrer_name}`;
+        return s;
+      };
+      return [line('Hinreise', ra.hinreise), line('Rückreise', ra.rueckreise)].filter(Boolean).join('\n');
+    }
+
+    // ── Prompt kopieren (Copy-Paste-Pfad) ────────────────────────────
     function copyPrompt() {
       const btn = document.getElementById('copyBtn');
-      let text = fullPromptForCopy;
-      const sonderwuensche = document.getElementById('sonderwuensche').value.trim();
-      if (sonderwuensche) {
-        text += '\n\n## Hinweise & Sonderwünsche\n' + sonderwuensche;
-      }
-      navigator.clipboard.writeText(text)
-        .catch(() => {
-          const t = document.getElementById('promptText');
-          t.value = text; t.select(); document.execCommand('copy'); t.value = document.getElementById('promptText').defaultValue;
-        });
-      btn.textContent = 'Kopiert ✓';
-      btn.classList.add('copied');
+      let text = promptTemplate;
+      const kontext = formatReiseKontext(getReiseAnswers());
+      if (kontext) text += '\n\n## Vom Nutzer gewählte Beförderung (nur für Zeitschätzung, NICHT ausgeben)\n' + kontext;
+      const sw = document.getElementById('sonderwuensche').value.trim();
+      if (sw) text += '\n\n## Hinweise & Sonderwünsche\n' + sw;
+      navigator.clipboard.writeText(text).catch(() => {
+        const t = document.getElementById('promptText'); const orig = t.value;
+        t.value = text; t.select(); document.execCommand('copy'); t.value = orig;
+      });
+      btn.textContent = 'Kopiert ✓'; btn.classList.add('copied');
       setTimeout(() => { btn.textContent = 'Prompt kopieren'; btn.classList.remove('copied'); }, 2000);
     }
 
-    // ── JSON ─────────────────────────────────────────────────────────
+    // ── JSON-Eingang bereinigen ──────────────────────────────────────
     function sanitizeRawInput(text) {
-      // 1. KI-Zitatmarker ([cite_start], [cite: 1]) entfernen
       text = text.replace(/\[cite_start\]|\[cite_end\]|\s*\[cite:[^\]]+\]/gi, '');
-      // 2. Markdown-Code-Fences entfernen (```json ... ``` oder ``` ... ```)
       text = text.replace(/```(?:json)?\s*\n?([\s\S]*?)\n?```/g, '$1');
-      // 3. Ersten { bis letzten } extrahieren (Begleittext vor/nach dem JSON)
-      const start = text.indexOf('{');
-      const end   = text.lastIndexOf('}');
-      if (start !== -1 && end !== -1 && end > start) text = text.slice(start, end + 1);
-      // 4. Trailing commas vor } oder ] entfernen (z.B. {"a":1,})
-      text = text.replace(/,(\s*[}\]])/g, '$1');
-      return text.trim();
+      const s = text.indexOf('{'), e = text.lastIndexOf('}');
+      if (s !== -1 && e !== -1 && e > s) text = text.slice(s, e + 1);
+      return text.replace(/,(\s*[}\]])/g, '$1').trim();
     }
 
-    function formatJSON() {
-      const area = document.getElementById('jsonData');
-      try {
-        area.value = JSON.stringify(JSON.parse(area.value), null, 2);
-        validateJSON();
-      } catch(e) { showAlert('Ungültiges JSON: ' + e.message); }
-    }
-
-    function validateJSON() {
-      const area = document.getElementById('jsonData');
-      const hint = document.getElementById('validationHint');
-      // Helper: setzt das hint-Element mit textContent + CSS-Klasse (kein
-      // innerHTML mehr, damit JSON-Parser-Errors und Fieldnames keinen
-      // HTML-Tag in den DOM bekommen).
-      function _setHint(cssClass, text) {
-        hint.replaceChildren();
-        const span = document.createElement('span');
-        span.className = cssClass;
-        span.textContent = text;
-        hint.appendChild(span);
-      }
-      if (!area.value.trim()) {
-        area.classList.remove('is-valid', 'is-invalid');
-        hint.replaceChildren();
-        return false;
-      }
-      try {
-        const obj  = JSON.parse(area.value);
-        const miss = REQUIRED_KEYS.filter(k => !(k in obj));
-        if (miss.length) {
-          area.classList.replace('is-valid', 'is-invalid') || area.classList.add('is-invalid');
-          _setHint('err', `Fehlende Felder: ${miss.join(', ')}`);
-          return false;
-        }
-        const rd = obj.reise_details || {};
-        const emptyRd = ['zielort', 'reiseweg', 'zweck', 'start_datum', 'start_zeit'].filter(k => !rd[k]);
-        if (emptyRd.length) {
-          area.classList.replace('is-valid', 'is-invalid') || area.classList.add('is-invalid');
-          _setHint('err', `Die KI hat keine Reisedaten geliefert – Ausschreibung nicht mitgeschickt? Leere Felder: ${emptyRd.join(', ')}`);
-          return false;
-        }
-        area.classList.remove('is-invalid'); area.classList.add('is-valid');
-        _setHint('ok', 'JSON ist valide');
-        return true;
-      } catch(e) {
-        area.classList.remove('is-valid'); area.classList.add('is-invalid');
-        _setHint('err', 'Syntaxfehler: ' + e.message);
-        return false;
-      }
-    }
-
-    function neuerAntrag() {
-      const area = document.getElementById('jsonData');
-      area.value = '';
-      area.classList.remove('is-valid', 'is-invalid');
-      document.getElementById('validationHint').innerHTML = '';
-      document.getElementById('sonderwuensche').value = '';
-      document.getElementById('successBanner').style.display = 'none';
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    async function loadExample() {
-      try {
-        const r = await fetch('/example');
-        if (r.ok) {
-          document.getElementById('jsonData').value = JSON.stringify(await r.json(), null, 2);
-          validateJSON();
-          showAlert('Beispiel-JSON geladen', 'info');
-        } else { showAlert('Beispiel nicht verfügbar', 'warning'); }
-      } catch(e) { showAlert('Fehler: ' + e.message); }
-    }
-
-    // ── AI-Direktextraktion ──────────────────────────────────────────
-    // Auth-User: Key bleibt serverseitig im verschluesselten Profil. Wir
-    //   senden den Header gar nicht — /extract holt den Key aus der DB
-    //   (vermindert XSS-Risiko, kein Klartext-Key im HTML).
-    // Gast: Key ist im localStorage (BYOK) und geht als Header mit.
+    // ── KI-Extraktion (DeepSeek) ─────────────────────────────────────
     async function extractWithAI() {
       const profile = getProfile();
       const guestKey = profile?.deepseek_api_key?.trim();
       const hasServerKey = !!profile?.has_server_deepseek_key;
-      if (!IS_AUTHENTICATED && !guestKey) {
-        showAlert('Kein DeepSeek-API-Key im Profil hinterlegt.', 'warning');
-        openWizard();
-        return;
-      }
+      if (!IS_AUTHENTICATED && !guestKey) { showAlert('Kein DeepSeek-API-Key im Profil.', 'warning'); openWizard(); return; }
       if (IS_AUTHENTICATED && !guestKey && !hasServerKey) {
         showAlert('Kein DeepSeek-API-Key — bitte im Server-Profil hinterlegen.', 'warning');
-        window.location.href = '{{ url_for("profil_view") }}';
-        return;
+        window.location.href = '{{ url_for("profil_view") }}'; return;
       }
       const freitext = document.getElementById('aiFreitext').value.trim();
       const pdfFile = document.getElementById('pdfFile').files[0];
-      if (!freitext && !pdfFile) {
-        showAlert('Bitte Ausschreibung als Text einfügen oder PDF hochladen.', 'warning');
-        return;
-      }
+      if (!freitext && !pdfFile) { showAlert('Bitte Ausschreibung als Text einfügen oder PDF hochladen (Schritt 1).', 'warning'); goStep(1); return; }
 
-      const btn    = document.getElementById('aiExtractBtn');
-      const status = document.getElementById('aiExtractStatus');
-      btn.disabled = true;
-      btn.textContent = 'Extrahiere …';
-      status.textContent = pdfFile
-        ? 'PDF wird gelesen + DeepSeek befragt (15–40 Sekunden) …'
-        : 'DeepSeek arbeitet, das kann 10–30 Sekunden dauern.';
-
+      const btn = document.getElementById('aiExtractBtn'), status = document.getElementById('aiExtractStatus');
+      btn.disabled = true; btn.textContent = 'Extrahiere …';
+      status.textContent = pdfFile ? 'PDF wird gelesen + DeepSeek befragt (15–40 s) …' : 'DeepSeek arbeitet (10–30 s) …';
       try {
         const fd = new FormData();
         fd.append('freitext', freitext);
         fd.append('sonderwuensche', document.getElementById('sonderwuensche').value.trim());
+        fd.append('reise_antworten', JSON.stringify(getReiseAnswers()));
         fd.append('csrf_token', document.querySelector('input[name="csrf_token"]').value);
         if (pdfFile) fd.append('pdf', pdfFile);
-
-        // Header nur bei Gast-Modus mitsenden (BYOK). Auth-User: Server-Fallback.
         const headers = guestKey ? { 'X-DeepSeek-Key': guestKey } : {};
-        const res = await fetch('/extract', {
-          method: 'POST',
-          headers: headers,
-          body: fd,
-        });
-
+        const res = await fetch('/extract', { method: 'POST', headers, body: fd });
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
           showAlert('AI-Extraktion fehlgeschlagen: ' + (err.error || res.statusText), 'danger');
-          status.textContent = '';
-          return;
+          status.textContent = ''; return;
         }
-
-        const data = await res.json();
-        const area = document.getElementById('jsonData');
-        area.value = JSON.stringify(data, null, 2);
-        validateJSON();
-        status.textContent = '✓ JSON erstellt – bitte in Schritt 02 prüfen.';
-        showAlert('AI-Extraktion fertig – JSON in Schritt 02 zur Prüfung.', 'success');
-        area.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        aiData = await res.json();
+        fillReview();
+        status.textContent = '✓ fertig';
+        showAlert('Reisedaten extrahiert – bitte in Schritt 4 prüfen.', 'success');
+        goStep(4);
       } catch (e) {
-        showAlert('Netzwerkfehler: ' + e.message, 'danger');
-        status.textContent = '';
+        showAlert('Netzwerkfehler: ' + e.message, 'danger'); status.textContent = '';
       } finally {
-        btn.disabled = false;
-        btn.textContent = 'Mit AI extrahieren';
+        btn.disabled = false; btn.textContent = 'Mit KI extrahieren';
       }
     }
 
-    // ── Formular absenden ────────────────────────────────────────────
-    document.getElementById('genForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      if (!validateJSON()) { showAlert('Bitte korrigiere das JSON vor dem Absenden'); return; }
+    function usePastedJson() {
+      const raw = document.getElementById('pasteJson').value;
+      if (!raw.trim()) { showAlert('Bitte die KI-Antwort einfügen.', 'warning'); return; }
+      try {
+        aiData = JSON.parse(sanitizeRawInput(raw));
+      } catch (e) { showAlert('Ungültiges JSON: ' + e.message, 'danger'); return; }
+      fillReview();
+      showAlert('Übernommen – bitte in Schritt 4 prüfen.', 'success');
+      goStep(4);
+    }
 
-      const spinner   = document.getElementById('loadingSpinner');
-      const submitBtn = document.getElementById('submitBtn');
-      spinner.classList.add('active');
-      submitBtn.disabled = true;
-
-      // Account-Auto-Save: wenn im Profil aktiv, save_to_account=1 mitschicken.
-      // Bestehende dienstreise_id (aus vorhergehender Generierung derselben
-      // Reise) als hidden-field, damit der Server die Reise updated statt
-      // duplizierter Eintraege anzulegen.
-      const fd = new FormData(this);
-      const profileNow = getProfile();
-      const autoSave = profileNow && profileNow.auto_save_dienstreisen !== false;
-      if ({{ 'true' if is_authenticated else 'false' }} && autoSave) {
-        fd.set('save_to_account', '1');
-        const existingId = document.getElementById('dienstreiseId')?.value;
-        if (existingId) fd.set('dienstreise_id', existingId);
+    // ── Review (Step 4) ──────────────────────────────────────────────
+    function _row(tbody, k, v) {
+      const tr = document.createElement('tr');
+      const td1 = document.createElement('td'); td1.textContent = k;
+      const td2 = document.createElement('td'); td2.textContent = v || '—';
+      tr.appendChild(td1); tr.appendChild(td2); tbody.appendChild(tr);
+    }
+    function fillReview() {
+      const p = getProfile() || {};
+      const aB = document.getElementById('roAntragsteller'); aB.replaceChildren();
+      _row(aB, 'Name', p.name);
+      _row(aB, 'Abteilung', p.abteilung);
+      _row(aB, 'Telefon', p.telefon);
+      _row(aB, 'Privatadresse', p.adresse);
+      if (p.mitreisender) _row(aB, 'Mitreisender', p.mitreisender);
+      if (IS_AUTHENTICATED) {
+        const note = document.createElement('tr');
+        const td = document.createElement('td'); td.colSpan = 2;
+        td.style.color = 'var(--muted)'; td.style.fontSize = '.78rem';
+        td.textContent = 'Beim Erzeugen serverseitig autoritativ aus dem Profil gesetzt.';
+        note.appendChild(td); aB.appendChild(note);
       }
 
+      const ra = getReiseAnswers();
+      const bB = document.getElementById('roBefoerderung'); bB.replaceChildren();
+      formatReiseKontext(ra).split('\n').forEach(l => {
+        const [a, ...rest] = l.split(': '); _row(bB, a, rest.join(': '));
+      });
+      if (ra.sonderfall_begruendung_textfeld) _row(bB, 'Begründung § III', ra.sonderfall_begruendung_textfeld);
+
+      const rd = (aiData && aiData.reise_details) || {};
+      r_zielort.value = rd.zielort || '';
+      r_reiseweg.value = rd.reiseweg || '';
+      r_zweck.value = rd.zweck || '';
+      r_start_datum.value = rd.start_datum || '';
+      r_start_zeit.value = rd.start_zeit || '';
+      r_ende_datum.value = rd.ende_datum || '';
+      r_ende_zeit.value = rd.ende_zeit || '';
+      r_dg_beginn_datum.value = rd.dienstgeschaeft_beginn_datum || '';
+      r_dg_beginn_zeit.value = rd.dienstgeschaeft_beginn_zeit || '';
+      r_dg_ende_datum.value = rd.dienstgeschaeft_ende_datum || '';
+      r_dg_ende_zeit.value = rd.dienstgeschaeft_ende_zeit || '';
+      r_bemerkungen.value = (aiData && aiData.zusatz_infos && aiData.zusatz_infos.bemerkungen_feld) || '';
+
+      const kc = (aiData && aiData.konfiguration_checkboxen) || {};
+      k_kosten_andere.checked = !!kc.kosten_durch_andere_stelle;
+      k_2km.checked = !!kc.dienstgeschaeft_2km_umkreis;
+      k_trennungsgeld.checked = !!kc.anspruch_trennungsgeld;
+      const ve = (aiData && aiData.verzicht_erklaerung) || {};
+      v_tagegeld.checked = !!ve.verzicht_tagegeld;
+      v_uebernachtung.checked = !!ve.verzicht_uebernachtungsgeld;
+      v_fahrtkosten.checked = !!ve.verzicht_fahrtkosten;
+    }
+
+    // ── Finales JSON zusammenbauen ───────────────────────────────────
+    function syncFinalJson() {
+      const p = getProfile() || {};
+      const ra = getReiseAnswers();
+      const bemerk = r_bemerkungen.value.trim();
+      const final = {
+        _meta: { description: 'Reisekostenantrag NRKVO', version: 'WIZARD' },
+        antragsteller: {
+          name: p.name || '', abteilung: p.abteilung || '', telefon: p.telefon || '',
+          adresse_privat: p.adresse || '', mitreisender_name: p.mitreisender || '',
+        },
+        reise_details: {
+          zielort: r_zielort.value.trim(), reiseweg: r_reiseweg.value.trim(), zweck: r_zweck.value.trim(),
+          start_datum: r_start_datum.value.trim(), start_zeit: r_start_zeit.value.trim(),
+          ende_datum: r_ende_datum.value.trim(), ende_zeit: r_ende_zeit.value.trim(),
+          dienstgeschaeft_beginn_datum: r_dg_beginn_datum.value.trim(),
+          dienstgeschaeft_beginn_zeit: r_dg_beginn_zeit.value.trim(),
+          dienstgeschaeft_ende_datum: r_dg_ende_datum.value.trim(),
+          dienstgeschaeft_ende_zeit: r_dg_ende_zeit.value.trim(),
+        },
+        zusatz_infos: { bemerkungen_feld: bemerk },
+        befoerderung: {
+          hinreise: ra.hinreise, rueckreise: ra.rueckreise,
+          sonderfall_begruendung_textfeld: ra.sonderfall_begruendung_textfeld,
+        },
+        konfiguration_checkboxen: {
+          bahncard_business_vorhanden: false,
+          bahncard_privat_vorhanden: false,
+          bahncard_beschaffung_beantragt: false,
+          grosskundenrabatt_genutzt: false,
+          grosskundenrabatt_begruendung_wenn_nein: '',
+          weitere_ermaessigungen_vorhanden: false,
+          dienstgeschaeft_2km_umkreis: k_2km.checked,
+          anspruch_trennungsgeld: k_trennungsgeld.checked,
+          kosten_durch_andere_stelle: k_kosten_andere.checked,
+          weitere_anmerkungen_checkbox_aktivieren: !!bemerk,
+        },
+        verzicht_erklaerung: {
+          verzicht_tagegeld: v_tagegeld.checked,
+          verzicht_uebernachtungsgeld: v_uebernachtung.checked,
+          verzicht_fahrtkosten: v_fahrtkosten.checked,
+        },
+        unterschrift: { datum_seite_2: new Date().toLocaleDateString('de-DE') },
+      };
+      document.getElementById('json_data').value = JSON.stringify(final);
+      return final;
+    }
+
+    function neuerAntrag() {
+      aiData = null;
+      ['aiFreitext','sonderwuensche','pasteJson','r_zielort','r_reiseweg','r_zweck',
+       'r_start_datum','r_start_zeit','r_ende_datum','r_ende_zeit','r_dg_beginn_datum',
+       'r_dg_beginn_zeit','r_dg_ende_datum','r_dg_ende_zeit','r_bemerkungen']
+        .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+      document.getElementById('pdfFileInfo').style.display = 'none';
+      document.getElementById('pdfDropLabel').textContent = 'PDF hierher ziehen oder klicken';
+      document.getElementById('pdfFile').value = '';
+      document.getElementById('successBanner').style.display = 'none';
+      goStep(1);
+    }
+
+    // ── Absenden ─────────────────────────────────────────────────────
+    document.getElementById('genForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const final = syncFinalJson();
+      const rd = final.reise_details;
+      if (!rd.zielort || !rd.zweck || !rd.start_datum) {
+        showAlert('Reisedaten unvollständig (Zielort/Zweck/Abfahrt). Bitte Schritt 4 prüfen.', 'warning');
+        goStep(4); return;
+      }
+      const spinner = document.getElementById('loadingSpinner');
+      const submitBtn = document.getElementById('submitBtn');
+      spinner.classList.add('active'); submitBtn.disabled = true;
       try {
+        const fd = new FormData(this);
+        const p = getProfile();
+        const autoSave = p && p.auto_save_dienstreisen !== false;
+        if (IS_AUTHENTICATED && autoSave) {
+          fd.set('save_to_account', '1');
+          const existing = document.getElementById('dienstreiseId')?.value;
+          if (existing) fd.set('dienstreise_id', existing);
+        }
         const res = await fetch('/generate', { method: 'POST', body: fd });
         if (res.ok) {
           const blob = await res.blob();
-          const cd   = res.headers.get('Content-Disposition') || '';
-          const m    = cd.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+          const cd = res.headers.get('Content-Disposition') || '';
+          const m = cd.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
           const name = m ? m[1].replace(/['"]/g, '') : 'DR-Antrag.pdf';
-          const url  = URL.createObjectURL(blob);
-          const a    = Object.assign(document.createElement('a'), { href: url, download: name });
+          const url = URL.createObjectURL(blob);
+          const a = Object.assign(document.createElement('a'), { href: url, download: name });
           document.body.appendChild(a); a.click(); URL.revokeObjectURL(url); a.remove();
-          document.getElementById('successBanner').style.display = 'flex';
-          // Reise-ID aus Server-Response merken, damit "PDF nochmal erzeugen"
-          // dieselbe Reise updated statt einer neuen.
+          document.getElementById('successBanner').style.display = 'block';
           const reiseId = res.headers.get('X-Dienstreise-Id');
           if (reiseId) {
             let h = document.getElementById('dienstreiseId');
-            if (!h) {
-              h = document.createElement('input');
-              h.type = 'hidden'; h.id = 'dienstreiseId'; h.name = 'dienstreise_id';
-              this.appendChild(h);
-            }
+            if (!h) { h = document.createElement('input'); h.type='hidden'; h.id='dienstreiseId'; h.name='dienstreise_id'; this.appendChild(h); }
             h.value = reiseId;
-            showAlert(`PDF „${name}" erstellt und in deinem Konto gespeichert (Reise #${reiseId}).`, 'success');
+            showAlert(`PDF „${name}" erstellt und gespeichert (Reise #${reiseId}).`, 'success');
           } else {
             showAlert(`PDF „${name}" wurde erstellt!`, 'success');
           }
         } else {
-          const err = await res.json();
+          const err = await res.json().catch(() => ({}));
           showAlert('Fehler: ' + (err.error || 'Unbekannter Fehler'));
         }
-      } catch(e) { showAlert('Netzwerkfehler: ' + e.message); }
+      } catch (e) { showAlert('Netzwerkfehler: ' + e.message); }
       finally { spinner.classList.remove('active'); submitBtn.disabled = false; }
     });
 
-    document.getElementById('jsonData').addEventListener('input', validateJSON);
-
-    document.getElementById('jsonData').addEventListener('paste', function(e) {
-      e.preventDefault();
-      const raw = (e.clipboardData || window.clipboardData).getData('text');
-      const cleaned = sanitizeRawInput(raw);
-      const changed = cleaned !== raw.trim();
-      this.value = cleaned;
-      validateJSON();
-      if (changed) showAlert('KI-Output automatisch bereinigt (Markdown, Begleittext, Zitatmarker).', 'info');
-    });
-
-    // ── PDF-Upload: File-Input + Drag&Drop ───────────────────────────
+    // ── PDF-Upload (Drag&Drop) ───────────────────────────────────────
     (function() {
       const zone = document.getElementById('pdfDropZone');
       const input = document.getElementById('pdfFile');
       const label = document.getElementById('pdfDropLabel');
       const info = document.getElementById('pdfFileInfo');
       if (!zone || !input) return;
-
       function setFile(file) {
         if (!file) return;
         if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
-          showAlert('Nur PDF-Dateien werden akzeptiert.', 'warning');
-          return;
+          showAlert('Nur PDF-Dateien werden akzeptiert.', 'warning'); return;
         }
-        if (file.size > 10 * 1024 * 1024) {
-          showAlert('PDF zu groß (max 10 MB).', 'warning');
-          return;
-        }
-        const dt = new DataTransfer();
-        dt.items.add(file);
-        input.files = dt.files;
+        if (file.size > 10 * 1024 * 1024) { showAlert('PDF zu groß (max 10 MB).', 'warning'); return; }
+        const dt = new DataTransfer(); dt.items.add(file); input.files = dt.files;
         label.textContent = 'PDF bereit:';
         info.style.display = 'block';
-        info.textContent = `✓ ${file.name} (${(file.size/1024).toFixed(0)} KB) — beim Klick auf "Mit AI extrahieren" wird der Text extrahiert.`;
+        info.textContent = `✓ ${file.name} (${(file.size/1024).toFixed(0)} KB)`;
       }
-
-      zone.addEventListener('click', () => input.click());
       input.addEventListener('change', () => setFile(input.files[0]));
-
       ['dragenter','dragover'].forEach(ev => zone.addEventListener(ev, e => {
-        e.preventDefault(); e.stopPropagation();
-        zone.style.borderColor = 'var(--accent)';
-        zone.style.background = 'var(--accent-subtle)';
+        e.preventDefault(); e.stopPropagation(); zone.classList.add('dragover');
       }));
       ['dragleave','drop'].forEach(ev => zone.addEventListener(ev, e => {
-        e.preventDefault(); e.stopPropagation();
-        zone.style.borderColor = 'var(--border)';
-        zone.style.background = 'var(--surface)';
+        e.preventDefault(); e.stopPropagation(); zone.classList.remove('dragover');
       }));
-      zone.addEventListener('drop', e => {
-        if (e.dataTransfer.files.length) setFile(e.dataTransfer.files[0]);
-      });
+      zone.addEventListener('drop', e => { if (e.dataTransfer.files.length) setFile(e.dataTransfer.files[0]); });
     })();
 
-    // ── Save-Status-Indikator (nur fuer eingeloggte User) ────────────
-    function updateSaveStatusBadge() {
-      const badge = document.getElementById('saveStatus');
-      if (!badge) return;
-      const p = getProfile();
-      const autoSave = p && p.auto_save_dienstreisen !== false;
-      badge.style.display = autoSave ? 'block' : 'none';
-    }
-
     // ── Init ─────────────────────────────────────────────────────────
-    const IS_AUTHENTICATED = {{ 'true' if is_authenticated else 'false' }};
     window.addEventListener('DOMContentLoaded', () => {
       const p = getProfile();
-      // Auth-User: Server-Profil ist Source-of-Truth. Wenn dort etwas
-      // gepflegt ist, applyProfile aufrufen; sonst stillschweigend ohne
-      // Modal weiterlaufen (Wizard funktioniert auch mit leeren Defaults).
-      // Modal nur fuer Gaeste auto-oeffnen, die noch nie ein Profil hatten.
-      if (p && (p.name || p.abteilung)) {
-        applyProfile(p);
-      } else if (!IS_AUTHENTICATED) {
-        setTimeout(() => openWizard(), 400);
-      }
-      updateSaveStatusBadge();
+      applyProfile(p);
+      prefillBefoerderung();
+      const badge = document.getElementById('saveStatus');
+      if (badge) { const auto = p && p.auto_save_dienstreisen !== false; badge.style.display = auto ? 'block' : 'none'; }
+      if ((!p || !(p.name || p.abteilung)) && !IS_AUTHENTICATED) setTimeout(() => openWizard(), 400);
     });
   </script>
 </body>

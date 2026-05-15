@@ -35,7 +35,12 @@ import auth
 import generator
 import generator_abrechnung
 import nrkvo_rates
-from models import validate_abrechnung, validate_reiseantrag
+from models import (
+    apply_profile_authoritative,
+    find_placeholder,
+    validate_abrechnung,
+    validate_reiseantrag,
+)
 
 # --- KONFIGURATION ---
 PDF_TEMPLATE_PATH = os.environ.get("PDF_TEMPLATE_PATH", os.path.join("forms", "DR-Antrag_035_001Stand4-2025pdf.pdf"))
@@ -192,6 +197,7 @@ def _build_wizard_profile_seed(user) -> dict | None:
             "abrechnende_dienststelle": profile.abrechnende_dienststelle or "",
             "anordnende_dienststelle": profile.anordnende_dienststelle or "",
             "rkr_default": profile.rkr_default or "DR",
+            "standard_verkehrsmittel": profile.standard_verkehrsmittel or "",
             # DeepSeek-Key wird BEWUSST NICHT ins Template geseedet — sonst
             # liegt er als Klartext im HTML und ist bei DOM-XSS sofort
             # exfiltrierbar. /extract holt ihn serverseitig aus user_profiles
@@ -214,14 +220,104 @@ def _common_template_ctx():
     }
 
 
+# Profil-/Beförderungs-eigene Abschnitte stehen in system_prompt.md zwischen
+# diesen Markern (als Doku für Maintainer), werden zur Laufzeit aber entfernt:
+# Antragsteller, BahnCard/Großkundenrabatt und Beförderung kommen autoritativ
+# aus Profil bzw. Reise-Abfrage, nicht aus der KI-Ausgabe.
+_PROFIL_SECTION_RE = re.compile(
+    r"^\[\[PROFIL:START\]\].*?^\[\[PROFIL:END\]\]\n?",
+    re.DOTALL | re.MULTILINE,
+)
+
+
+def _strip_profile_sections(text: str) -> str:
+    """Entfernt die [[PROFIL:START]]…[[PROFIL:END]]-Blöcke und kollabiert
+    dabei entstehende Dreifach-Leerzeilen."""
+    stripped = _PROFIL_SECTION_RE.sub("", text)
+    return re.sub(r"\n{3,}", "\n\n", stripped)
+
+
 def _load_system_prompt() -> str:
-    """Lädt den Antrag-System-Prompt (lokal personalisierte Version bevorzugt)."""
+    """Lädt den Antrag-System-Prompt (lokal personalisierte Version bevorzugt).
+
+    Die profil-/beförderungs-eigenen Abschnitte werden immer entfernt — diese
+    Felder ergänzt das System autoritativ (Auth: serverseitig aus dem Profil,
+    Gast: clientseitig aus localStorage). Eine markerlose ``.local.md`` aus
+    Altbeständen bleibt unverändert (Strip ist dort ein No-op)."""
     prompt_file = "system_prompt.local.md" if os.path.exists("system_prompt.local.md") else "system_prompt.md"
     try:
         with open(prompt_file, encoding="utf-8") as f:
-            return f.read()
+            return _strip_profile_sections(f.read())
     except Exception as e:
         return f"Error loading prompt file: {e}"
+
+
+def _profile_antrag_overrides(user) -> tuple[dict | None, dict | None]:
+    """Profil-autoritative Antrag-Felder aus dem DB-Profil.
+
+    Liefert ``(antragsteller, bahncards)`` oder ``(None, None)``, wenn kein
+    Server-Profil existiert (Gast bzw. Erst-Login ohne Save) — dann bleiben
+    die clientseitig (localStorage) gemergten Werte unangetastet.
+    """
+    if user is None:
+        return None, None
+    from db import SessionLocal
+    from models_db import UserProfile
+
+    with SessionLocal() as s:
+        p = s.query(UserProfile).filter(UserProfile.user_id == user.id).first()
+        if p is None:
+            return None, None
+        name = " ".join(x for x in (p.vorname, p.nachname) if x).strip() or (user.display_name or "")
+        antragsteller = {
+            "name": name,
+            "abteilung": p.abteilung or "",
+            "telefon": p.telefon or "",
+            "adresse_privat": p.adresse_privat or "",
+            "mitreisender_name": p.mitreisender_name_default or "",
+        }
+        return antragsteller, (p.bahncards or {})
+
+
+_VERKEHRSMITTEL_LABEL = {
+    "PKW": "PKW (selbst gefahren)",
+    "BAHN": "Bahn",
+    "BUS": "Bus",
+    "DIENSTWAGEN": "Dienstwagen",
+    "MITFAHRT": "Mitfahrt",
+    "FLUG": "Flug",
+}
+
+
+def _format_reise_kontext(raw: str) -> str:
+    """Formatiert die Reise-Abfrage-Antworten als Klartext-Kontext für die KI
+    (nur für die Zeitschätzung — die Beförderung selbst gibt die KI nicht aus).
+
+    Erwartet JSON wie ``{"hinreise":{"typ":"PKW","paragraph_5_nrkvo":"II"},
+    "rueckreise":{"typ":"BAHN"}}``. Bei leer/kaputt → "".
+    """
+    if not raw or not raw.strip():
+        return ""
+    try:
+        ra = json.loads(raw)
+    except (json.JSONDecodeError, TypeError):
+        return ""
+
+    def _line(richtung: str, key: str) -> str:
+        teil = ra.get(key) or {}
+        typ = str(teil.get("typ", "")).upper()
+        if not typ:
+            return ""
+        label = _VERKEHRSMITTEL_LABEL.get(typ, typ)
+        if typ == "PKW":
+            para = str(teil.get("paragraph_5_nrkvo", "II")).upper()
+            label += f", § 5 {para if para in ('II', 'III') else 'II'} NRKVO"
+        if typ == "MITFAHRT" and teil.get("mitfahrer_name"):
+            label += f" bei {teil['mitfahrer_name']}"
+        return f"{richtung}: {label}"
+
+    zeilen = [z for z in (_line("Hinreise", "hinreise"), _line("Rückreise", "rueckreise")) if z]
+    return "\n".join(zeilen)
 
 
 # --- AUTH ---
@@ -628,6 +724,7 @@ _PROFIL_FIELDS_TEXT = {
     "abrechnende_dienststelle",
     "anordnende_dienststelle",
     "ai_provider_default",
+    "standard_verkehrsmittel",
 }
 
 
@@ -1068,6 +1165,24 @@ def generate():
         # KI-Zitatmarker aus String-Werten entfernen (Restbereinigung)
         data = _strip_citations(data)
 
+        # Profil-autoritativer Merge: bei eingeloggten Usern überschreiben die
+        # Profildaten (Antragsteller, BahnCard/Großkundenrabatt) die von KI
+        # oder Client gelieferten Werte — manipulationssicher. Gäste haben
+        # kein Server-Profil; ihre clientseitig (localStorage) gemergten Daten
+        # bleiben unverändert. ``befoerderung`` bleibt immer Nutzer-Wahl.
+        if auth.is_authenticated():
+            antragsteller, bahncards = _profile_antrag_overrides(g.current_user)
+            data = apply_profile_authoritative(data, antragsteller=antragsteller, bahncards=bahncards)
+
+        # Defense-in-depth: zurückgebliebene Prompt-Platzhalter ([DEIN NAME]
+        # o.ä.) dürfen nie ins PDF — eindeutige Fehlermeldung statt Müll.
+        platzhalter = find_placeholder(data)
+        if platzhalter:
+            logger.warning("Platzhalter im Antrag-JSON abgewiesen: %s", platzhalter)
+            return jsonify(
+                {"error": f"Profil unvollständig: Platzhalter '{platzhalter}' im Antrag. Bitte Profil ausfüllen."}
+            ), 400
+
         # Strikte Validierung mit Pydantic
         is_valid, result = validate_reiseantrag(data)
         if not is_valid:
@@ -1176,6 +1291,16 @@ def extract():
 
     if not freitext.strip():
         return jsonify({"error": "Bitte Freitext oder PDF angeben."}), 400
+
+    # Reise-Abfrage (Verkehrsmittel Hin/Rück) als Kontext anhängen — die KI
+    # nutzt es nur, um realistische Reisezeiten zu schätzen, und gibt die
+    # Beförderung selbst nicht aus (system_prompt.md, Abschnitt 3).
+    reise_kontext = _format_reise_kontext(request.form.get("reise_antworten", ""))
+    if reise_kontext:
+        freitext = (
+            f"{freitext}\n\n--- Vom Nutzer gewählte Beförderung "
+            f"(nur für Zeitschätzung, NICHT ausgeben) ---\n{reise_kontext}"
+        )
 
     try:
         result = ai_extract.call_deepseek(

@@ -12,7 +12,10 @@ Web-Tool für den kompletten Reisekosten-Workflow nach **NRKVO** (niedersächsis
 ## Funktionen
 
 ### Antrag (`/`)
-*   **LLM-gestützte Datenextraktion**: Mitgelieferter System-Prompt (`system_prompt.md`) konvertiert Freitext in das erwartete JSON. Der Prompt enthält außerdem Anweisungen, das LLM zur Recherche von Bahn-/Flug-/Fährverbindungen aufzufordern, falls dein LLM Web-Zugriff hat.
+*   **5-Schritt-Wizard**: Eingabe (PDF/Text) → Reise (Verkehrsmittel-Abfrage) → KI-Extraktion → Prüfen (strukturierter Review, kein Roh-JSON) → PDF.
+*   **Profil-autoritativ**: Antragsteller-, BahnCard- und Großkundenrabatt-Daten kommen aus dem Profil — die KI erzeugt sie nicht (spart Tokens, keine Platzhalter im PDF). Bei eingeloggten Usern re-merged der Server diese Felder beim Erzeugen autoritativ; übrig gebliebene Platzhalter werden abgewiesen.
+*   **Verkehrsmittel als Zeit-Kontext**: Die Hin-/Rückreise-Wahl (Profil-Default `standard_verkehrsmittel`, pro Reise änderbar) wird der KI **vor** der Extraktion mitgegeben, damit Reisezeiten realistisch geschätzt werden.
+*   **LLM-gestützte Datenextraktion**: Strippbarer System-Prompt (`system_prompt.md`) konvertiert die Ausschreibung in das Reisedaten-JSON. Profil-/Beförderungs-Abschnitte werden zur Laufzeit entfernt.
 *   **PDF-Befüllung**: Automatisches Ausfüllen des offiziellen Formulars inkl. Checkbox-Logik für alle Beförderungsarten (PKW § II/§ III, Bahn/Bus, Dienstwagen, Flug) und korrekten Zeilenumbrüchen in Freitextfeldern.
 
 ### Abrechnung (`/abrechnung`)
@@ -135,11 +138,12 @@ Das Tool ist vollständig containerisiert und kann leicht deployed werden. Der C
 
 ## Bedienungsanleitung
 
-1.  **Schritt 1:** Öffne die Webanwendung.
-2.  **Schritt 2:** Kopiere den angezeigten **System-Prompt** und deine spezifische Reiseausschreibung (Text/E-Mail) in ein LLM deiner Wahl (ChatGPT, etc.).
-3.  **Schritt 3:** Das LLM generiert ein **JSON-Objekt**. Kopiere dieses JSON.
-4.  **Schritt 4:** Füge das JSON in das Textfeld der Webanwendung ein und klicke auf "Antrag Generieren".
-5.  **Fertig:** Der ausgefüllte PDF-Antrag wird automatisch heruntergeladen.
+1.  **Profil** einmalig pflegen (Name, Abteilung, Adresse, ggf. BahnCards, Standard-Verkehrsmittel, optional DeepSeek-Key).
+2.  **Eingabe:** Ausschreibung als PDF hochladen oder Text einfügen.
+3.  **Reise:** Verkehrsmittel für Hin-/Rückreise wählen (vorbelegt aus dem Profil).
+4.  **KI-Extraktion:** mit DeepSeek-Key direkt im Tool, sonst den Prompt nach ChatGPT/Claude kopieren und die JSON-Antwort einfügen.
+5.  **Prüfen:** KI-Reisedaten kontrollieren/korrigieren, Verzicht setzen.
+6.  **PDF:** „Antrag generieren" — der ausgefüllte PDF-Antrag wird heruntergeladen (eingeloggt: Antragsteller-Daten serverseitig autoritativ aus dem Profil).
 
 ## Projektstruktur
 
