@@ -5,6 +5,7 @@ Diese Modelle definieren die erwartete Struktur der JSON-Daten und
 validieren eingehende Anfragen strikt.
 """
 
+import re
 from datetime import datetime
 from typing import Literal
 
@@ -357,3 +358,91 @@ def validate_reiseantrag(data: dict) -> tuple[bool, str | ReiseantragData]:
             errors = [line.strip() for line in lines if line.strip() and not line.startswith("For further")]
             error_msg = "; ".join(errors[:3])  # Max 3 Fehler anzeigen
         return False, error_msg
+
+
+# ============================================================
+# Profil-autoritativer Merge (Antrag)
+# ============================================================
+#
+# Antragsteller-, BahnCard- und Großkundenrabatt-Felder gehören dem
+# Nutzerprofil, nicht der KI. Die KI gibt sie nicht mehr aus
+# (system_prompt.md, Abschnitt 2 wird gestrippt); das System fügt sie hier
+# autoritativ ein, BEVOR validiert wird.
+
+# Prompt-Platzhalter aus system_prompt.md: [DEIN NAME], [DEINE ABTEILUNG],
+# [DEINE TELEFONNUMMER], [DEINE PRIVATADRESSE], [OPTIONALER NAME].
+_PLACEHOLDER_RE = re.compile(r"\[(?:DEIN|DEINE|OPTIONALER)\b[^\]]*\]")
+
+
+def find_placeholder(obj) -> str | None:
+    """Sucht rekursiv den ersten zurückgebliebenen Prompt-Platzhalter in
+    String-Werten (defense-in-depth — soll nie ins PDF gelangen)."""
+    if isinstance(obj, str):
+        m = _PLACEHOLDER_RE.search(obj)
+        return m.group(0) if m else None
+    if isinstance(obj, dict):
+        for v in obj.values():
+            hit = find_placeholder(v)
+            if hit:
+                return hit
+    elif isinstance(obj, list):
+        for v in obj:
+            hit = find_placeholder(v)
+            if hit:
+                return hit
+    return None
+
+
+def bahncards_to_konfig_flags(bahncards: dict | None) -> dict:
+    """Mappt das Profil-``bahncards``-Blob (Slot _1 = Antragsteller) auf die
+    profil-eigenen ``konfiguration_checkboxen``-Felder des Antrags.
+
+    ``bahncard_beschaffung_beantragt`` wird im Profil nicht erfasst und
+    daher nicht überschrieben.
+    """
+    bc = bahncards or {}
+    return {
+        "bahncard_business_vorhanden": bool(bc.get("bcb_1")),
+        "bahncard_privat_vorhanden": bool(bc.get("bc25_1") or bc.get("bc50_1") or bc.get("bc100_1")),
+        "grosskundenrabatt_genutzt": bool(bc.get("grosskunde_1")),
+    }
+
+
+_ANTRAGSTELLER_IDENTITY = ("name", "abteilung", "telefon", "adresse_privat")
+
+
+def apply_profile_authoritative(
+    data: dict,
+    antragsteller: dict | None = None,
+    bahncards: dict | None = None,
+) -> dict:
+    """Überschreibt die profil-eigenen Felder im (Teil-)Antrag-JSON.
+
+    Pro Identitätsfeld (Name/Abteilung/Telefon/Privatadresse) gewinnt der
+    **nicht-leere** Profilwert — so kann ein eingeloggter Nutzer diese Felder
+    nicht clientseitig fälschen, ein unvollständiges Profil blockiert aber
+    keinen Antrag (eingereichter Wert bleibt als Fallback). Bei ``antragsteller
+    is None`` (Gast ohne Server-Profil) bleibt der Block unverändert.
+
+    ``mitreisender_name`` ist reise-spezifisch, nicht profil-autoritativ: der
+    eingereichte Wert gewinnt, der Profil-Default dient nur als Fallback.
+
+    BahnCard-/Großkundenrabatt-Flags kommen vollständig aus dem Profil
+    (Abwesenheit = ``false`` ist korrekt). ``befoerderung`` bleibt unangetastet
+    (Nutzer-Wahl aus der Reise-Abfrage).
+    """
+    merged = dict(data)
+    if antragsteller is not None:
+        out = dict(merged.get("antragsteller") or {})
+        for k in _ANTRAGSTELLER_IDENTITY:
+            v = (antragsteller.get(k) or "").strip()
+            if v:
+                out[k] = v
+        if not (out.get("mitreisender_name") or "").strip():
+            out["mitreisender_name"] = antragsteller.get("mitreisender_name", "") or ""
+        merged["antragsteller"] = out
+    if bahncards is not None:
+        kc = dict(merged.get("konfiguration_checkboxen") or {})
+        kc.update(bahncards_to_konfig_flags(bahncards))
+        merged["konfiguration_checkboxen"] = kc
+    return merged
