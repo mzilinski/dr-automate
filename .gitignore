@@ -6,6 +6,8 @@ __pycache__/
 site-packages/
 *.pdf
 !forms/DR-Antrag_035_001Stand4-2025pdf.pdf
+!forms/Reisekostenvordruck.pdf
+!forms/Anlage_035_003_Stand_02-2017.pdf
 
 # Local configuration files
 system_prompt.local.md
@@ -29,3 +31,4 @@ tmp/
 # Setuptools-Build-Artefakte (entstehen bei `pip install .`)
 build/
 *.egg-info/
+data/*.db
