@@ -80,6 +80,11 @@ class UserProfile(Base):
     vorname: Mapped[str | None] = mapped_column(String(100))
     nachname: Mapped[str | None] = mapped_column(String(100))
     abteilung: Mapped[str | None] = mapped_column(String(100))
+    # Amtsbezeichnung (z.B. „Studienrat") — erscheint auf dem
+    # Reisekostenvordruck in der Signaturzeile „Unterschrift, Amtsbez./Datum".
+    # Nur abrechnungsrelevant; der DR-Antrag fragt sie nicht ab. Optional
+    # (Angestellte ohne Amtsbez. lassen es leer).
+    amtsbezeichnung: Mapped[str | None] = mapped_column(String(100))
     telefon: Mapped[str | None] = mapped_column(String(50))
     # Optional: Override der Authelia-Email. Wenn None, faellt der Wizard
     # auf User.email zurueck (kommt aus Authelia Remote-Email).

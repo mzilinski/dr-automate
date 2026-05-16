@@ -112,6 +112,45 @@ def test_mitreisender_is_trip_specific():
     assert merged["antragsteller"]["mitreisender_name"] == "Reise-Kollege"
 
 
+def test_amtsbezeichnung_is_profile_authoritative():
+    """Amtsbez. ist Identitätsfeld → Profilwert gewinnt, ein vom Client
+    gefälschter Wert wird überschrieben. Optional: leeres Profil blockiert
+    den Antrag nicht (Antragsteller.amtsbezeichnung hat Default "")."""
+    data = _partial_ai_json()
+    data["befoerderung"] = {
+        "hinreise": {"typ": "PKW", "paragraph_5_nrkvo": "II"},
+        "rueckreise": {"typ": "PKW", "paragraph_5_nrkvo": "II"},
+    }
+    data["antragsteller"] = {
+        "name": "Client Name",
+        "abteilung": "Client Abt",
+        "telefon": "0591 12345",
+        "adresse_privat": "Client Str 1, 49808 Lingen",
+        "amtsbezeichnung": "vom-Client-gefälscht",
+        "mitreisender_name": "",
+    }
+    prof = {
+        "name": "Malte Zilinski",
+        "abteilung": "BBS Lingen",
+        "telefon": "+4917693122465",
+        "adresse_privat": "Am Biener Esch 11, 49808 Lingen",
+        "amtsbezeichnung": "Studienrat",
+        "mitreisender_name": "",
+    }
+    merged = apply_profile_authoritative(data, antragsteller=prof, bahncards={})
+    assert merged["antragsteller"]["amtsbezeichnung"] == "Studienrat"
+    ok, _ = validate_reiseantrag(merged)
+    assert ok is True
+
+    # Leeres Amtsbez. (Angestellte) darf nicht blockieren.
+    data["antragsteller"]["amtsbezeichnung"] = ""
+    prof["amtsbezeichnung"] = ""
+    merged2 = apply_profile_authoritative(data, antragsteller=prof, bahncards={})
+    assert merged2["antragsteller"]["amtsbezeichnung"] == ""
+    ok2, _ = validate_reiseantrag(merged2)
+    assert ok2 is True
+
+
 def test_bahncards_mapping_slot1_only():
     flags = bahncards_to_konfig_flags(
         {"bcb_1": True, "bc50_1": True, "grosskunde_1": True, "bcb_2": True, "grosskunde_2": True}

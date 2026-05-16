@@ -423,9 +423,15 @@ def fill_pdf(data: AbrechnungData, input_pdf_path: str, output_dir: str) -> str:
 
     set_need_appearances(writer)
 
-    # Unterschrift Seite 2
+    # Unterschrift Seite 2 — der Vordruck beschriftet die Zeile mit
+    # „Unterschrift, Amtsbez./Datum"; daher Name, Amtsbezeichnung (falls
+    # vorhanden) und Datum in genau dieser Reihenfolge.
     heute = datetime.now().strftime(DATE_INPUT_FORMAT)
-    overlay = _create_signature_overlay(f"{data.antragsteller.name}, {heute}")
+    sig_parts = [data.antragsteller.name]
+    if data.antragsteller.amtsbezeichnung:
+        sig_parts.append(data.antragsteller.amtsbezeichnung)
+    sig_parts.append(heute)
+    overlay = _create_signature_overlay(", ".join(sig_parts))
     writer.pages[1].merge_page(overlay.pages[0], over=True)
 
     with open(output_pdf_path, "wb") as f:
