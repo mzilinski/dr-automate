@@ -735,6 +735,51 @@
         sonderfall_begruendung_textfeld: sonderfall.value.trim(),
       };
     }
+
+    // Step-2-Formular aus einer gespeicherten befoerderung rehydrieren
+    // (Reload zum Editieren — Gegenstück zu getReiseAnswers()).
+    function applyBefoerderung(b) {
+      if (!b) return;
+      const set = (typEl, paraEl, mfId, r) => {
+        if (!r) return;
+        if (r.typ) typEl.value = r.typ;
+        if (r.typ === 'PKW' && r.paragraph_5_nrkvo) paraEl.value = r.paragraph_5_nrkvo;
+        if (r.typ === 'MITFAHRT' && r.mitfahrer_name) document.getElementById(mfId).value = r.mitfahrer_name;
+      };
+      set(hin_typ, hin_para, 'hin_mitfahrer', b.hinreise);
+      set(rueck_typ, rueck_para, 'rueck_mitfahrer', b.rueckreise);
+      if (b.sonderfall_begruendung_textfeld) sonderfall.value = b.sonderfall_begruendung_textfeld;
+      updateBefoerderungUI();
+    }
+
+    // Reload zum Editieren (nur eingeloggt): gespeicherte Reise zurück in
+    // den Wizard holen. Es werden NUR Nicht-Profil-Felder rehydriert —
+    // antragsteller bleibt profil-autoritativ (Server überschreibt beim
+    // Regenerieren). dienstreise_id wird gesetzt → /generate überschreibt
+    // die bestehende Reise statt eine neue anzulegen.
+    async function autoLoadAntrag(reiseId) {
+      try {
+        const r = await fetch(`/dienstreisen/${reiseId}/antrag-json`, { headers: { 'Accept': 'application/json' } });
+        if (!r.ok) { showAlert('Reise konnte nicht geladen werden.', 'warning'); return; }
+        const d = await r.json();
+        const aj = d.antrag_json;
+        if (!aj) { showAlert('Diese Reise hat noch kein gespeichertes Antrag-JSON.', 'warning'); return; }
+        aiData = aj;  // fillReview() liest reise_details/zusatz_infos/konfiguration/verzicht hieraus
+        applyBefoerderung(aj.befoerderung);
+        let h = document.getElementById('dienstreiseId');
+        if (!h) {
+          h = document.createElement('input');
+          h.type = 'hidden'; h.id = 'dienstreiseId'; h.name = 'dienstreise_id';
+          document.getElementById('genForm').appendChild(h);
+        }
+        h.value = String(reiseId);
+        fillReview();
+        goStep(4);
+        showAlert(`Reise #${reiseId} geladen — Werte editierbar. „PDF erzeugen" überschreibt die gespeicherte Reise.`, 'success');
+      } catch (e) {
+        showAlert('Laden fehlgeschlagen: ' + e.message, 'warning');
+      }
+    }
     const VM_LABEL = { PKW:'PKW (selbst gefahren)', BAHN:'Bahn', BUS:'Bus', DIENSTWAGEN:'Dienstwagen', MITFAHRT:'Mitfahrt', FLUG:'Flug' };
     function formatReiseKontext(ra) {
       const line = (richtung, t) => {
@@ -1103,7 +1148,12 @@
       prefillBefoerderung();
       const badge = document.getElementById('saveStatus');
       if (badge) { const auto = p && p.auto_save_dienstreisen !== false; badge.style.display = auto ? 'block' : 'none'; }
-      if ((!p || !(p.name || p.abteilung)) && !IS_AUTHENTICATED) setTimeout(() => openWizard(), 400);
+      const editId = new URLSearchParams(location.search).get('dienstreise');
+      if (editId && IS_AUTHENTICATED) {
+        autoLoadAntrag(editId);
+      } else if ((!p || !(p.name || p.abteilung)) && !IS_AUTHENTICATED) {
+        setTimeout(() => openWizard(), 400);
+      }
     });
   </script>
 </body>

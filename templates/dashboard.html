@@ -114,7 +114,7 @@
         {% endif %}
       </td>
       <td class="actions">
-        <a href="{{ url_for('index', dienstreise=r.id) }}">Antrag</a>
+        <a href="{{ url_for('index', dienstreise=r.id) }}">{% if r.antrag_pdf_path %}Antrag bearbeiten{% else %}Antrag{% endif %}</a>
         {% if r.antrag_pdf_path %}
           <a href="{{ url_for('dienstreise_antrag_pdf', reise_id=r.id) }}">PDF</a>
         {% endif %}
