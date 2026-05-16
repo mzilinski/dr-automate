@@ -365,6 +365,10 @@
               <input type="text" id="f_abteilung" data-bind="antragsteller.abteilung">
             </div>
             <div>
+              <label class="field-label" for="f_amtsbez">Amtsbezeichnung</label>
+              <input type="text" id="f_amtsbez" data-bind="antragsteller.amtsbezeichnung" placeholder="z.B. Studienrat">
+            </div>
+            <div>
               <label class="field-label" for="f_telefon">Telefon</label>
               <input type="text" id="f_telefon" data-bind="antragsteller.telefon">
             </div>
@@ -924,7 +928,7 @@
     function blankState() {
       return {
         stammdaten: { iban: '', bic: '', email: '', abrechnende_dienststelle: '' },
-        antragsteller: { name: '', abteilung: '', telefon: '', adresse_privat: '', mitreisender_name: '' },
+        antragsteller: { name: '', abteilung: '', amtsbezeichnung: '', telefon: '', adresse_privat: '', mitreisender_name: '' },
         reise_details: {
           zielort: '', reiseweg: '', zweck: '',
           start_datum: '', start_zeit: '', ende_datum: '', ende_zeit: '',
@@ -1042,6 +1046,7 @@
       // Profil ins state übernehmen, falls Felder noch leer
       if (!state.antragsteller.name) state.antragsteller.name = p.name || '';
       if (!state.antragsteller.abteilung) state.antragsteller.abteilung = p.abteilung || '';
+      if (!state.antragsteller.amtsbezeichnung) state.antragsteller.amtsbezeichnung = p.amtsbezeichnung || '';
       if (!state.antragsteller.telefon) state.antragsteller.telefon = p.telefon || '';
       if (!state.antragsteller.adresse_privat) state.antragsteller.adresse_privat = p.adresse || '';
       if (!state.antragsteller.mitreisender_name) state.antragsteller.mitreisender_name = p.mitreisender || '';
