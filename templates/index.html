@@ -7,547 +7,156 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,400&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
   <style>
-    /* ── TOKENS ─────────────────────────────────────────────────────── */
-    :root {
-      --bg:             #eee9de;
-      --dot:            #cfc5b2;
-      --surface:        #faf7f2;
-      --surface-hi:     #ffffff;
-      --border:         #ddd3c0;
-      --text:           #1d1a13;
-      --muted:          #7c6f58;
-      --accent:         #b87208;
-      --accent-glow:    rgba(184,114,8,.2);
-      --accent-fg:      #fff;
-      --accent-subtle:  #fef5e2;
-      --step-ghost:     rgba(184,114,8,.055);
-      --mono-bg:        #f4efe5;
-      --ok:             #2e7a34;
-      --ok-subtle:      #eaf4eb;
-      --err:            #b83232;
-      --err-subtle:     #fdeaea;
-      --warn-subtle:    #fffbe6;
-      --info-subtle:    #edf4ff;
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg:             #0e1219;
-        --dot:            #182030;
-        --surface:        #161d28;
-        --surface-hi:     #1e2838;
-        --border:         #242f40;
-        --text:           #ede8dc;
-        --muted:          #7e91a8;
-        --accent:         #d9920e;
-        --accent-glow:    rgba(217,146,14,.24);
-        --accent-fg:      #0e1219;
-        --accent-subtle:  #2a2010;
-        --step-ghost:     rgba(217,146,14,.07);
-        --mono-bg:        #131a24;
-        --ok:             #5cb868;
-        --ok-subtle:      #182418;
-        --err:            #e05252;
-        --err-subtle:     #2e1818;
-        --warn-subtle:    #2a2410;
-        --info-subtle:    #141c2e;
-      }
-    }
-
-    /* ── RESET ──────────────────────────────────────────────────────── */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    /* ── BASE ───────────────────────────────────────────────────────── */
-    body {
-      background-color: var(--bg);
-      background-image: radial-gradient(circle, var(--dot) 1.2px, transparent 1.2px);
-      background-size: 22px 22px;
-      background-attachment: fixed;
-      color: var(--text);
-      font-family: 'Figtree', system-ui, sans-serif;
-      line-height: 1.6;
-      min-height: 100dvh;
-    }
-
-    .app {
-      max-width: 760px;
-      margin: 0 auto;
-      padding: 2rem 1.25rem 3rem;
-    }
-
-    /* ── HEADER ─────────────────────────────────────────────────────── */
-    .app-header {
-      text-align: center;
-      margin-bottom: 1.75rem;
-      animation: fadeDown .4s ease both;
-    }
-    .app-eyebrow {
-      font-size: .72rem;
-      font-weight: 600;
-      letter-spacing: .18em;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: .5rem;
-    }
-    .app-title {
-      font-family: 'Fraunces', Georgia, serif;
-      font-size: 2rem;
-      font-weight: 300;
-      font-optical-sizing: auto;
-      line-height: 1.15;
-      color: var(--text);
-    }
-    .app-title em { font-style: italic; }
-
-    /* ── PROFILE BANNER ─────────────────────────────────────────────── */
-    .profile-banner {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: .75rem 1rem .75rem .85rem;
-      margin-bottom: 1.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
+    /* Wizard-spezifisch (Muster aus abrechnung.html) */
+    .stepper {
+      display: flex; gap: .35rem; flex-wrap: wrap;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: .65rem; margin-bottom: 1.25rem;
       animation: fadeDown .4s .05s ease both;
     }
-    .profile-left {
-      display: flex;
-      align-items: center;
-      gap: .75rem;
-      min-width: 0;
+    .stepper-item {
+      flex: 1 1 auto; min-width: 90px; background: transparent;
+      color: var(--muted); border: 1.5px solid transparent; border-radius: 8px;
+      padding: .45rem .55rem; font-family: 'Figtree', sans-serif;
+      font-size: .76rem; font-weight: 600; cursor: pointer; text-align: center;
+      transition: background .15s, color .15s, border-color .15s; line-height: 1.25;
     }
-    .avatar {
-      width: 2.1rem;
-      height: 2.1rem;
-      border-radius: 50%;
-      background: var(--accent);
-      color: var(--accent-fg);
-      font-family: 'Fraunces', serif;
-      font-size: .68rem;
-      font-weight: 600;
-      letter-spacing: .04em;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      transition: background .2s;
+    .stepper-item:hover { background: var(--surface-hi); color: var(--text); }
+    .stepper-item.is-active {
+      background: var(--accent-subtle); color: var(--accent); border-color: var(--accent);
     }
-    .avatar.empty {
-      background: var(--border);
-      color: var(--muted);
-      font-size: .9rem;
-    }
-    .profile-label {
-      font-size: .88rem;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .profile-label.missing { color: var(--err); font-weight: 500; }
-
-    /* ── STEP CONTAINER ─────────────────────────────────────────────── */
-    .step {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 1.75rem 1.75rem 1.5rem;
-      margin-bottom: 1.25rem;
-      position: relative;
-      overflow: hidden;
-      animation: fadeUp .4s ease both;
-    }
-    .step:nth-child(3) { animation-delay: .1s; }
-    .step:nth-child(4) { animation-delay: .18s; }
-
-    .step::before {
-      content: attr(data-step);
-      position: absolute;
-      top: -.22em;
-      right: -.05em;
-      font-family: 'Fraunces', serif;
-      font-size: 9rem;
-      font-weight: 600;
-      line-height: 1;
-      color: var(--step-ghost);
-      pointer-events: none;
-      user-select: none;
-      letter-spacing: -.03em;
+    .stepper-item.is-done { color: var(--ok); }
+    .stepper-item-num {
+      display: block; font-family: 'Fraunces', serif; font-size: 1rem;
+      font-weight: 600; margin-bottom: .15rem;
     }
 
-    .step-inner { position: relative; z-index: 1; }
+    .wiz-step { display: none; }
+    .wiz-step.is-active { display: block; }
 
-    .step-title {
-      font-family: 'Fraunces', Georgia, serif;
-      font-size: 1.15rem;
-      font-weight: 400;
-      font-optical-sizing: auto;
-      color: var(--text);
-      margin-bottom: 1rem;
-      padding-bottom: .65rem;
-      border-bottom: 1.5px solid var(--accent);
-      display: flex;
-      align-items: baseline;
-      gap: .6rem;
+    .field-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: .75rem 1rem; margin-bottom: 1rem;
     }
-    .step-title-num {
-      font-size: .72rem;
-      font-weight: 600;
-      letter-spacing: .1em;
-      color: var(--accent);
-      text-transform: uppercase;
-    }
+    .field-grid > .full { grid-column: 1 / -1; }
+    @media (max-width: 540px) { .field-grid { grid-template-columns: 1fr; } }
 
-    .step-lead {
-      font-size: .9rem;
-      color: var(--muted);
-      margin-bottom: 1rem;
-    }
-
-    /* ── FORM CONTROLS ──────────────────────────────────────────────── */
-    label.field-label {
-      display: block;
-      font-size: .74rem;
-      font-weight: 600;
-      letter-spacing: .09em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: .4rem;
-    }
-
-    textarea, input[type="text"] {
-      width: 100%;
-      background: var(--mono-bg);
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      font-family: 'JetBrains Mono', monospace;
-      font-size: .82rem;
-      line-height: 1.65;
-      padding: .75rem .9rem;
-      outline: none;
-      resize: vertical;
+    input[type="text"], input[type="email"], input[type="date"], input[type="time"], select, textarea {
+      width: 100%; background: var(--mono-bg); border: 1.5px solid var(--border);
+      border-radius: 8px; color: var(--text); font-family: 'JetBrains Mono', monospace;
+      font-size: .82rem; line-height: 1.65; padding: .65rem .8rem; outline: none;
       transition: border-color .18s, box-shadow .18s;
     }
-    textarea:focus, input[type="text"]:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-glow);
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow);
     }
-    textarea[readonly] {
-      cursor: default;
-      color: var(--muted);
+    select { font-family: 'Figtree', sans-serif; }
+    textarea { resize: vertical; }
+
+    .check-row { display: flex; align-items: flex-start; gap: .6rem; padding: .5rem 0; }
+    .check-row input[type="checkbox"] {
+      width: 1.05rem; height: 1.05rem; accent-color: var(--accent);
+      flex-shrink: 0; margin-top: .15rem;
     }
-    textarea[readonly]:focus { box-shadow: none; border-color: var(--border); }
+    .check-row label { font-size: .88rem; cursor: pointer; color: var(--text); }
 
-    textarea.is-valid   { border-color: var(--ok); }
-    textarea.is-invalid { border-color: var(--err); }
-
-    .field-hint {
-      font-size: .78rem;
-      margin-top: .4rem;
-      color: var(--muted);
-    }
-    .field-hint.ok  { color: var(--ok); }
-    .field-hint.err { color: var(--err); }
-
-    /* ── BUTTONS ────────────────────────────────────────────────────── */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: .45rem;
-      padding: .6rem 1.1rem;
-      border: 1.5px solid transparent;
-      border-radius: 8px;
-      font-family: 'Figtree', sans-serif;
-      font-size: .88rem;
-      font-weight: 600;
-      line-height: 1;
-      cursor: pointer;
-      transition: transform .13s, box-shadow .13s, filter .13s, background .15s, color .15s;
-      white-space: nowrap;
-    }
-    .btn:hover  { transform: translateY(-1px); }
-    .btn:active { transform: translateY(0); }
-    .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
-
-    .btn-primary {
-      background: var(--accent);
-      color: var(--accent-fg);
-    }
-    .btn-primary:hover { box-shadow: 0 5px 18px var(--accent-glow); filter: brightness(1.07); }
-
-    .btn-primary-lg {
-      padding: .78rem 1.4rem;
-      font-size: .95rem;
-      width: 100%;
-      justify-content: center;
+    .nav-row {
+      display: flex; justify-content: space-between; gap: .65rem; margin-top: 1.25rem;
+      padding-top: 1rem; border-top: 1px dashed var(--border); flex-wrap: wrap;
     }
 
-    .btn-ghost {
-      background: transparent;
-      color: var(--muted);
-      border-color: var(--border);
-    }
-    .btn-ghost:hover { background: var(--surface-hi); color: var(--text); }
+    .ro-table { width: 100%; border-collapse: collapse; font-size: .86rem; margin: .5rem 0; }
+    .ro-table td { padding: .5rem .25rem; border-bottom: 1px solid var(--border); }
+    .ro-table td:first-child { color: var(--muted); width: 38%; }
 
-    .btn-outline {
-      background: transparent;
-      color: var(--accent);
-      border-color: var(--accent);
-    }
-    .btn-outline:hover { background: var(--accent-subtle); }
-
-    .btn-sm {
-      padding: .42rem .8rem;
-      font-size: .8rem;
+    .info-box {
+      background: var(--info-subtle); border: 1px solid var(--border); border-radius: 8px;
+      padding: .65rem .85rem; font-size: .82rem; line-height: 1.5; margin: .75rem 0; color: var(--text);
     }
 
-    .btn-row {
-      display: flex;
-      flex-direction: column;
-      gap: .6rem;
-    }
-    .btn-secondary-row {
-      display: flex;
-      gap: .6rem;
-      flex-wrap: wrap;
-    }
+    .global-nav{display:flex;justify-content:space-between;align-items:center;
+      padding:.7rem 1.2rem;background:var(--surface);border-bottom:1px solid var(--border);
+      position:sticky;top:0;z-index:90;font-family:'Figtree',sans-serif;}
+    .global-nav .brand{font-family:'Fraunces',serif;font-weight:600;font-size:1.05rem;
+      color:var(--text);text-decoration:none;}
+    .global-nav nav{display:flex;gap:.8rem;align-items:center;flex-wrap:wrap;}
+    .global-nav nav a{color:var(--text);text-decoration:none;font-size:.92rem;
+      padding:.3rem .55rem;border-radius:.35rem;}
+    .global-nav nav a:hover{background:var(--step-ghost);}
+    .global-nav nav a.active{color:var(--accent);background:var(--accent-subtle);}
+    .global-nav .pill{font-size:.7rem;font-weight:600;padding:.16rem .5rem;border-radius:999px;
+      border:1px solid var(--border);color:var(--muted);background:var(--surface-hi);}
+    .global-nav .pill.auth{color:var(--ok);border-color:var(--ok);background:var(--ok-subtle);}
+    .guest-strip{background:var(--warn-subtle);border-bottom:1px solid var(--border);
+      padding:.5rem 1.2rem;font-size:.88rem;}
+    .guest-strip a{color:var(--accent);}
 
-    /* ── COPY BUTTON STATE ──────────────────────────────────────────── */
-    .btn-copy.copied {
-      background: var(--ok);
-      color: #fff;
+    .file-drop {
+      display: block; border: 2px dashed var(--border); border-radius: 12px;
+      padding: 1.5rem 1rem; text-align: center; background: var(--mono-bg);
+      cursor: pointer; user-select: none; transition: border-color .15s, background .15s;
     }
-    .btn-copy.copied:hover { filter: none; box-shadow: none; }
-
-    .copy-warning {
-      font-size: .8rem;
-      color: var(--err);
-      font-weight: 600;
-      margin-top: .6rem;
-    }
-
-    /* ── ALERTS ─────────────────────────────────────────────────────── */
-    .alert-stack {
-      position: fixed;
-      top: 1rem;
-      right: 1rem;
-      z-index: 2000;
-      display: flex;
-      flex-direction: column;
-      gap: .5rem;
-      max-width: 340px;
-      width: calc(100% - 2rem);
-      pointer-events: none;
-    }
-    .alert {
-      pointer-events: auto;
-      padding: .75rem 1rem;
-      border-radius: 10px;
-      border: 1px solid;
-      font-size: .85rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: .75rem;
-      animation: slideInRight .22s ease both;
-    }
-    .alert-close {
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-size: 1rem;
-      line-height: 1;
-      padding: 0;
-      flex-shrink: 0;
-      opacity: .6;
-    }
-    .alert-close:hover { opacity: 1; }
-
-    .alert-success { background: var(--ok-subtle);   border-color: var(--ok);  color: var(--ok); }
-    .alert-danger  { background: var(--err-subtle);  border-color: var(--err); color: var(--err); }
-    .alert-warning { background: var(--warn-subtle); border-color: #b8860b;    color: #7a5800; }
-    .alert-info    { background: var(--info-subtle); border-color: #4a8adb;    color: #2a5a9a; }
-    @media (prefers-color-scheme: dark) {
-      .alert-warning { color: #d4a830; border-color: #7a5800; }
-      .alert-info    { color: #7ab0f0; border-color: #2a4a7a; }
-    }
-
-    /* ── SPINNER ────────────────────────────────────────────────────── */
-    .spinner-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,.55);
-      backdrop-filter: blur(3px);
-      -webkit-backdrop-filter: blur(3px);
-      z-index: 3000;
-      align-items: center;
-      justify-content: center;
-    }
-    .spinner-overlay.active { display: flex; }
-    .spinner-box {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 2rem 3rem;
-      text-align: center;
-    }
-    .spinner {
-      width: 2.5rem;
-      height: 2.5rem;
-      border: 3px solid var(--border);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin .75s linear infinite;
-      margin: 0 auto 1rem;
-    }
-    .spinner-label {
-      font-size: .9rem;
-      color: var(--muted);
-    }
-
-    /* ── MODAL ──────────────────────────────────────────────────────── */
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,.55);
-      backdrop-filter: blur(3px);
-      -webkit-backdrop-filter: blur(3px);
-      z-index: 1000;
-      display: grid;
-      place-items: center;
-      padding: 1rem;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity .22s ease;
-    }
-    .modal-overlay.is-open {
-      opacity: 1;
-      pointer-events: auto;
-    }
-    .modal-box {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      width: 100%;
-      max-width: 480px;
-      max-height: 92dvh;
-      overflow-y: auto;
-      transform: translateY(16px) scale(.97);
-      opacity: 0;
-      transition: transform .26s cubic-bezier(.22,1,.36,1), opacity .22s ease;
-    }
-    .modal-overlay.is-open .modal-box {
-      transform: translateY(0) scale(1);
-      opacity: 1;
-    }
-    .modal-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 1.25rem 1.5rem .9rem;
-      border-bottom: 1px solid var(--border);
-    }
-    .modal-head h2 {
-      font-family: 'Fraunces', serif;
-      font-size: 1.12rem;
-      font-weight: 400;
-    }
-    .modal-close {
-      background: none;
-      border: none;
-      color: var(--muted);
-      cursor: pointer;
-      padding: .25rem;
-      border-radius: 5px;
-      line-height: 1;
-      display: flex;
-      transition: color .15s;
-    }
-    .modal-close:hover { color: var(--text); }
-    .modal-body { padding: 1.5rem; }
-    .modal-note {
-      font-size: .8rem;
-      color: var(--muted);
-      background: var(--accent-subtle);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: .65rem .85rem;
-      margin-bottom: 1.25rem;
-      line-height: 1.5;
-    }
-    .modal-foot {
-      display: flex;
-      justify-content: flex-end;
-      gap: .65rem;
-      padding: 1rem 1.5rem;
-      border-top: 1px solid var(--border);
-    }
-
-    /* Wizard form fields */
-    .wiz-field { margin-bottom: 1rem; }
-    .wiz-field:last-child { margin-bottom: 0; }
-    .wiz-label {
-      display: block;
-      font-size: .74rem;
-      font-weight: 600;
-      letter-spacing: .09em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: .38rem;
-    }
-    .wiz-label span { color: var(--err); }
-    .wiz-label em {
-      font-style: normal;
-      font-weight: 400;
-      color: var(--muted);
-      letter-spacing: 0;
-      text-transform: none;
-      font-size: .8rem;
-    }
-    .wiz-hint {
-      font-size: .76rem;
-      color: var(--muted);
-      margin-top: .3rem;
-    }
-
-    /* ── FOOTER ─────────────────────────────────────────────────────── */
-    .app-footer {
-      text-align: center;
-      font-size: .78rem;
-      color: var(--muted);
-      margin-top: .5rem;
-    }
-    .app-footer a { color: var(--muted); text-decoration: underline; text-underline-offset: 2px; }
-    .app-footer a:hover { color: var(--text); }
-    .sep { margin: 0 .4rem; opacity: .5; }
-
-    /* ── ANIMATIONS ─────────────────────────────────────────────────── */
-    @keyframes fadeDown {
-      from { opacity: 0; transform: translateY(-10px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(10px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes slideInRight {
-      from { opacity: 0; transform: translateX(16px); }
-      to   { opacity: 1; transform: translateX(0); }
-    }
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
+    .file-drop:hover, .file-drop.dragover { border-color: var(--accent); background: var(--accent-subtle); }
+    .file-drop p { font-size: .85rem; color: var(--muted); margin: 0; }
   </style>
+  {% if wizard_profile_seed %}
+  <script>
+    // Server-Profil ins localStorage seeden, bevor der Wizard-Code laeuft
+    // (Server ist fuer eingeloggte User die autoritative Quelle).
+    (function() {
+      var seed = {{ wizard_profile_seed | tojson }};
+      try {
+        var existing = JSON.parse(localStorage.getItem('dr_profile') || '{}');
+        Object.keys(seed).forEach(function(k) { if (seed[k]) existing[k] = seed[k]; });
+        if (seed.adresse && existing.adresse !== seed.adresse) {
+          var parts = seed.adresse.split(',');
+          if (parts.length > 1) {
+            existing.strasse = parts[0].trim();
+            existing.plz_ort = parts.slice(1).join(',').trim();
+          } else { existing.strasse = seed.adresse.trim(); existing.plz_ort = ''; }
+          existing.adresse = seed.adresse;
+        }
+        if (seed.has_deepseek_api_key) existing.has_server_deepseek_key = true;
+        localStorage.setItem('dr_profile', JSON.stringify(existing));
+      } catch (e) { console.error('Profile seed failed:', e); }
+    })();
+  </script>
+  {% endif %}
 </head>
 <body>
 
-  <!-- ── ALERTS ─────────────────────────────────────────────────────── -->
+  <header class="global-nav">
+    <a href="{{ url_for('landing') }}" class="brand">dr-automate</a>
+    <nav>
+      {% if is_authenticated %}
+        <a href="{{ url_for('dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('index') }}" class="active">Neuer Antrag</a>
+        <a href="{{ url_for('abrechnung_index') }}">Abrechnung</a>
+        <a href="{{ url_for('profil_view') }}">Profil</a>
+        <a href="{{ url_for('docs_view', slug='getting-started') }}">Hilfe</a>
+        <span class="pill auth">{{ current_user.display_name or current_user.remote_user }}</span>
+        <a href="{{ authelia_logout_url }}">Abmelden</a>
+      {% else %}
+        <a href="{{ url_for('index') }}" class="active">Neuer Antrag</a>
+        <a href="{{ url_for('abrechnung_index') }}">Abrechnung</a>
+        <a href="{{ url_for('docs_view', slug='getting-started') }}">Hilfe</a>
+        <a href="{{ url_for('account_request_get') }}">Account anfragen</a>
+        <a href="{{ url_for('dashboard') }}">Anmelden</a>
+        <span class="pill">Gast-Modus</span>
+      {% endif %}
+    </nav>
+  </header>
+
+  {% if not is_authenticated %}
+  <div class="guest-strip">
+    <strong>Gast-Modus:</strong> Daten bleiben nur in diesem Browser.
+    <a href="{{ url_for('account_request_get') }}">Account anfragen</a> für serverseitige Persistenz.
+  </div>
+  {% endif %}
+
   <div class="alert-stack" id="alertStack"></div>
 
-  <!-- ── SPINNER ────────────────────────────────────────────────────── -->
   <div class="spinner-overlay" id="loadingSpinner">
     <div class="spinner-box">
       <div class="spinner"></div>
@@ -555,7 +164,7 @@
     </div>
   </div>
 
-  <!-- ── WIZARD MODAL ───────────────────────────────────────────────── -->
+  <!-- ── PROFIL-WIZARD MODAL ─────────────────────────────────────────── -->
   <div class="modal-overlay" id="wizardOverlay" role="dialog" aria-modal="true" aria-labelledby="wizardTitle">
     <div class="modal-box">
       <div class="modal-head">
@@ -567,11 +176,17 @@
         </button>
       </div>
       <div class="modal-body">
-        <p class="modal-note">
-          Diese Daten werden im <strong>lokalen Browser-Speicher</strong> gespeichert –
-          ausschließlich auf deinem Gerät, nie an den Server übermittelt.
-          Sie ersetzen automatisch die Platzhalter im KI-Prompt.
+        {% if is_authenticated %}
+        <p class="modal-note" style="background:var(--ok-subtle);border:1px solid var(--ok);">
+          ✓ Du bist angemeldet — die Felder sind aus deinem <a href="{{ url_for('profil_view') }}">Server-Profil</a> vorbefüllt.
+          Persistente Änderungen bitte im <a href="{{ url_for('profil_view') }}"><strong>Server-Profil</strong></a>.
         </p>
+        {% else %}
+        <p class="modal-note">
+          Diese Daten bleiben im <strong>lokalen Browser-Speicher</strong> – nie an den Server übermittelt.
+          Der Antragsteller-Block wird daraus befüllt; die KI sieht ihn nicht.
+        </p>
+        {% endif %}
 
         <div class="wiz-field">
           <label class="wiz-label" for="wiz_name">Vor- und Nachname <span>*</span></label>
@@ -592,22 +207,88 @@
         <div class="wiz-field">
           <label class="wiz-label" for="wiz_plz_ort">PLZ &amp; Ort <span>*</span></label>
           <input type="text" id="wiz_plz_ort" placeholder="49808 Lingen">
-          <p class="wiz-hint">Start- und Endpunkt aller Dienstreisen laut Formular. <strong>Wichtig:</strong> Bitte PLZ und Ort nicht vergessen!</p>
+          <p class="wiz-hint">Start- und Endpunkt aller Dienstreisen. <strong>PLZ und Ort nicht vergessen!</strong></p>
         </div>
         <div class="wiz-field">
-          <label class="wiz-label" for="wiz_mitreisender">Mitreisender <em>(optional)</em></label>
-          <input type="text" id="wiz_mitreisender" placeholder="Erika Musterfrau">
-          <p class="wiz-hint">Wird automatisch eingesetzt, wenn der Name in der Ausschreibung erwähnt wird</p>
+          <label class="wiz-label" for="wiz_mitreisender">Mitreisende <em>(optional, mehrere mit Komma)</em></label>
+          <input type="text" id="wiz_mitreisender" placeholder="z.B. Erika Musterfrau">
         </div>
+        <div class="wiz-field">
+          <label class="wiz-label" for="wiz_standard_verkehrsmittel">Standard-Verkehrsmittel</label>
+          <select id="wiz_standard_verkehrsmittel">
+            <option value="">— keine Vorauswahl —</option>
+            <option value="PKW">PKW (selbst gefahren)</option>
+            <option value="BAHN">Bahn</option>
+            <option value="BUS">Bus</option>
+            <option value="DIENSTWAGEN">Dienstwagen</option>
+            <option value="MITFAHRT">Mitfahrt</option>
+          </select>
+          <p class="wiz-hint">Vorbelegung für Schritt „Reise" — pro Reise änderbar.</p>
+        </div>
+
+        <details id="wizAIBlock" style="margin-top:1.25rem; border-top:1.5px dashed var(--border); padding-top:1rem;">
+          <summary style="cursor:pointer; font-weight:600; color:var(--muted); user-select:none;">
+            AI-Direktextraktion <em style="font-weight:400;">(optional)</em>
+          </summary>
+          <p class="modal-note" style="margin-top:.75rem;">
+            Mit DeepSeek-API-Key extrahierst du direkt im Tool – ohne Umweg über ChatGPT/Claude.
+            Key bleibt im Browser-Speicher, wird pro Anfrage einmalig durchgereicht (kein Server-Logging).
+            Key unter <a href="https://platform.deepseek.com" target="_blank" rel="noopener">platform.deepseek.com</a>.
+          </p>
+          <div class="wiz-field">
+            <label class="wiz-label" for="wiz_deepseek_key">DeepSeek API-Key</label>
+            <input type="password" id="wiz_deepseek_key" autocomplete="off" placeholder="sk-…">
+          </div>
+        </details>
+
+        <details id="wizAbrechnungBlock" style="margin-top:1.25rem; border-top:1.5px dashed var(--border); padding-top:1rem;">
+          <summary style="cursor:pointer; font-weight:600; color:var(--muted); user-select:none;">
+            Daten für die Abrechnung <em style="font-weight:400;">(optional)</em>
+          </summary>
+          <p class="modal-note" style="margin-top:.75rem;">
+            Nur für die <a href="/abrechnung">Reisekostenabrechnung</a> nötig, beim Antrag nicht.
+          </p>
+          <div class="wiz-field">
+            <label class="wiz-label" for="wiz_iban">IBAN</label>
+            <input type="text" id="wiz_iban" placeholder="DE89 3704 0044 0532 0130 00" maxlength="34">
+          </div>
+          <div class="wiz-field">
+            <label class="wiz-label" for="wiz_bic">BIC</label>
+            <input type="text" id="wiz_bic" placeholder="COBADEFFXXX" maxlength="20">
+          </div>
+          <div class="wiz-field">
+            <label class="wiz-label" for="wiz_email">Dienstliche E-Mail</label>
+            <input type="email" id="wiz_email" placeholder="max.mustermann@nibis.de">
+          </div>
+          <div class="wiz-field">
+            <label class="wiz-label" for="wiz_abrechnende">Abrechnende Dienststelle</label>
+            <input type="text" id="wiz_abrechnende" placeholder="NLBV Aurich">
+          </div>
+          <div class="wiz-field">
+            <label class="wiz-label" for="wiz_amtsbez">Amtsbezeichnung</label>
+            <input type="text" id="wiz_amtsbez" placeholder="z.B. Studienrat" maxlength="100">
+          </div>
+          <div class="wiz-field">
+            <label class="wiz-label" for="wiz_rkr">Standard-Reiseart (RKR)</label>
+            <select id="wiz_rkr">
+              <option value="DR">DR – Dienstreise</option>
+              <option value="VR">VR – Vorstellungsreise</option>
+              <option value="AFR">AFR – Aus- und Fortbildungsreise</option>
+              <option value="RPR">RPR – Reise des Personalrats</option>
+              <option value="RRS">RRS – Reise in einer Rechtssache</option>
+              <option value="GNE">GNE – Genehmigungsfreie Reise</option>
+              <option value="SONSTIGE">Sonstige</option>
+            </select>
+          </div>
+        </details>
       </div>
       <div class="modal-foot">
         <button class="btn btn-ghost btn-sm" onclick="closeModal('wizardOverlay')">Später</button>
-        <button class="btn btn-primary btn-sm" onclick="saveWizard()">Speichern &amp; Prompt aktualisieren</button>
+        <button class="btn btn-primary btn-sm" onclick="saveWizard()">Speichern</button>
       </div>
     </div>
   </div>
 
-  <!-- ── APP ────────────────────────────────────────────────────────── -->
   <div class="app">
 
     <header class="app-header">
@@ -615,373 +296,864 @@
       <h1 class="app-title">Dienstreise-<em>Antrag</em> Assistent</h1>
     </header>
 
-    <!-- Profil-Banner -->
     <div class="profile-banner">
       <div class="profile-left">
         <div class="avatar empty" id="profileAvatar">?</div>
-        <span class="profile-label missing" id="profileStatus">Kein Profil konfiguriert – Platzhalter im Prompt sind noch leer.</span>
+        <span class="profile-label missing" id="profileStatus">Kein Profil konfiguriert.</span>
       </div>
-      <button class="btn btn-ghost btn-sm" onclick="openWizard()">Profil&nbsp;bearbeiten</button>
+      {% if is_authenticated %}
+        <a class="btn btn-ghost btn-sm" href="{{ url_for('profil_view') }}">Profil&nbsp;bearbeiten</a>
+      {% else %}
+        <button class="btn btn-ghost btn-sm" onclick="openWizard()">Profil&nbsp;bearbeiten</button>
+      {% endif %}
     </div>
 
-    <!-- Step 01: Prompt & KI -->
-    <div class="step" data-step="01">
-      <div class="step-inner">
-        <h2 class="step-title">
-          <span class="step-title-num">01</span>
-          Prompt &amp; KI
-        </h2>
-        <p class="step-lead">
-          Kopiere diesen Prompt zusammen mit der Ausschreibung in ein KI-Modell (z.&nbsp;B. ChatGPT oder Claude).<br>
-          <strong>Die KI antwortet dann automatisch mit einem JSON</strong> – das kommt in Schritt&nbsp;02.
-        </p>
-        <div style="display:flex; justify-content:flex-end; margin-bottom:.4rem;">
-          <button type="button" class="btn btn-ghost btn-sm" id="togglePromptBtn" onclick="toggleFullPrompt()">
-            Vollständigen Prompt anzeigen
-          </button>
-        </div>
-        <textarea id="promptText" rows="10" readonly>{{ prompt_content }}</textarea>
+    <nav class="stepper" id="stepper" aria-label="Wizard-Navigation">
+      <button class="stepper-item is-active" type="button" data-go="1"><span class="stepper-item-num">1</span>Eingabe</button>
+      <button class="stepper-item" type="button" data-go="2"><span class="stepper-item-num">2</span>Reise</button>
+      <button class="stepper-item" type="button" data-go="3"><span class="stepper-item-num">3</span>KI</button>
+      <button class="stepper-item" type="button" data-go="4"><span class="stepper-item-num">4</span>Prüfen</button>
+      <button class="stepper-item" type="button" data-go="5"><span class="stepper-item-num">5</span>PDF</button>
+    </nav>
 
-        <div style="margin-top:1.25rem; border-top: 1.5px dashed var(--border); padding-top:1.1rem;">
-          <label class="field-label" for="sonderwuensche">
-            Hinweise &amp; Sonderwünsche
-            <span style="font-weight:400; text-transform:none; letter-spacing:0; font-size:.8rem; color:var(--muted);"> – optional, werden beim Kopieren automatisch angehängt</span>
+    <div class="step">
+      <div class="step-inner">
+
+        <!-- Step 1: Eingabe ──────────────────────────────────────────── -->
+        <section class="wiz-step is-active" data-step="1">
+          <h2 class="step-title"><span class="step-title-num">01</span>Ausschreibung eingeben</h2>
+          <p class="step-lead">
+            Lade die Ausschreibung als PDF hoch oder füge den Text ein. Die KI extrahiert
+            daraus die Reisedaten — Antragsteller- und Beförderungsdaten kommen separat.
+          </p>
+
+          <label class="field-label">Ausschreibung als PDF (optional)</label>
+          <label for="pdfFile" class="file-drop" id="pdfDropZone">
+            <input type="file" id="pdfFile" accept="application/pdf,.pdf" hidden>
+            <p><strong id="pdfDropLabel">PDF hierher ziehen oder klicken</strong></p>
+            <p id="pdfFileInfo" style="color:var(--ok); display:none; margin-top:.35rem;"></p>
           </label>
-          <textarea id="sonderwuensche" rows="3" placeholder="z.B. „PKW statt Bahn, da Materialtransport" oder „Rückreise erst am Folgetag""></textarea>
-        </div>
 
-        <div style="margin-top:.85rem;">
-          <button class="btn btn-primary btn-copy" id="copyBtn" onclick="copyPrompt()">Prompt kopieren</button>
-          <p class="copy-warning">Vergiss nicht, die Ausschreibung dazu zu kopieren!</p>
-        </div>
-      </div>
-    </div>
+          <label class="field-label" for="aiFreitext" style="margin-top:1rem;">
+            Ausschreibung / E-Mail / Notiz <small style="color:var(--muted);">(optional, wenn PDF hochgeladen)</small>
+          </label>
+          <textarea id="aiFreitext" rows="8" placeholder="Originaltext der Ausschreibung hier einfügen — oder PDF oben hochladen."></textarea>
 
-    <!-- Verbindungspfeil -->
-    <div style="text-align:center; color:var(--muted); font-size:.85rem; margin: -.4rem 0; line-height:1; position:relative; z-index:1; padding-bottom:.35rem;">
-      <svg width="20" height="28" viewBox="0 0 20 28" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto;">
-        <line x1="10" y1="0" x2="10" y2="20" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3"/>
-        <polyline points="4,16 10,24 16,16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-      </svg>
-      KI-Antwort (JSON) hier einfügen
-    </div>
+          <label class="field-label" for="sonderwuensche" style="margin-top:1rem;">
+            Hinweise &amp; Sonderwünsche <small style="color:var(--muted);">(optional)</small>
+          </label>
+          <textarea id="sonderwuensche" rows="3" placeholder="z.B. „Rückreise erst am Folgetag" oder „Hotel bereits gebucht"."></textarea>
 
-    <!-- Step 02: Daten & Erstellen -->
-    <div class="step" data-step="02">
-      <div class="step-inner">
-        <h2 class="step-title">
-          <span class="step-title-num">02</span>
-          KI-Antwort einfügen &amp; PDF erstellen
-        </h2>
-        <p class="step-lead">
-          Kopiere die <strong>komplette Antwort der KI</strong> aus Schritt&nbsp;01 in das Feld unten.
-          Du musst hier <em>nichts</em> selbst ausfüllen – die KI hat das schon erledigt.
-        </p>
-        <form id="genForm">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <label class="field-label" for="jsonData">KI-Antwort (JSON) einfügen</label>
-          <textarea name="json_data" id="jsonData" rows="15" placeholder='Hier die komplette Antwort der KI (ChatGPT / Claude) einfügen …'></textarea>
-          <div class="field-hint" id="validationHint"></div>
-          <div class="btn-row" style="margin-top:.85rem;">
-            <button type="submit" class="btn btn-primary btn-primary-lg" id="submitBtn">
-              Antrag generieren (PDF)
-            </button>
-            <div class="btn-secondary-row">
-              <button type="button" class="btn btn-ghost" onclick="formatJSON()">JSON formatieren</button>
-              <button type="button" class="btn btn-outline btn-sm" onclick="loadExample()">Beispiel laden</button>
-              <button type="button" class="btn btn-ghost btn-sm" onclick="neuerAntrag()" id="neuerAntragBtn" style="margin-left:auto;">
-                ↩ Neuer Antrag
-              </button>
+          <div class="nav-row">
+            <span></span>
+            <button type="button" class="btn btn-primary" onclick="goStep(2)">Weiter zur Reise →</button>
+          </div>
+        </section>
+
+        <!-- Step 2: Reise / Beförderung ──────────────────────────────── -->
+        <section class="wiz-step" data-step="2">
+          <h2 class="step-title"><span class="step-title-num">02</span>Reise &amp; Beförderung</h2>
+          <p class="step-lead">
+            Wie reist du an? Das steht nicht in der Ausschreibung und entscheidest du —
+            die KI nutzt es, um realistische Reisezeiten zu schätzen.
+          </p>
+
+          <div class="field-grid">
+            <div>
+              <label class="field-label" for="hin_typ">Hinreise — Verkehrsmittel</label>
+              <select id="hin_typ" onchange="updateBefoerderungUI()">
+                <option value="PKW">PKW (selbst gefahren)</option>
+                <option value="BAHN">Bahn</option>
+                <option value="BUS">Bus</option>
+                <option value="DIENSTWAGEN">Dienstwagen</option>
+                <option value="MITFAHRT">Mitfahrt</option>
+              </select>
+            </div>
+            <div>
+              <label class="field-label" for="rueck_typ">Rückreise — Verkehrsmittel</label>
+              <select id="rueck_typ" onchange="updateBefoerderungUI()">
+                <option value="PKW">PKW (selbst gefahren)</option>
+                <option value="BAHN">Bahn</option>
+                <option value="BUS">Bus</option>
+                <option value="DIENSTWAGEN">Dienstwagen</option>
+                <option value="MITFAHRT">Mitfahrt</option>
+              </select>
+            </div>
+
+            <div id="hin_para_wrap">
+              <label class="field-label" for="hin_para">Hinreise — § 5 NRKVO</label>
+              <select id="hin_para" onchange="updateBefoerderungUI()">
+                <option value="II">§ 5 II (Standard)</option>
+                <option value="III">§ 5 III (große Wegstrecke, triftiger Grund)</option>
+              </select>
+            </div>
+            <div id="rueck_para_wrap">
+              <label class="field-label" for="rueck_para">Rückreise — § 5 NRKVO</label>
+              <select id="rueck_para" onchange="updateBefoerderungUI()">
+                <option value="II">§ 5 II (Standard)</option>
+                <option value="III">§ 5 III (große Wegstrecke, triftiger Grund)</option>
+              </select>
+            </div>
+
+            <div id="hin_mitfahrer_wrap" class="full" style="display:none;">
+              <label class="field-label" for="hin_mitfahrer">Hinreise — Mitfahrt bei (Name)</label>
+              <input type="text" id="hin_mitfahrer" placeholder="z.B. Erika Musterfrau">
+            </div>
+            <div id="rueck_mitfahrer_wrap" class="full" style="display:none;">
+              <label class="field-label" for="rueck_mitfahrer">Rückreise — Mitfahrt bei (Name)</label>
+              <input type="text" id="rueck_mitfahrer" placeholder="z.B. Erika Musterfrau">
+            </div>
+
+            <div id="sonderfall_wrap" class="full" style="display:none;">
+              <label class="field-label" for="sonderfall">Begründung § 5 III (Pflicht)</label>
+              <input type="text" id="sonderfall" placeholder="z.B. Materialtransport, kein Dienstwagen verfügbar">
             </div>
           </div>
 
-          <!-- Erfolgs-Banner nach PDF-Download -->
-          <div id="successBanner" style="display:none; margin-top:1.25rem; padding:1rem 1.25rem; background:var(--ok-subtle); border:1.5px solid var(--ok); border-radius:12px; display:none; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
-            <span style="color:var(--ok); font-weight:600;">✓ PDF erfolgreich erstellt!</span>
-            <button type="button" class="btn btn-primary" onclick="neuerAntrag()" style="background:var(--ok);">
-              ↩ Neuen Antrag erstellen
-            </button>
+          <div class="nav-row">
+            <button type="button" class="btn btn-ghost" onclick="goStep(1)">← Zurück</button>
+            <button type="button" class="btn btn-primary" onclick="goStep(3)">Weiter zur KI →</button>
           </div>
-        </form>
+        </section>
+
+        <!-- Step 3: KI-Extraktion ───────────────────────────────────── -->
+        <section class="wiz-step" data-step="3">
+          <h2 class="step-title"><span class="step-title-num">03</span>KI-Extraktion</h2>
+
+          <div id="aiExtractBlock" style="display:none;">
+            <p class="step-lead">DeepSeek extrahiert die Reisedaten direkt aus deiner Eingabe.</p>
+            <div class="btn-row" style="align-items:center;">
+              <button type="button" class="btn btn-primary" id="aiExtractBtn" onclick="extractWithAI()">
+                Mit KI extrahieren
+              </button>
+              <span id="aiExtractStatus" style="margin-left:1rem; color:var(--muted); font-size:.9rem;"></span>
+            </div>
+          </div>
+
+          <details class="prompt-copy-section" {% if not is_authenticated %}open{% endif %} style="margin-top:1.25rem;">
+            <summary style="cursor:pointer; font-weight:600; color:var(--muted);">
+              Per ChatGPT / Claude (ohne DeepSeek-Key)
+            </summary>
+            <p class="step-lead" style="margin-top:.6rem;">
+              Prompt kopieren, zusammen mit der Ausschreibung in ChatGPT/Claude einfügen,
+              die JSON-Antwort unten einfügen.
+            </p>
+            <textarea id="promptText" rows="9" readonly>{{ prompt_content }}</textarea>
+            <div style="margin-top:.7rem;">
+              <button type="button" class="btn btn-primary btn-copy" id="copyBtn" onclick="copyPrompt()">Prompt kopieren</button>
+              <span class="copy-warning">Ausschreibung nicht vergessen mitzukopieren!</span>
+            </div>
+            <label class="field-label" for="pasteJson" style="margin-top:1rem;">KI-Antwort (JSON) einfügen</label>
+            <textarea id="pasteJson" rows="7" placeholder="Komplette Antwort der KI hier einfügen …"></textarea>
+            <div class="btn-row" style="margin-top:.7rem;">
+              <button type="button" class="btn btn-primary" onclick="usePastedJson()">Übernehmen &amp; prüfen →</button>
+            </div>
+          </details>
+
+          <div class="nav-row">
+            <button type="button" class="btn btn-ghost" onclick="goStep(2)">← Zurück</button>
+            <span></span>
+          </div>
+        </section>
+
+        <!-- Step 4: Prüfen ──────────────────────────────────────────── -->
+        <section class="wiz-step" data-step="4">
+          <h2 class="step-title"><span class="step-title-num">04</span>Prüfen &amp; korrigieren</h2>
+          <p class="step-lead">Antragsteller &amp; Beförderung sind gesetzt. Prüfe die KI-Reisedaten und korrigiere bei Bedarf.</p>
+
+          <h3 style="font-size:.92rem; margin:1rem 0 .3rem; color:var(--muted);">Antragsteller (aus Profil)</h3>
+          <table class="ro-table"><tbody id="roAntragsteller"></tbody></table>
+
+          <h3 style="font-size:.92rem; margin:1.2rem 0 .3rem; color:var(--muted);">Beförderung (deine Wahl)</h3>
+          <table class="ro-table"><tbody id="roBefoerderung"></tbody></table>
+
+          <h3 style="font-size:.92rem; margin:1.2rem 0 .5rem; color:var(--muted);">Reisedaten (KI — editierbar)</h3>
+          <div class="field-grid">
+            <div class="full">
+              <label class="field-label" for="r_zielort">Zielort</label>
+              <input type="text" id="r_zielort">
+            </div>
+            <div class="full">
+              <label class="field-label" for="r_reiseweg">Reiseweg</label>
+              <input type="text" id="r_reiseweg">
+            </div>
+            <div class="full">
+              <label class="field-label" for="r_zweck">Zweck</label>
+              <input type="text" id="r_zweck">
+            </div>
+            <div>
+              <label class="field-label" for="r_start_datum">Abfahrt — Datum</label>
+              <input type="text" id="r_start_datum" placeholder="TT.MM.JJJJ">
+            </div>
+            <div>
+              <label class="field-label" for="r_start_zeit">Abfahrt — Zeit</label>
+              <input type="text" id="r_start_zeit" placeholder="HH:MM">
+            </div>
+            <div>
+              <label class="field-label" for="r_ende_datum">Rückkehr — Datum</label>
+              <input type="text" id="r_ende_datum" placeholder="TT.MM.JJJJ">
+            </div>
+            <div>
+              <label class="field-label" for="r_ende_zeit">Rückkehr — Zeit</label>
+              <input type="text" id="r_ende_zeit" placeholder="HH:MM">
+            </div>
+            <div>
+              <label class="field-label" for="r_dg_beginn_datum">Dienstgeschäft Beginn — Datum</label>
+              <input type="text" id="r_dg_beginn_datum" placeholder="TT.MM.JJJJ">
+            </div>
+            <div>
+              <label class="field-label" for="r_dg_beginn_zeit">Dienstgeschäft Beginn — Zeit</label>
+              <input type="text" id="r_dg_beginn_zeit" placeholder="HH:MM">
+            </div>
+            <div>
+              <label class="field-label" for="r_dg_ende_datum">Dienstgeschäft Ende — Datum</label>
+              <input type="text" id="r_dg_ende_datum" placeholder="TT.MM.JJJJ">
+            </div>
+            <div>
+              <label class="field-label" for="r_dg_ende_zeit">Dienstgeschäft Ende — Zeit</label>
+              <input type="text" id="r_dg_ende_zeit" placeholder="HH:MM">
+            </div>
+            <div class="full">
+              <label class="field-label" for="r_bemerkungen">Bemerkungen (erscheinen im Formular)</label>
+              <textarea id="r_bemerkungen" rows="4"></textarea>
+            </div>
+          </div>
+
+          <h3 style="font-size:.92rem; margin:1.2rem 0 .3rem; color:var(--muted);">Angaben</h3>
+          <div class="check-row"><input type="checkbox" id="k_kosten_andere"><label for="k_kosten_andere">Reisekosten ganz/teilweise von anderer Stelle (z.B. Tagungsgebühr inkl. Übernachtung/Verpflegung)</label></div>
+          <div class="check-row"><input type="checkbox" id="k_2km"><label for="k_2km">Dienstort &lt; 2 km von Dienststätte/Wohnung</label></div>
+          <div class="check-row"><input type="checkbox" id="k_trennungsgeld"><label for="k_trennungsgeld">Anspruch auf Trennungsgeld</label></div>
+
+          <h3 style="font-size:.92rem; margin:1.2rem 0 .3rem; color:var(--muted);">Verzichtserklärung</h3>
+          <div class="check-row"><input type="checkbox" id="v_tagegeld"><label for="v_tagegeld">Verzicht auf Tagegeld</label></div>
+          <div class="check-row"><input type="checkbox" id="v_uebernachtung"><label for="v_uebernachtung">Verzicht auf Übernachtungsgeld</label></div>
+          <div class="check-row"><input type="checkbox" id="v_fahrtkosten"><label for="v_fahrtkosten">Verzicht auf Fahrtkosten</label></div>
+
+          <div class="nav-row">
+            <button type="button" class="btn btn-ghost" onclick="goStep(3)">← Zurück</button>
+            <button type="button" class="btn btn-primary" onclick="goStep(5)">Weiter zum PDF →</button>
+          </div>
+        </section>
+
+        <!-- Step 5: PDF ─────────────────────────────────────────────── -->
+        <section class="wiz-step" data-step="5">
+          <h2 class="step-title"><span class="step-title-num">05</span>PDF erzeugen</h2>
+          <p class="step-lead">Alles geprüft? Antrag als ausgefülltes PDF erzeugen.</p>
+
+          {% if is_authenticated %}
+          <div id="saveStatus" class="info-box" style="display:none;">
+            <strong style="color:var(--ok);">✓ Auto-Save aktiv</strong> —
+            die Reise wird in deinem Konto gespeichert
+            (Einstellung im <a href="{{ url_for('profil_view') }}">Profil</a>).
+          </div>
+          {% endif %}
+
+          <form id="genForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="json_data" id="json_data">
+            <div class="btn-row">
+              <button type="submit" class="btn btn-primary btn-primary-lg" id="submitBtn">Antrag generieren (PDF)</button>
+              <button type="button" class="btn btn-ghost btn-sm" onclick="neuerAntrag()" style="margin-left:auto;">↩ Neuer Antrag</button>
+            </div>
+          </form>
+
+          <div id="successBanner" class="info-box" style="display:none; background:var(--ok-subtle); border-color:var(--ok); margin-top:1rem;">
+            <span style="color:var(--ok); font-weight:600;">✓ PDF erfolgreich erstellt!</span>
+          </div>
+
+          <div class="nav-row">
+            <button type="button" class="btn btn-ghost" onclick="goStep(4)">← Zurück</button>
+            <span></span>
+          </div>
+        </section>
+
       </div>
     </div>
 
     <footer class="app-footer">
-      <small>v0.1.0<span class="sep">·</span><a href="/health" target="_blank">Status</a><span class="sep">·</span><a href="/logout">Abmelden</a></small>
+      <small>
+        v0.3.0
+        <span class="sep">·</span><a href="{{ url_for('dashboard') }}">Dashboard</a>
+        <span class="sep">·</span><a href="{{ url_for('abrechnung_index') }}">Zur Abrechnung</a>
+        <span class="sep">·</span><a href="{{ url_for('docs_view', slug='getting-started') }}">Hilfe</a>
+        <span class="sep">·</span><a href="{{ impressum_url }}">Impressum</a>
+        <span class="sep">·</span><a href="{{ datenschutz_url }}">Datenschutz</a>
+        <span class="sep">·</span><a href="{{ url_for('docs_view', slug='haftung') }}">Haftung</a>
+        <span class="sep">·</span><a href="{{ url_for('health_check') }}" target="_blank">Status</a>
+        {% if is_authenticated %}<span class="sep">·</span><a href="{{ authelia_logout_url }}">Abmelden</a>{% endif %}
+      </small>
     </footer>
 
   </div><!-- /.app -->
 
   <script>
-    const REQUIRED_KEYS  = ['antragsteller', 'reise_details', 'befoerderung', 'konfiguration_checkboxen'];
-    const PROFILE_KEY    = 'dr_profile';
+    const PROFILE_KEY = 'dr_profile';
+    const IS_AUTHENTICATED = {{ 'true' if is_authenticated else 'false' }};
     const promptTemplate = document.getElementById('promptText').value;
-    let   fullPromptForCopy = promptTemplate;
-
-    let showingFullPrompt = false;
-
-    function toggleFullPrompt() {
-      const area = document.getElementById('promptText');
-      const btn  = document.getElementById('togglePromptBtn');
-      showingFullPrompt = !showingFullPrompt;
-      area.value = showingFullPrompt ? fullPromptForCopy : makeDisplayPrompt(fullPromptForCopy);
-      area.rows  = showingFullPrompt ? 28 : 10;
-      btn.textContent = showingFullPrompt ? 'Kurzansicht' : 'Vollständigen Prompt anzeigen';
-    }
-
-    function makeDisplayPrompt(full) {
-      const dataLines = full.split('\n')
-        .filter(l => /^- (Name|Abteilung|Telefon|Privatadresse|Mitreisender):/.test(l))
-        .map(l => l.replace(/\s*\(nur einsetzen,[^)]*\)/, '').trimEnd());
-      return dataLines.join('\n');
-    }
+    let aiData = null;  // Teil-JSON aus der KI (ohne antragsteller/befoerderung)
 
     // ── Modal ────────────────────────────────────────────────────────
-    function openModal(id) {
-      document.getElementById(id).classList.add('is-open');
-      document.body.style.overflow = 'hidden';
-    }
-    function closeModal(id) {
-      document.getElementById(id).classList.remove('is-open');
-      document.body.style.overflow = '';
-    }
+    function openModal(id){ document.getElementById(id).classList.add('is-open'); document.body.style.overflow='hidden'; }
+    function closeModal(id){ document.getElementById(id).classList.remove('is-open'); document.body.style.overflow=''; }
     document.querySelectorAll('.modal-overlay').forEach(el =>
-      el.addEventListener('click', e => { if (e.target === el) closeModal(el.id); })
-    );
+      el.addEventListener('click', e => { if (e.target === el) closeModal(el.id); }));
     document.addEventListener('keydown', e => {
-      if (e.key === 'Escape')
-        document.querySelectorAll('.modal-overlay.is-open').forEach(el => closeModal(el.id));
+      if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.is-open').forEach(el => closeModal(el.id));
     });
 
-    // ── Alerts ───────────────────────────────────────────────────────
+    // ── Alerts (XSS-sicher: textContent) ─────────────────────────────
     function showAlert(msg, type = 'danger') {
       const stack = document.getElementById('alertStack');
+      const safeType = ['danger','warning','success','info'].includes(type) ? type : 'danger';
       const el = document.createElement('div');
-      el.className = `alert alert-${type}`;
-      el.innerHTML = `<span>${msg}</span><button class="alert-close" onclick="this.closest('.alert').remove()">✕</button>`;
-      stack.appendChild(el);
+      el.className = `alert alert-${safeType}`;
+      const span = document.createElement('span'); span.textContent = String(msg);
+      const btn = document.createElement('button'); btn.className = 'alert-close'; btn.textContent = '✕';
+      btn.addEventListener('click', () => el.remove());
+      el.appendChild(span); el.appendChild(btn); stack.appendChild(el);
       setTimeout(() => el.remove(), 7000);
     }
 
-    // ── localStorage ─────────────────────────────────────────────────
-    function getProfile() {
-      try { const r = localStorage.getItem(PROFILE_KEY); return r ? JSON.parse(r) : null; }
-      catch { return null; }
-    }
-    function saveProfile(p) { localStorage.setItem(PROFILE_KEY, JSON.stringify(p)); }
+    // ── localStorage-Profil ──────────────────────────────────────────
+    function getProfile(){ try { return JSON.parse(localStorage.getItem(PROFILE_KEY) || 'null'); } catch { return null; } }
+    function saveProfile(p){ localStorage.setItem(PROFILE_KEY, JSON.stringify(p)); }
 
-    // ── Profil anwenden ──────────────────────────────────────────────
     function applyProfile(p) {
-      let prompt = promptTemplate;
-      prompt = prompt.replace(/\[DEIN NAME\]/g,           p.name);
-      prompt = prompt.replace(/\[DEINE ABTEILUNG\]/g,     p.abteilung);
-      prompt = prompt.replace(/\[DEINE TELEFONNUMMER\]/g, p.telefon);
-      prompt = prompt.replace(/\[DEINE PRIVATADRESSE\]/g, p.adresse);
-      prompt = prompt.replace(/\[OPTIONALER NAME\]/g,     p.mitreisender || '(keiner)');
-      fullPromptForCopy = prompt;
-      document.getElementById('promptText').value = makeDisplayPrompt(prompt);
-
-      const parts    = p.name.trim().split(/\s+/);
-      const initials = (parts[0]?.[0] || '') + (parts[parts.length - 1]?.[0] || '');
-      const avatar   = document.getElementById('profileAvatar');
-      avatar.textContent = initials.toUpperCase();
+      const status = document.getElementById('profileStatus');
+      const avatar = document.getElementById('profileAvatar');
+      if (!p || !(p.name || p.abteilung)) {
+        status.textContent = 'Kein Profil konfiguriert.'; status.classList.add('missing');
+        return;
+      }
+      status.textContent = `${p.name || ''} · ${p.abteilung || ''}`;
+      status.classList.remove('missing');
+      const parts = (p.name || '').trim().split(/\s+/);
+      avatar.textContent = ((parts[0]?.[0] || '') + (parts[parts.length-1]?.[0] || '')).toUpperCase() || '?';
       avatar.classList.remove('empty');
 
-      const status = document.getElementById('profileStatus');
-      status.textContent = `${p.name} · ${p.abteilung}`;
-      status.classList.remove('missing');
+      const hasAiKey = !!(p.deepseek_api_key || p.has_server_deepseek_key);
+      const aiBlock = document.getElementById('aiExtractBlock');
+      const promptDetails = document.querySelector('.prompt-copy-section');
+      if (aiBlock) aiBlock.style.display = hasAiKey ? 'block' : 'none';
+      if (promptDetails) promptDetails.open = !hasAiKey;
     }
 
-    // ── Wizard ───────────────────────────────────────────────────────
+    // ── Profil-Wizard ────────────────────────────────────────────────
     function openWizard() {
       const p = getProfile();
       if (p) {
-        document.getElementById('wiz_name').value         = p.name         || '';
-        document.getElementById('wiz_abteilung').value    = p.abteilung    || '';
-        document.getElementById('wiz_telefon').value      = p.telefon      || '';
-        document.getElementById('wiz_mitreisender').value = p.mitreisender || '';
-
-        // Handle splitting for backward compatibility
-        if (p.strasse && p.plz_ort) {
-          document.getElementById('wiz_strasse').value = p.strasse;
-          document.getElementById('wiz_plz_ort').value = p.plz_ort;
-        } else if (p.adresse) {
+        wiz_name.value = p.name || ''; wiz_abteilung.value = p.abteilung || '';
+        wiz_telefon.value = p.telefon || ''; wiz_mitreisender.value = p.mitreisender || '';
+        if (p.strasse && p.plz_ort) { wiz_strasse.value = p.strasse; wiz_plz_ort.value = p.plz_ort; }
+        else if (p.adresse) {
           const parts = p.adresse.split(',');
-          if (parts.length > 1) {
-            document.getElementById('wiz_strasse').value = parts[0].trim();
-            document.getElementById('wiz_plz_ort').value = parts.slice(1).join(',').trim();
-          } else {
-            document.getElementById('wiz_strasse').value = p.adresse.trim();
-            document.getElementById('wiz_plz_ort').value = '';
-          }
+          if (parts.length > 1) { wiz_strasse.value = parts[0].trim(); wiz_plz_ort.value = parts.slice(1).join(',').trim(); }
+          else { wiz_strasse.value = p.adresse.trim(); wiz_plz_ort.value = ''; }
         }
+        wiz_standard_verkehrsmittel.value = p.standard_verkehrsmittel || '';
+        wiz_iban.value = p.iban || ''; wiz_bic.value = p.bic || '';
+        wiz_email.value = p.email || ''; wiz_abrechnende.value = p.abrechnende_dienststelle || '';
+        wiz_amtsbez.value = p.amtsbezeichnung || '';
+        wiz_rkr.value = p.rkr_default || 'DR';
+        wiz_deepseek_key.value = p.deepseek_api_key || '';
+        if (p.iban || p.bic || p.email || p.abrechnende_dienststelle || p.amtsbezeichnung) wizAbrechnungBlock.open = true;
+        if (p.deepseek_api_key) wizAIBlock.open = true;
       }
       openModal('wizardOverlay');
     }
 
     function saveWizard() {
-      const name         = document.getElementById('wiz_name').value.trim();
-      const abteilung    = document.getElementById('wiz_abteilung').value.trim();
-      const telefon      = document.getElementById('wiz_telefon').value.trim();
-      const strasse      = document.getElementById('wiz_strasse').value.trim();
-      const plz_ort      = document.getElementById('wiz_plz_ort').value.trim();
-      const mitreisender = document.getElementById('wiz_mitreisender').value.trim();
-
+      const name = wiz_name.value.trim(), abteilung = wiz_abteilung.value.trim(),
+            telefon = wiz_telefon.value.trim(), strasse = wiz_strasse.value.trim(),
+            plz_ort = wiz_plz_ort.value.trim();
       if (!name || !abteilung || !telefon || !strasse || !plz_ort) {
-        showAlert('Bitte alle Pflichtfelder (*) ausfüllen.', 'warning');
-        return;
+        showAlert('Bitte alle Pflichtfelder (*) ausfüllen.', 'warning'); return;
       }
-
-      const adresse = `${strasse}, ${plz_ort}`;
-      const profile = { name, abteilung, telefon, adresse, strasse, plz_ort, mitreisender };
-      saveProfile(profile);
-      applyProfile(profile);
+      const p = getProfile() || {};
+      Object.assign(p, {
+        name, abteilung, telefon, strasse, plz_ort,
+        adresse: `${strasse}, ${plz_ort}`,
+        mitreisender: wiz_mitreisender.value.trim(),
+        standard_verkehrsmittel: wiz_standard_verkehrsmittel.value,
+        iban: wiz_iban.value.trim().replace(/\s+/g,'').toUpperCase(),
+        bic: wiz_bic.value.trim().toUpperCase(),
+        email: wiz_email.value.trim(),
+        abrechnende_dienststelle: wiz_abrechnende.value.trim(),
+        amtsbezeichnung: wiz_amtsbez.value.trim(),
+        rkr_default: wiz_rkr.value,
+        deepseek_api_key: wiz_deepseek_key.value.trim(),
+      });
+      saveProfile(p); applyProfile(p); prefillBefoerderung();
       closeModal('wizardOverlay');
-      showAlert('Profil gespeichert – Prompt wurde aktualisiert.', 'success');
+      showAlert('Profil gespeichert.', 'success');
     }
 
-    // ── Prompt kopieren ──────────────────────────────────────────────
+    // ── Stepper ──────────────────────────────────────────────────────
+    let currentStep = 1;
+    function goStep(n) {
+      if (n === 4 && !aiData) { showAlert('Erst die KI-Extraktion in Schritt 3 abschließen.', 'warning'); return; }
+      if (n === 5) syncFinalJson();
+      currentStep = n;
+      document.querySelectorAll('.wiz-step').forEach(s => s.classList.remove('is-active'));
+      const t = document.querySelector(`.wiz-step[data-step="${n}"]`);
+      if (t) t.classList.add('is-active');
+      document.querySelectorAll('.stepper-item').forEach((b,i) => {
+        b.classList.toggle('is-active', i+1 === n);
+        b.classList.toggle('is-done', i+1 < n);
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    document.querySelectorAll('.stepper-item').forEach(b =>
+      b.addEventListener('click', () => goStep(parseInt(b.dataset.go))));
+
+    // ── Beförderung (Step 2) ─────────────────────────────────────────
+    function prefillBefoerderung() {
+      const p = getProfile();
+      const def = (p && p.standard_verkehrsmittel) || '';
+      if (def) { hin_typ.value = def; rueck_typ.value = def; }
+      updateBefoerderungUI();
+    }
+    function updateBefoerderungUI() {
+      const hp = hin_typ.value === 'PKW', rp = rueck_typ.value === 'PKW';
+      hin_para_wrap.style.display = hp ? '' : 'none';
+      rueck_para_wrap.style.display = rp ? '' : 'none';
+      hin_mitfahrer_wrap.style.display = hin_typ.value === 'MITFAHRT' ? '' : 'none';
+      rueck_mitfahrer_wrap.style.display = rueck_typ.value === 'MITFAHRT' ? '' : 'none';
+      const needSonderfall = (hp && hin_para.value === 'III') || (rp && rueck_para.value === 'III');
+      sonderfall_wrap.style.display = needSonderfall ? '' : 'none';
+    }
+    function getReiseAnswers() {
+      const mk = (typSel, paraSel, mfId) => {
+        const typ = typSel.value;
+        const o = { typ, paragraph_5_nrkvo: (typ === 'PKW' ? paraSel.value : 'II') };
+        if (typ === 'MITFAHRT') o.mitfahrer_name = document.getElementById(mfId).value.trim();
+        return o;
+      };
+      return {
+        hinreise: mk(hin_typ, hin_para, 'hin_mitfahrer'),
+        rueckreise: mk(rueck_typ, rueck_para, 'rueck_mitfahrer'),
+        sonderfall_begruendung_textfeld: sonderfall.value.trim(),
+      };
+    }
+
+    // Step-2-Formular aus einer gespeicherten befoerderung rehydrieren
+    // (Reload zum Editieren — Gegenstück zu getReiseAnswers()).
+    function applyBefoerderung(b) {
+      if (!b) return;
+      const set = (typEl, paraEl, mfId, r) => {
+        if (!r) return;
+        if (r.typ) typEl.value = r.typ;
+        if (r.typ === 'PKW' && r.paragraph_5_nrkvo) paraEl.value = r.paragraph_5_nrkvo;
+        if (r.typ === 'MITFAHRT' && r.mitfahrer_name) document.getElementById(mfId).value = r.mitfahrer_name;
+      };
+      set(hin_typ, hin_para, 'hin_mitfahrer', b.hinreise);
+      set(rueck_typ, rueck_para, 'rueck_mitfahrer', b.rueckreise);
+      if (b.sonderfall_begruendung_textfeld) sonderfall.value = b.sonderfall_begruendung_textfeld;
+      updateBefoerderungUI();
+    }
+
+    // Reload zum Editieren (nur eingeloggt): gespeicherte Reise zurück in
+    // den Wizard holen. Es werden NUR Nicht-Profil-Felder rehydriert —
+    // antragsteller bleibt profil-autoritativ (Server überschreibt beim
+    // Regenerieren). dienstreise_id wird gesetzt → /generate überschreibt
+    // die bestehende Reise statt eine neue anzulegen.
+    async function autoLoadAntrag(reiseId) {
+      try {
+        const r = await fetch(`/dienstreisen/${reiseId}/antrag-json`, { headers: { 'Accept': 'application/json' } });
+        if (!r.ok) { showAlert('Reise konnte nicht geladen werden.', 'warning'); return; }
+        const d = await r.json();
+        const aj = d.antrag_json;
+        if (!aj) { showAlert('Diese Reise hat noch kein gespeichertes Antrag-JSON.', 'warning'); return; }
+        aiData = aj;  // fillReview() liest reise_details/zusatz_infos/konfiguration/verzicht hieraus
+        applyBefoerderung(aj.befoerderung);
+        let h = document.getElementById('dienstreiseId');
+        if (!h) {
+          h = document.createElement('input');
+          h.type = 'hidden'; h.id = 'dienstreiseId'; h.name = 'dienstreise_id';
+          document.getElementById('genForm').appendChild(h);
+        }
+        h.value = String(reiseId);
+        fillReview();
+        goStep(4);
+        showAlert(`Reise #${reiseId} geladen — Werte editierbar. „PDF erzeugen" überschreibt die gespeicherte Reise.`, 'success');
+      } catch (e) {
+        showAlert('Laden fehlgeschlagen: ' + e.message, 'warning');
+      }
+    }
+    const VM_LABEL = { PKW:'PKW (selbst gefahren)', BAHN:'Bahn', BUS:'Bus', DIENSTWAGEN:'Dienstwagen', MITFAHRT:'Mitfahrt', FLUG:'Flug' };
+    function formatReiseKontext(ra) {
+      const line = (richtung, t) => {
+        if (!t.typ) return '';
+        let s = `${richtung}: ${VM_LABEL[t.typ] || t.typ}`;
+        if (t.typ === 'PKW') s += `, § 5 ${t.paragraph_5_nrkvo} NRKVO`;
+        if (t.typ === 'MITFAHRT' && t.mitfahrer_name) s += ` bei ${t.mitfahrer_name}`;
+        return s;
+      };
+      return [line('Hinreise', ra.hinreise), line('Rückreise', ra.rueckreise)].filter(Boolean).join('\n');
+    }
+
+    // ── Prompt kopieren (Copy-Paste-Pfad) ────────────────────────────
     function copyPrompt() {
       const btn = document.getElementById('copyBtn');
-      let text = fullPromptForCopy;
-      const sonderwuensche = document.getElementById('sonderwuensche').value.trim();
-      if (sonderwuensche) {
-        text += '\n\n## Hinweise & Sonderwünsche\n' + sonderwuensche;
-      }
-      navigator.clipboard.writeText(text)
-        .catch(() => {
-          const t = document.getElementById('promptText');
-          t.value = text; t.select(); document.execCommand('copy'); t.value = document.getElementById('promptText').defaultValue;
-        });
-      btn.textContent = 'Kopiert ✓';
-      btn.classList.add('copied');
+      let text = promptTemplate;
+      const kontext = formatReiseKontext(getReiseAnswers());
+      if (kontext) text += '\n\n## Vom Nutzer gewählte Beförderung (nur für Zeitschätzung, NICHT ausgeben)\n' + kontext;
+      const sw = document.getElementById('sonderwuensche').value.trim();
+      if (sw) text += '\n\n## Hinweise & Sonderwünsche\n' + sw;
+      navigator.clipboard.writeText(text).catch(() => {
+        const t = document.getElementById('promptText'); const orig = t.value;
+        t.value = text; t.select(); document.execCommand('copy'); t.value = orig;
+      });
+      btn.textContent = 'Kopiert ✓'; btn.classList.add('copied');
       setTimeout(() => { btn.textContent = 'Prompt kopieren'; btn.classList.remove('copied'); }, 2000);
     }
 
-    // ── JSON ─────────────────────────────────────────────────────────
+    // ── JSON-Eingang bereinigen ──────────────────────────────────────
     function sanitizeRawInput(text) {
-      // 1. KI-Zitatmarker ([cite_start], [cite: 1]) entfernen
       text = text.replace(/\[cite_start\]|\[cite_end\]|\s*\[cite:[^\]]+\]/gi, '');
-      // 2. Markdown-Code-Fences entfernen (```json ... ``` oder ``` ... ```)
       text = text.replace(/```(?:json)?\s*\n?([\s\S]*?)\n?```/g, '$1');
-      // 3. Ersten { bis letzten } extrahieren (Begleittext vor/nach dem JSON)
-      const start = text.indexOf('{');
-      const end   = text.lastIndexOf('}');
-      if (start !== -1 && end !== -1 && end > start) text = text.slice(start, end + 1);
-      // 4. Trailing commas vor } oder ] entfernen (z.B. {"a":1,})
-      text = text.replace(/,(\s*[}\]])/g, '$1');
-      return text.trim();
+      const s = text.indexOf('{'), e = text.lastIndexOf('}');
+      if (s !== -1 && e !== -1 && e > s) text = text.slice(s, e + 1);
+      return text.replace(/,(\s*[}\]])/g, '$1').trim();
     }
 
-    function formatJSON() {
-      const area = document.getElementById('jsonData');
+    // ── KI-Extraktion (DeepSeek) ─────────────────────────────────────
+    async function extractWithAI() {
+      const profile = getProfile();
+      const guestKey = profile?.deepseek_api_key?.trim();
+      const hasServerKey = !!profile?.has_server_deepseek_key;
+      if (!IS_AUTHENTICATED && !guestKey) { showAlert('Kein DeepSeek-API-Key im Profil.', 'warning'); openWizard(); return; }
+      if (IS_AUTHENTICATED && !guestKey && !hasServerKey) {
+        showAlert('Kein DeepSeek-API-Key — bitte im Server-Profil hinterlegen.', 'warning');
+        window.location.href = '{{ url_for("profil_view") }}'; return;
+      }
+      const freitext = document.getElementById('aiFreitext').value.trim();
+      const pdfFile = document.getElementById('pdfFile').files[0];
+      if (!freitext && !pdfFile) { showAlert('Bitte Ausschreibung als Text einfügen oder PDF hochladen (Schritt 1).', 'warning'); goStep(1); return; }
+
+      const btn = document.getElementById('aiExtractBtn'), status = document.getElementById('aiExtractStatus');
+      btn.disabled = true; btn.textContent = 'Extrahiere …';
+      status.textContent = pdfFile ? 'PDF wird gelesen + DeepSeek befragt (15–40 s) …' : 'DeepSeek arbeitet (10–30 s) …';
       try {
-        area.value = JSON.stringify(JSON.parse(area.value), null, 2);
-        validateJSON();
-      } catch(e) { showAlert('Ungültiges JSON: ' + e.message); }
+        const fd = new FormData();
+        fd.append('freitext', freitext);
+        fd.append('sonderwuensche', document.getElementById('sonderwuensche').value.trim());
+        fd.append('reise_antworten', JSON.stringify(getReiseAnswers()));
+        fd.append('csrf_token', document.querySelector('input[name="csrf_token"]').value);
+        if (pdfFile) fd.append('pdf', pdfFile);
+        const headers = guestKey ? { 'X-DeepSeek-Key': guestKey } : {};
+        const res = await fetch('/extract', { method: 'POST', headers, body: fd });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          showAlert('AI-Extraktion fehlgeschlagen: ' + (err.error || res.statusText), 'danger');
+          status.textContent = ''; return;
+        }
+        aiData = await res.json();
+        fillReview();
+        status.textContent = '✓ fertig';
+        showAlert('Reisedaten extrahiert – bitte in Schritt 4 prüfen.', 'success');
+        goStep(4);
+      } catch (e) {
+        showAlert('Netzwerkfehler: ' + e.message, 'danger'); status.textContent = '';
+      } finally {
+        btn.disabled = false; btn.textContent = 'Mit KI extrahieren';
+      }
     }
 
-    function validateJSON() {
-      const area = document.getElementById('jsonData');
-      const hint = document.getElementById('validationHint');
-      if (!area.value.trim()) {
-        area.classList.remove('is-valid', 'is-invalid');
-        hint.innerHTML = '';
-        return false;
-      }
+    function usePastedJson() {
+      const raw = document.getElementById('pasteJson').value;
+      if (!raw.trim()) { showAlert('Bitte die KI-Antwort einfügen.', 'warning'); return; }
       try {
-        const obj  = JSON.parse(area.value);
-        const miss = REQUIRED_KEYS.filter(k => !(k in obj));
-        if (miss.length) {
-          area.classList.replace('is-valid', 'is-invalid') || area.classList.add('is-invalid');
-          hint.innerHTML = `<span class="err">Fehlende Felder: ${miss.join(', ')}</span>`;
-          return false;
-        }
-        const rd = obj.reise_details || {};
-        const emptyRd = ['zielort', 'reiseweg', 'zweck', 'start_datum', 'start_zeit'].filter(k => !rd[k]);
-        if (emptyRd.length) {
-          area.classList.replace('is-valid', 'is-invalid') || area.classList.add('is-invalid');
-          hint.innerHTML = `<span class="err">Die KI hat keine Reisedaten geliefert – Ausschreibung nicht mitgeschickt? Leere Felder: ${emptyRd.join(', ')}</span>`;
-          return false;
-        }
-        area.classList.remove('is-invalid'); area.classList.add('is-valid');
-        hint.innerHTML = '<span class="ok">JSON ist valide</span>';
-        return true;
-      } catch(e) {
-        area.classList.remove('is-valid'); area.classList.add('is-invalid');
-        hint.innerHTML = `<span class="err">Syntaxfehler: ${e.message}</span>`;
-        return false;
+        aiData = JSON.parse(sanitizeRawInput(raw));
+      } catch (e) { showAlert('Ungültiges JSON: ' + e.message, 'danger'); return; }
+      fillReview();
+      showAlert('Übernommen – bitte in Schritt 4 prüfen.', 'success');
+      goStep(4);
+    }
+
+    // ── Review (Step 4) ──────────────────────────────────────────────
+    function _row(tbody, k, v) {
+      const tr = document.createElement('tr');
+      const td1 = document.createElement('td'); td1.textContent = k;
+      const td2 = document.createElement('td'); td2.textContent = v || '—';
+      tr.appendChild(td1); tr.appendChild(td2); tbody.appendChild(tr);
+    }
+    function fillReview() {
+      const p = getProfile() || {};
+      const aB = document.getElementById('roAntragsteller'); aB.replaceChildren();
+      _row(aB, 'Name', p.name);
+      _row(aB, 'Abteilung', p.abteilung);
+      _row(aB, 'Telefon', p.telefon);
+      _row(aB, 'Privatadresse', p.adresse);
+      if (p.mitreisender) _row(aB, 'Mitreisender', p.mitreisender);
+      if (IS_AUTHENTICATED) {
+        const note = document.createElement('tr');
+        const td = document.createElement('td'); td.colSpan = 2;
+        td.style.color = 'var(--muted)'; td.style.fontSize = '.78rem';
+        td.textContent = 'Beim Erzeugen serverseitig autoritativ aus dem Profil gesetzt.';
+        note.appendChild(td); aB.appendChild(note);
       }
+
+      const ra = getReiseAnswers();
+      const bB = document.getElementById('roBefoerderung'); bB.replaceChildren();
+      formatReiseKontext(ra).split('\n').forEach(l => {
+        const [a, ...rest] = l.split(': '); _row(bB, a, rest.join(': '));
+      });
+      if (ra.sonderfall_begruendung_textfeld) _row(bB, 'Begründung § III', ra.sonderfall_begruendung_textfeld);
+
+      const rd = (aiData && aiData.reise_details) || {};
+      r_zielort.value = rd.zielort || '';
+      r_reiseweg.value = rd.reiseweg || '';
+      r_zweck.value = rd.zweck || '';
+      r_start_datum.value = rd.start_datum || '';
+      r_start_zeit.value = rd.start_zeit || '';
+      r_ende_datum.value = rd.ende_datum || '';
+      r_ende_zeit.value = rd.ende_zeit || '';
+      r_dg_beginn_datum.value = rd.dienstgeschaeft_beginn_datum || '';
+      r_dg_beginn_zeit.value = rd.dienstgeschaeft_beginn_zeit || '';
+      r_dg_ende_datum.value = rd.dienstgeschaeft_ende_datum || '';
+      r_dg_ende_zeit.value = rd.dienstgeschaeft_ende_zeit || '';
+      r_bemerkungen.value = (aiData && aiData.zusatz_infos && aiData.zusatz_infos.bemerkungen_feld) || '';
+
+      const kc = (aiData && aiData.konfiguration_checkboxen) || {};
+      k_kosten_andere.checked = !!kc.kosten_durch_andere_stelle;
+      k_2km.checked = !!kc.dienstgeschaeft_2km_umkreis;
+      k_trennungsgeld.checked = !!kc.anspruch_trennungsgeld;
+      const ve = (aiData && aiData.verzicht_erklaerung) || {};
+      v_tagegeld.checked = !!ve.verzicht_tagegeld;
+      v_uebernachtung.checked = !!ve.verzicht_uebernachtungsgeld;
+      v_fahrtkosten.checked = !!ve.verzicht_fahrtkosten;
+    }
+
+    // ── Finales JSON zusammenbauen ───────────────────────────────────
+    function syncFinalJson() {
+      const p = getProfile() || {};
+      const ra = getReiseAnswers();
+      const bemerk = r_bemerkungen.value.trim();
+      const final = {
+        _meta: { description: 'Reisekostenantrag NRKVO', version: 'WIZARD' },
+        antragsteller: {
+          name: p.name || '', abteilung: p.abteilung || '', telefon: p.telefon || '',
+          adresse_privat: p.adresse || '', mitreisender_name: p.mitreisender || '',
+          amtsbezeichnung: p.amtsbezeichnung || '',
+        },
+        reise_details: {
+          zielort: r_zielort.value.trim(), reiseweg: r_reiseweg.value.trim(), zweck: r_zweck.value.trim(),
+          start_datum: r_start_datum.value.trim(), start_zeit: r_start_zeit.value.trim(),
+          ende_datum: r_ende_datum.value.trim(), ende_zeit: r_ende_zeit.value.trim(),
+          dienstgeschaeft_beginn_datum: r_dg_beginn_datum.value.trim(),
+          dienstgeschaeft_beginn_zeit: r_dg_beginn_zeit.value.trim(),
+          dienstgeschaeft_ende_datum: r_dg_ende_datum.value.trim(),
+          dienstgeschaeft_ende_zeit: r_dg_ende_zeit.value.trim(),
+        },
+        zusatz_infos: { bemerkungen_feld: bemerk },
+        befoerderung: {
+          hinreise: ra.hinreise, rueckreise: ra.rueckreise,
+          sonderfall_begruendung_textfeld: ra.sonderfall_begruendung_textfeld,
+        },
+        konfiguration_checkboxen: {
+          bahncard_business_vorhanden: false,
+          bahncard_privat_vorhanden: false,
+          bahncard_beschaffung_beantragt: false,
+          grosskundenrabatt_genutzt: false,
+          grosskundenrabatt_begruendung_wenn_nein: '',
+          weitere_ermaessigungen_vorhanden: false,
+          dienstgeschaeft_2km_umkreis: k_2km.checked,
+          anspruch_trennungsgeld: k_trennungsgeld.checked,
+          kosten_durch_andere_stelle: k_kosten_andere.checked,
+          weitere_anmerkungen_checkbox_aktivieren: !!bemerk,
+        },
+        verzicht_erklaerung: {
+          verzicht_tagegeld: v_tagegeld.checked,
+          verzicht_uebernachtungsgeld: v_uebernachtung.checked,
+          verzicht_fahrtkosten: v_fahrtkosten.checked,
+        },
+        unterschrift: { datum_seite_2: new Date().toLocaleDateString('de-DE') },
+      };
+      document.getElementById('json_data').value = JSON.stringify(final);
+      return final;
     }
 
     function neuerAntrag() {
-      const area = document.getElementById('jsonData');
-      area.value = '';
-      area.classList.remove('is-valid', 'is-invalid');
-      document.getElementById('validationHint').innerHTML = '';
-      document.getElementById('sonderwuensche').value = '';
+      aiData = null;
+      ['aiFreitext','sonderwuensche','pasteJson','r_zielort','r_reiseweg','r_zweck',
+       'r_start_datum','r_start_zeit','r_ende_datum','r_ende_zeit','r_dg_beginn_datum',
+       'r_dg_beginn_zeit','r_dg_ende_datum','r_dg_ende_zeit','r_bemerkungen']
+        .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+      document.getElementById('pdfFileInfo').style.display = 'none';
+      document.getElementById('pdfDropLabel').textContent = 'PDF hierher ziehen oder klicken';
+      document.getElementById('pdfFile').value = '';
       document.getElementById('successBanner').style.display = 'none';
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      goStep(1);
     }
 
-    async function loadExample() {
-      try {
-        const r = await fetch('/example');
-        if (r.ok) {
-          document.getElementById('jsonData').value = JSON.stringify(await r.json(), null, 2);
-          validateJSON();
-          showAlert('Beispiel-JSON geladen', 'info');
-        } else { showAlert('Beispiel nicht verfügbar', 'warning'); }
-      } catch(e) { showAlert('Fehler: ' + e.message); }
-    }
-
-    // ── Formular absenden ────────────────────────────────────────────
+    // ── Absenden ─────────────────────────────────────────────────────
     document.getElementById('genForm').addEventListener('submit', async function(e) {
       e.preventDefault();
-      if (!validateJSON()) { showAlert('Bitte korrigiere das JSON vor dem Absenden'); return; }
-
-      const spinner   = document.getElementById('loadingSpinner');
+      const final = syncFinalJson();
+      const rd = final.reise_details;
+      if (!rd.zielort || !rd.zweck || !rd.start_datum) {
+        showAlert('Reisedaten unvollständig (Zielort/Zweck/Abfahrt). Bitte Schritt 4 prüfen.', 'warning');
+        goStep(4); return;
+      }
+      const spinner = document.getElementById('loadingSpinner');
       const submitBtn = document.getElementById('submitBtn');
-      spinner.classList.add('active');
-      submitBtn.disabled = true;
-
+      spinner.classList.add('active'); submitBtn.disabled = true;
       try {
-        const res = await fetch('/generate', { method: 'POST', body: new FormData(this) });
+        const fd = new FormData(this);
+        const p = getProfile();
+        const autoSave = p && p.auto_save_dienstreisen !== false;
+        if (IS_AUTHENTICATED && autoSave) {
+          fd.set('save_to_account', '1');
+          const existing = document.getElementById('dienstreiseId')?.value;
+          if (existing) fd.set('dienstreise_id', existing);
+        }
+        const res = await fetch('/generate', { method: 'POST', body: fd });
         if (res.ok) {
           const blob = await res.blob();
-          const cd   = res.headers.get('Content-Disposition') || '';
-          const m    = cd.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+          const cd = res.headers.get('Content-Disposition') || '';
+          const m = cd.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
           const name = m ? m[1].replace(/['"]/g, '') : 'DR-Antrag.pdf';
-          const url  = URL.createObjectURL(blob);
-          const a    = Object.assign(document.createElement('a'), { href: url, download: name });
+          const url = URL.createObjectURL(blob);
+          const a = Object.assign(document.createElement('a'), { href: url, download: name });
           document.body.appendChild(a); a.click(); URL.revokeObjectURL(url); a.remove();
-          document.getElementById('successBanner').style.display = 'flex';
-          showAlert(`PDF „${name}" wurde erstellt!`, 'success');
+          document.getElementById('successBanner').style.display = 'block';
+          const reiseId = res.headers.get('X-Dienstreise-Id');
+          if (reiseId) {
+            let h = document.getElementById('dienstreiseId');
+            if (!h) { h = document.createElement('input'); h.type='hidden'; h.id='dienstreiseId'; h.name='dienstreise_id'; this.appendChild(h); }
+            h.value = reiseId;
+            showAlert(`PDF „${name}" erstellt und gespeichert (Reise #${reiseId}).`, 'success');
+          } else {
+            showAlert(`PDF „${name}" wurde erstellt!`, 'success');
+          }
         } else {
-          const err = await res.json();
+          const err = await res.json().catch(() => ({}));
           showAlert('Fehler: ' + (err.error || 'Unbekannter Fehler'));
         }
-      } catch(e) { showAlert('Netzwerkfehler: ' + e.message); }
+      } catch (e) { showAlert('Netzwerkfehler: ' + e.message); }
       finally { spinner.classList.remove('active'); submitBtn.disabled = false; }
     });
 
-    document.getElementById('jsonData').addEventListener('input', validateJSON);
+    // ── PDF-Upload (Drag&Drop) ───────────────────────────────────────
+    (function() {
+      const zone = document.getElementById('pdfDropZone');
+      const input = document.getElementById('pdfFile');
+      const label = document.getElementById('pdfDropLabel');
+      const info = document.getElementById('pdfFileInfo');
+      if (!zone || !input) return;
+      function setFile(file) {
+        if (!file) return;
+        if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+          showAlert('Nur PDF-Dateien werden akzeptiert.', 'warning'); return;
+        }
+        if (file.size > 10 * 1024 * 1024) { showAlert('PDF zu groß (max 10 MB).', 'warning'); return; }
+        const dt = new DataTransfer(); dt.items.add(file); input.files = dt.files;
+        label.textContent = 'PDF bereit:';
+        info.style.display = 'block';
+        info.textContent = `✓ ${file.name} (${(file.size/1024).toFixed(0)} KB)`;
+      }
+      input.addEventListener('change', () => setFile(input.files[0]));
+      ['dragenter','dragover'].forEach(ev => zone.addEventListener(ev, e => {
+        e.preventDefault(); e.stopPropagation(); zone.classList.add('dragover');
+      }));
+      ['dragleave','drop'].forEach(ev => zone.addEventListener(ev, e => {
+        e.preventDefault(); e.stopPropagation(); zone.classList.remove('dragover');
+      }));
+      zone.addEventListener('drop', e => { if (e.dataTransfer.files.length) setFile(e.dataTransfer.files[0]); });
+    })();
 
-    document.getElementById('jsonData').addEventListener('paste', function(e) {
-      e.preventDefault();
-      const raw = (e.clipboardData || window.clipboardData).getData('text');
-      const cleaned = sanitizeRawInput(raw);
-      const changed = cleaned !== raw.trim();
-      this.value = cleaned;
-      validateJSON();
-      if (changed) showAlert('KI-Output automatisch bereinigt (Markdown, Begleittext, Zitatmarker).', 'info');
+    // ── Tooltips (Muster aus abrechnung.html, .tip-CSS in shared.css) ─
+    const TIPS = {
+      // Step 1 — Eingabe
+      'aiFreitext': 'Originaltext der Ausschreibung / E-Mail / Notiz. Die KI extrahiert daraus die Reisedaten. Optional, wenn oben ein PDF hochgeladen wurde.',
+      'sonderwuensche': 'Freitext-Hinweise an die KI, z.B. „Rückreise erst am Folgetag" oder „Hotel bereits gebucht". Wird nicht 1:1 ins Formular übernommen.',
+      // Step 2 — Beförderung
+      'hin_typ': 'Hauptverkehrsmittel der Hinreise. PKW = selbst gefahren. MITFAHRT = im PKW eines anderen mitgefahren. Steht nicht in der Ausschreibung — deine Wahl.',
+      'rueck_typ': 'Hauptverkehrsmittel der Rückreise — kann von der Hinreise abweichen.',
+      'hin_para': 'II = kleine Wegstrecke (0,25 €/km, max 125 €). III = große Wegstrecke (0,38 €/km), nur bei triftigem Grund (Materialtransport, schlechte ÖPNV-Anbindung, Mitnahme Kollege).',
+      'rueck_para': 'Wie Hinreise — II = kleine, III = große Wegstrecke.',
+      'hin_mitfahrer': 'Name der Person, in deren PKW du auf der Hinreise mitgefahren bist.',
+      'rueck_mitfahrer': 'Name der Person, in deren PKW du auf der Rückreise mitgefahren bist.',
+      'sonderfall': 'Pflicht bei § 5 III. Bsp.: „Schlechte ÖPNV-Anbindung Fähranleger Harlesiel, Materialtransport (Präsentationstechnik)"',
+      // Step 4 — Reisedaten (KI, editierbar)
+      'r_zielort': 'Vollständige Anschrift des Dienstgeschäfts mit PLZ. Bsp.: 30159 Hannover, Akademie für Lehrerfortbildung, Richthofenstr. 29',
+      'r_reiseweg': 'Verlauf der Reise mit Pfeilen. Bsp.: Lingen -> Hannover Hbf -> Lingen',
+      'r_zweck': 'Anlass der Reise. Bsp.: Fortbildung: Digitale Prüfungsformate',
+      'r_start_datum': 'Tatsächlicher Reisebeginn (Abfahrt von zu Hause), kann von der Genehmigung abweichen.',
+      'r_start_zeit': 'Uhrzeit der Abfahrt von zu Hause. Bsp.: 06:30',
+      'r_ende_datum': 'Tatsächliche Rückkehr zu Hause.',
+      'r_ende_zeit': 'Uhrzeit der Rückkehr zu Hause. Bsp.: 19:30',
+      'r_dg_beginn_datum': 'Beginn des eigentlichen Dienstgeschäfts (z.B. Tagungsbeginn), nicht der Reise.',
+      'r_dg_beginn_zeit': 'Uhrzeit des Tagungs-/Sitzungsbeginns. Bsp.: 09:00',
+      'r_dg_ende_datum': 'Ende des Dienstgeschäfts.',
+      'r_dg_ende_zeit': 'Uhrzeit des Dienstgeschäfts-Endes. Bsp.: 17:00',
+      'r_bemerkungen': 'Erscheint unverändert im amtlichen Formular. Konkrete Verbindungs-/Fähr-/Hotelinfos — keine KI- oder Schätzhinweise.',
+      // Step 4 — Angaben & Verzicht
+      'k_kosten_andere': 'Veranstalter trägt Reisekosten ganz/teilweise — typisch: Tagungsgebühr inkl. Übernachtung/Verpflegung.',
+      'k_2km': 'Dienstgeschäft im Umkreis von 2 km zur Dienststätte oder Wohnung — kein Tagegeld nach § 6 NRKVO.',
+      'k_trennungsgeld': 'Anspruch auf Trennungsgeld bei mehrtägigen Reisen mit auswärtigem Verbleiben.',
+      'v_tagegeld': 'Verzicht auf Tagegeld (z.B. weil komplette Verpflegung gestellt wurde).',
+      'v_uebernachtung': 'Verzicht auf Übernachtungsgeld.',
+      'v_fahrtkosten': 'Verzicht auf Fahrtkosten.',
+    };
+    function attachTips() {
+      Object.entries(TIPS).forEach(([id, text]) => {
+        const label = document.querySelector(`label[for="${id}"]`);
+        if (!label || label.querySelector('.tip')) return;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'tip';
+        btn.tabIndex = 0;
+        btn.setAttribute('data-tip', text);
+        btn.setAttribute('aria-label', `Hinweis: ${text}`);
+        btn.textContent = '?';
+        label.appendChild(btn);
+      });
+    }
+    // Kantenbewusste Platzierung: data-pos verhindert (zusammen mit
+    // shared.css), dass die Tooltip-Blase über den Viewport-Rand ragt.
+    function placeTip(btn) {
+      const r = btn.getBoundingClientRect();
+      const vw = document.documentElement.clientWidth;
+      btn.dataset.pos = r.left < vw * 0.33 ? 'left'
+                      : r.left > vw * 0.67 ? 'right' : 'center';
+    }
+    document.addEventListener('mouseover', e => {
+      if (e.target.matches && e.target.matches('.tip')) placeTip(e.target);
+    });
+    document.addEventListener('focusin', e => {
+      if (e.target.matches && e.target.matches('.tip')) placeTip(e.target);
+    });
+
+    // Tooltips per Klick toggeln (Mobile, ohne Hover)
+    document.addEventListener('click', e => {
+      const isTip = e.target.matches('.tip');
+      document.querySelectorAll('.tip.active').forEach(t => {
+        if (t !== e.target) t.classList.remove('active');
+      });
+      if (isTip) {
+        placeTip(e.target);
+        e.target.classList.toggle('active');
+        e.preventDefault();
+        e.stopPropagation();
+      }
     });
 
     // ── Init ─────────────────────────────────────────────────────────
     window.addEventListener('DOMContentLoaded', () => {
+      attachTips();
       const p = getProfile();
-      if (p) { applyProfile(p); }
-      else    { setTimeout(() => openWizard(), 400); }
+      applyProfile(p);
+      prefillBefoerderung();
+      const badge = document.getElementById('saveStatus');
+      if (badge) { const auto = p && p.auto_save_dienstreisen !== false; badge.style.display = auto ? 'block' : 'none'; }
+      const editId = new URLSearchParams(location.search).get('dienstreise');
+      if (editId && IS_AUTHENTICATED) {
+        autoLoadAntrag(editId);
+      } else if ((!p || !(p.name || p.abteilung)) && !IS_AUTHENTICATED) {
+        setTimeout(() => openWizard(), 400);
+      }
     });
   </script>
 </body>

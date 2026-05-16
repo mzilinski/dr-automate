@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}dr-automate{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,400&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
+  <style>
+    .topnav{display:flex;justify-content:space-between;align-items:center;
+      padding:.8rem 1.2rem;background:var(--surface);border-bottom:1px solid var(--border);
+      position:sticky;top:0;z-index:100;}
+    .topnav .brand{font-family:'Fraunces',serif;font-weight:600;font-size:1.15rem;color:var(--text);
+      text-decoration:none;}
+    .topnav .brand small{display:block;color:var(--muted);font-family:'Figtree',sans-serif;
+      font-weight:400;font-size:.72rem;letter-spacing:.5px;text-transform:uppercase;margin-top:-2px;}
+    .topnav nav{display:flex;gap:1rem;align-items:center;}
+    .topnav nav a{color:var(--text);text-decoration:none;font-size:.95rem;
+      padding:.35rem .6rem;border-radius:.4rem;}
+    .topnav nav a:hover{background:var(--step-ghost);}
+    .topnav nav a.active{color:var(--accent);background:var(--accent-subtle);}
+    .topnav .pill{display:inline-block;font-size:.72rem;font-weight:600;
+      padding:.18rem .55rem;border-radius:999px;border:1px solid var(--border);
+      color:var(--muted);background:var(--surface-hi);}
+    .topnav .pill.auth{color:var(--ok);border-color:var(--ok);background:var(--ok-subtle);}
+    .topnav .pill.guest{color:var(--muted);}
+    .guest-banner{background:var(--warn-subtle);border-bottom:1px solid var(--border);
+      padding:.6rem 1.2rem;font-size:.9rem;color:var(--text);}
+    .guest-banner strong{color:var(--accent);}
+    .guest-banner a{color:var(--accent);text-decoration:underline;}
+    .flash-stack{padding:.6rem 1.2rem 0;}
+    .flash{padding:.6rem .9rem;border-radius:.5rem;margin-bottom:.4rem;font-size:.92rem;
+      border:1px solid var(--border);}
+    .flash.success{background:var(--ok-subtle);border-color:var(--ok);}
+    .flash.error{background:var(--err-subtle);border-color:var(--err);}
+    .page{max-width:1100px;margin:0 auto;padding:2rem 1.2rem;}
+    .app-footer{padding:1.5rem 1.2rem;text-align:center;color:var(--muted);
+      font-size:.85rem;border-top:1px solid var(--border);margin-top:3rem;}
+    .app-footer .sep{margin:0 .55rem;}
+    .app-footer a{color:var(--muted);}
+  </style>
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <header class="topnav">
+    <a href="{{ url_for('landing') }}" class="brand">
+      dr-automate
+      <small>Dienstreisen leicht gemacht</small>
+    </a>
+    <nav>
+      {% if is_authenticated %}
+        <a href="{{ url_for('dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('index') }}">Neuer Antrag</a>
+        <a href="{{ url_for('abrechnung_index') }}">Abrechnung</a>
+        <a href="{{ url_for('profil_view') }}">Profil</a>
+        <a href="{{ url_for('docs_view', slug='getting-started') }}">Hilfe</a>
+        <span class="pill auth">{{ current_user.display_name or current_user.remote_user }}</span>
+        <a href="{{ authelia_logout_url }}">Abmelden</a>
+      {% else %}
+        <a href="{{ url_for('index') }}">Neuer Antrag</a>
+        <a href="{{ url_for('abrechnung_index') }}">Abrechnung</a>
+        <a href="{{ url_for('docs_view', slug='getting-started') }}">Hilfe</a>
+        <a href="{{ url_for('account_request_get') }}">Account anfragen</a>
+        <a href="{{ url_for('dashboard') }}">Anmelden</a>
+        <span class="pill guest">Gast-Modus</span>
+      {% endif %}
+    </nav>
+  </header>
+
+  {% if not is_authenticated and show_guest_banner|default(false) %}
+  <div class="guest-banner">
+    <strong>Gast-Modus:</strong> Deine Daten sind nur in diesem Browser gespeichert.
+    <a href="{{ url_for('account_request_get') }}">Account anfragen</a>, um Reisen sicher serverseitig zu speichern.
+  </div>
+  {% endif %}
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-stack">
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <main class="page">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="app-footer">
+    <small>
+      v0.2.0
+      <span class="sep">·</span>
+      <a href="{{ url_for('docs_view', slug='getting-started') }}">Hilfe</a>
+      <span class="sep">·</span>
+      <a href="{{ impressum_url }}">Impressum</a>
+      <span class="sep">·</span>
+      <a href="{{ datenschutz_url }}">Datenschutz</a>
+      <span class="sep">·</span>
+      <a href="{{ url_for('docs_view', slug='haftung') }}">Haftung</a>
+      <span class="sep">·</span>
+      <a href="{{ url_for('health_check') }}" target="_blank">Status</a>
+    </small>
+  </footer>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

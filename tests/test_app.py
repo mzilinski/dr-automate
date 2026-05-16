@@ -172,33 +172,9 @@ class TestModels:
 
 
 # --- TESTS: AUTH ---
-
-
-class TestAuth:
-    """Tests für die Passphrase-Auth."""
-
-    def test_check_passphrase_constant_time_returns_false_when_unset(self, monkeypatch):
-        """Wenn keine Passphrase gesetzt ist, lehnt _check_passphrase jeden Wert ab."""
-        from app import _check_passphrase
-
-        monkeypatch.setattr("app.PASSPHRASE", "")
-        assert _check_passphrase("anything") is False
-        assert _check_passphrase("") is False  # leer == leer darf NICHT True ergeben
-
-    def test_check_passphrase_matches(self, monkeypatch):
-        """Korrekte Passphrase wird akzeptiert."""
-        from app import _check_passphrase
-
-        monkeypatch.setattr("app.PASSPHRASE", "geheim")
-        assert _check_passphrase("geheim") is True
-
-    def test_check_passphrase_rejects_wrong(self, monkeypatch):
-        """Falsche Passphrase wird abgelehnt."""
-        from app import _check_passphrase
-
-        monkeypatch.setattr("app.PASSPHRASE", "geheim")
-        assert _check_passphrase("wrong") is False
-        assert _check_passphrase("geheim ") is False  # Whitespace zählt
+# Hinweis: Die alte DR_PASSPHRASE-basierte Auth wurde durch Authelia-ForwardAuth
+# ersetzt (siehe auth.py + tests/test_auth.py). Tests fuer Header-Trust und
+# IDOR-Schutz liegen in test_auth.py und test_dashboard.py.
 
 
 # --- TESTS: GENERATOR ---
@@ -292,6 +268,20 @@ class TestCheckboxBefoerderungHin:
         assert cb.get("OBJ42") == "/Yes"
         assert "OBJ43" not in cb
 
+    def test_mitfahrer_name_lands_in_dedicated_pdf_field(self):
+        """Regressions-Test fuer issues.md #1: bei MITFAHRT muss der Fahrer-
+        Name ins Form-Feld 'Mitfahrt_bei'/'_bei1' und NICHT in Bemerkungen."""
+        import generator
+        from models import Befoerderungsart
+
+        # FIELD_MAPPING enthaelt die Pfade
+        assert generator.FIELD_MAPPING["befoerderung.hinreise.mitfahrer_name"] == "Mitfahrt_bei"
+        assert generator.FIELD_MAPPING["befoerderung.rueckreise.mitfahrer_name"] == "Mitfahrt_bei1"
+
+        # Pydantic-Modell kennt das Feld
+        ba = Befoerderungsart(typ="MITFAHRT", mitfahrer_name="Erika Musterfrau")
+        assert ba.mitfahrer_name == "Erika Musterfrau"
+
 
 class TestCheckboxBefoerderungRueck:
     """Beförderung Rückreise: Mapping Typ → PDF-Field-ID (anderes Set als Hin)."""
@@ -315,31 +305,51 @@ class TestCheckboxBefoerderungRueck:
 class TestCheckboxKonfiguration:
     """Konfigurations-Booleans: Bahncard / Rabatt / 2km / Trennungsgeld / Anmerkungen."""
 
-    def test_no_bahncard_business_sets_BCB_Nein(self):
-        cb = apply_checkbox_logic(_make_data(config={"bahncard_business_vorhanden": False}))
+    def test_no_bahncard_business_sets_BCB_Nein_when_bahn(self):
+        cb = apply_checkbox_logic(_make_data(hin_typ="BAHN", config={"bahncard_business_vorhanden": False}))
         assert cb.get("BCB_Nein") == "/Yes"
 
     def test_with_bahncard_business_does_not_set_BCB_Nein(self):
-        cb = apply_checkbox_logic(_make_data(config={"bahncard_business_vorhanden": True}))
+        cb = apply_checkbox_logic(_make_data(hin_typ="BAHN", config={"bahncard_business_vorhanden": True}))
         assert "BCB_Nein" not in cb
 
-    def test_no_bahncard_privat_sets_BC_Nein(self):
-        cb = apply_checkbox_logic(_make_data(config={"bahncard_privat_vorhanden": False}))
+    def test_no_bahncard_privat_sets_BC_Nein_when_bahn(self):
+        cb = apply_checkbox_logic(_make_data(hin_typ="BAHN", config={"bahncard_privat_vorhanden": False}))
         assert cb.get("BC_Nein") == "/Yes"
 
-    def test_no_bahncard_beschaffung_sets_Beschaffung_Nein(self):
-        cb = apply_checkbox_logic(_make_data(config={"bahncard_beschaffung_beantragt": False}))
+    def test_no_bahncard_beschaffung_sets_Beschaffung_Nein_when_bahn(self):
+        cb = apply_checkbox_logic(_make_data(hin_typ="BAHN", config={"bahncard_beschaffung_beantragt": False}))
         assert cb.get("Beschaffung_Nein") == "/Yes"
 
-    def test_grosskundenrabatt_genutzt_sets_Obj6(self):
-        cb = apply_checkbox_logic(_make_data(config={"grosskundenrabatt_genutzt": True}))
+    def test_pkw_only_reise_does_NOT_set_bahncard_nein_checkboxes(self):
+        """Regressions-Test fuer issues.md #3: bei PKW-only-Reise sollten die
+        Bahn-Sektionen im Formular unangetastet bleiben."""
+        cb = apply_checkbox_logic(_make_data(hin_typ="PKW", rueck_typ="PKW"))
+        assert "BCB_Nein" not in cb
+        assert "BC_Nein" not in cb
+        assert "Beschaffung_Nein" not in cb
+        # Grosskundenrabatt-Obj7 auch nur bei Bahn relevant
+        assert "Obj7" not in cb
+        assert "Obj6" not in cb
+
+    def test_grosskundenrabatt_genutzt_sets_Obj6_when_bahn(self):
+        cb = apply_checkbox_logic(_make_data(hin_typ="BAHN", config={"grosskundenrabatt_genutzt": True}))
         assert cb.get("Obj6") == "/Yes"
         assert "Obj7" not in cb
 
-    def test_grosskundenrabatt_nicht_genutzt_sets_Obj7(self):
-        cb = apply_checkbox_logic(_make_data(config={"grosskundenrabatt_genutzt": False}))
+    def test_grosskundenrabatt_nicht_genutzt_sets_Obj7_when_bahn(self):
+        cb = apply_checkbox_logic(_make_data(hin_typ="BAHN", config={"grosskundenrabatt_genutzt": False}))
         assert cb.get("Obj7") == "/Yes"
         assert "Obj6" not in cb
+
+    def test_kosten_durch_andere_stelle_sets_Obj53(self):
+        """Regressions-Test fuer issues.md #2."""
+        cb = apply_checkbox_logic(_make_data(config={"kosten_durch_andere_stelle": True}))
+        assert cb.get("Obj53") == "/Yes"
+
+    def test_kosten_durch_andere_stelle_false_does_not_set_Obj53(self):
+        cb = apply_checkbox_logic(_make_data(config={"kosten_durch_andere_stelle": False}))
+        assert "Obj53" not in cb
 
     def test_weitere_ermaessigungen_ja_sets_Obj8(self):
         cb = apply_checkbox_logic(_make_data(config={"weitere_ermaessigungen_vorhanden": True}))
