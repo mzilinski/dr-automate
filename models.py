@@ -29,6 +29,10 @@ class Antragsteller(BaseModel):
     abteilung: str = Field(..., min_length=1, max_length=100)
     telefon: str = Field(..., min_length=5, max_length=50)
     adresse_privat: str = Field(..., min_length=5, max_length=200)
+    # Amtsbezeichnung (z.B. „Studienrat") — nur für die Abrechnung relevant
+    # (Signaturzeile „Unterschrift, Amtsbez./Datum"). Optional: nicht jeder
+    # hat eine (Angestellte), darf den Antrag/die Abrechnung nie blockieren.
+    amtsbezeichnung: str = Field(default="", max_length=100)
     mitreisender_name: str | None = ""
 
 
@@ -408,7 +412,7 @@ def bahncards_to_konfig_flags(bahncards: dict | None) -> dict:
     }
 
 
-_ANTRAGSTELLER_IDENTITY = ("name", "abteilung", "telefon", "adresse_privat")
+_ANTRAGSTELLER_IDENTITY = ("name", "abteilung", "amtsbezeichnung", "telefon", "adresse_privat")
 
 
 def apply_profile_authoritative(

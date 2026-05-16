@@ -187,6 +187,7 @@ def _build_wizard_profile_seed(user) -> dict | None:
         return {
             "name": full_name,
             "abteilung": profile.abteilung or "",
+            "amtsbezeichnung": profile.amtsbezeichnung or "",
             "telefon": profile.telefon or "",
             "adresse": profile.adresse_privat or "",
             "mitreisender": profile.mitreisender_name_default or "",
@@ -272,6 +273,7 @@ def _profile_antrag_overrides(user) -> tuple[dict | None, dict | None]:
         antragsteller = {
             "name": name,
             "abteilung": p.abteilung or "",
+            "amtsbezeichnung": p.amtsbezeichnung or "",
             "telefon": p.telefon or "",
             "adresse_privat": p.adresse_privat or "",
             "mitreisender_name": p.mitreisender_name_default or "",
@@ -714,6 +716,7 @@ _PROFIL_FIELDS_TEXT = {
     "vorname",
     "nachname",
     "abteilung",
+    "amtsbezeichnung",
     "telefon",
     "email",
     "adresse_privat",

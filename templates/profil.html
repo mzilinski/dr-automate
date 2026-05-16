@@ -50,6 +50,7 @@
     <label>Nachname<input type="text" name="nachname" value="{{ profile.nachname or '' }}" maxlength="100"></label>
     <label>Abteilung<input type="text" name="abteilung" value="{{ profile.abteilung or '' }}" maxlength="100"></label>
     <label>Telefon<input type="text" name="telefon" value="{{ profile.telefon or '' }}" maxlength="50"></label>
+    <label>Amtsbezeichnung <small>(optional, nur Abrechnung)</small><input type="text" name="amtsbezeichnung" value="{{ profile.amtsbezeichnung or '' }}" maxlength="100" placeholder="z.B. Studienrat"></label>
   </div>
   <label style="margin-top:.8rem;">Privatadresse <small>(verschlüsselt)</small>
     <input type="text" name="adresse_privat" value="{{ profile.adresse_privat or '' }}" maxlength="200">

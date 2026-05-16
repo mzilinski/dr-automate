@@ -265,6 +265,10 @@
             <input type="text" id="wiz_abrechnende" placeholder="NLBV Aurich">
           </div>
           <div class="wiz-field">
+            <label class="wiz-label" for="wiz_amtsbez">Amtsbezeichnung</label>
+            <input type="text" id="wiz_amtsbez" placeholder="z.B. Studienrat" maxlength="100">
+          </div>
+          <div class="wiz-field">
             <label class="wiz-label" for="wiz_rkr">Standard-Reiseart (RKR)</label>
             <select id="wiz_rkr">
               <option value="DR">DR – Dienstreise</option>
@@ -649,9 +653,10 @@
         wiz_standard_verkehrsmittel.value = p.standard_verkehrsmittel || '';
         wiz_iban.value = p.iban || ''; wiz_bic.value = p.bic || '';
         wiz_email.value = p.email || ''; wiz_abrechnende.value = p.abrechnende_dienststelle || '';
+        wiz_amtsbez.value = p.amtsbezeichnung || '';
         wiz_rkr.value = p.rkr_default || 'DR';
         wiz_deepseek_key.value = p.deepseek_api_key || '';
-        if (p.iban || p.bic || p.email || p.abrechnende_dienststelle) wizAbrechnungBlock.open = true;
+        if (p.iban || p.bic || p.email || p.abrechnende_dienststelle || p.amtsbezeichnung) wizAbrechnungBlock.open = true;
         if (p.deepseek_api_key) wizAIBlock.open = true;
       }
       openModal('wizardOverlay');
@@ -674,6 +679,7 @@
         bic: wiz_bic.value.trim().toUpperCase(),
         email: wiz_email.value.trim(),
         abrechnende_dienststelle: wiz_abrechnende.value.trim(),
+        amtsbezeichnung: wiz_amtsbez.value.trim(),
         rkr_default: wiz_rkr.value,
         deepseek_api_key: wiz_deepseek_key.value.trim(),
       });
@@ -884,6 +890,7 @@
         antragsteller: {
           name: p.name || '', abteilung: p.abteilung || '', telefon: p.telefon || '',
           adresse_privat: p.adresse || '', mitreisender_name: p.mitreisender || '',
+          amtsbezeichnung: p.amtsbezeichnung || '',
         },
         reise_details: {
           zielort: r_zielort.value.trim(), reiseweg: r_reiseweg.value.trim(), zweck: r_zweck.value.trim(),
