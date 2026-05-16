@@ -33,7 +33,7 @@ Alle Booleans haben Default `false`. Setze `true` nur, wenn der Input es **ausdr
 |------|-------------------------------------|
 | `dienstgeschaeft_2km_umkreis` | Dienstort liegt nachweislich < 2 km von Dienststätte/Wohnung |
 | `anspruch_trennungsgeld` | mehrtägige Reise mit auswärtigem Verbleiben **und** im Input genannter Trennungsgeld-Anspruch |
-| `kosten_durch_andere_stelle` | Veranstalter trägt Reisekosten ganz/teilweise — typisch: Tagungsgebühr inkl. Übernachtung und/oder Verpflegung |
+| `kosten_durch_andere_stelle` | der Input sagt **ausdrücklich**, dass ein Dritter (Veranstalter / Dienstherr / andere Stelle) die **Reisekosten** ganz oder teilweise **übernimmt oder erstattet** (z. B. „Reisekosten werden vom Veranstalter getragen", „Fahrtkosten übernimmt das LfB"). **NICHT** setzen, nur weil eine vom Teilnehmer selbst gezahlte Tagungs-/Schulungs-/Seminargebühr Übernachtung/Verpflegung enthält — das ist Eigenzahlung einer Bündelleistung, keine Kostenübernahme durch eine andere Stelle |
 | `weitere_anmerkungen_checkbox_aktivieren` | `bemerkungen_feld` hat Inhalt — dann `true` |
 
 `verzicht_tagegeld` / `verzicht_uebernachtungsgeld` / `verzicht_fahrtkosten`: **immer `false`** — einen Verzicht erklärt der Nutzer später selbst, nicht du.
