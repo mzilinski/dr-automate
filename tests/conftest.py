@@ -51,6 +51,9 @@ def app_module():
 
     app_module.app.config["TESTING"] = True
     app_module.app.config["WTF_CSRF_ENABLED"] = False
+    # HTTP-Rate-Limiter aus: die Suite teilt sich eine Client-IP, das
+    # 10/min-Limit auf /generate wuerde sonst von der Testanzahl abhaengen.
+    app_module.limiter.enabled = False
     return app_module
 
 

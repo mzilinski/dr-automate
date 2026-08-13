@@ -141,3 +141,45 @@ def test_account_request_honeypot_blocks_bots(guest_client):
     rows = list(conn.execute("SELECT email FROM account_requests WHERE email = 'spam@example.org'"))
     conn.close()
     assert rows == [], "Bot-Eintrag wurde gespeichert!"
+
+
+def test_generate_with_dienstreise_id_updates_existing(auth_client, auth_headers):
+    """Explizites dienstreise_id aktualisiert die bestehende Reise (Editier-Flow)."""
+    headers = {**auth_headers, "Remote-User": "update_test"}
+    payload = _example_input()
+    r1 = auth_client.post(
+        "/generate",
+        data={"json_data": json.dumps(payload), "save_to_account": "1"},
+        headers=headers,
+    )
+    assert r1.status_code == 200
+    reise_id = r1.headers["X-Dienstreise-Id"]
+
+    payload["reise_details"]["zweck"] = "Aktualisierter Zweck"
+    r2 = auth_client.post(
+        "/generate",
+        data={"json_data": json.dumps(payload), "save_to_account": "1", "dienstreise_id": reise_id},
+        headers=headers,
+    )
+    assert r2.status_code == 200
+    # Gleiche Reise, kein neuer Datensatz
+    assert r2.headers["X-Dienstreise-Id"] == reise_id
+
+
+def test_index_template_clears_edit_context(guest_client):
+    """Regression 2026-08-13: Der Wizard hielt die dienstreise_id des zuletzt
+    gespeicherten Antrags im hidden Feld fest — der naechste, im selben Tab
+    erstellte Antrag ueberschrieb damit still die vorherige Reise.
+
+    Ohne JS-Testrunner pruefen wir das Template als Tripwire: der Helper
+    clearDienstreiseId() muss existieren und in allen drei Neuer-Antrag-Pfaden
+    (neuerAntrag, KI-Extraktion, JSON-Paste) aufgerufen werden.
+    """
+    r = guest_client.get("/")
+    assert r.status_code == 200
+    html = r.data.decode("utf-8")
+    assert "function clearDienstreiseId()" in html
+    # Definition + mindestens 3 Aufruf-Stellen
+    assert html.count("clearDienstreiseId()") >= 4, (
+        "clearDienstreiseId() muss in neuerAntrag(), extractWithAI() und usePastedJson() aufgerufen werden"
+    )

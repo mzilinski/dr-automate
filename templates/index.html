@@ -592,6 +592,14 @@
     const promptTemplate = document.getElementById('promptText').value;
     let aiData = null;  // Teil-JSON aus der KI (ohne antragsteller/befoerderung)
 
+    // Editier-Kontext verwerfen: ohne das hidden Feld legt /generate eine NEUE
+    // Reise an. Muss bei jedem Wechsel auf einen neuen Antrag passieren, sonst
+    // überschreibt der nächste Generate-Lauf still die zuletzt gespeicherte
+    // Reise (Datenverlust-Vorfall 2026-08-13).
+    function clearDienstreiseId() {
+      document.getElementById('dienstreiseId')?.remove();
+    }
+
     // ── Modal ────────────────────────────────────────────────────────
     function openModal(id){ document.getElementById(id).classList.add('is-open'); document.body.style.overflow='hidden'; }
     function closeModal(id){ document.getElementById(id).classList.remove('is-open'); document.body.style.overflow=''; }
@@ -849,6 +857,9 @@
           status.textContent = ''; return;
         }
         aiData = await res.json();
+        // Neue Extraktion = neuer Antrag: einen evtl. aktiven Editier-Kontext
+        // (geladene Reise) verwerfen, statt die alte Reise zu überschreiben.
+        clearDienstreiseId();
         fillReview();
         status.textContent = '✓ fertig';
         showAlert('Reisedaten extrahiert – bitte in Schritt 4 prüfen.', 'success');
@@ -866,6 +877,7 @@
       try {
         aiData = JSON.parse(sanitizeRawInput(raw));
       } catch (e) { showAlert('Ungültiges JSON: ' + e.message, 'danger'); return; }
+      clearDienstreiseId();
       fillReview();
       showAlert('Übernommen – bitte in Schritt 4 prüfen.', 'success');
       goStep(4);
@@ -976,6 +988,7 @@
 
     function neuerAntrag() {
       aiData = null;
+      clearDienstreiseId();
       ['aiFreitext','sonderwuensche','pasteJson','r_zielort','r_reiseweg','r_zweck',
        'r_start_datum','r_start_zeit','r_ende_datum','r_ende_zeit','r_dg_beginn_datum',
        'r_dg_beginn_zeit','r_dg_ende_datum','r_dg_ende_zeit','r_bemerkungen']
