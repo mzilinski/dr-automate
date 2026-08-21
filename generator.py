@@ -52,6 +52,10 @@ FIELD_MAPPING = {
     "befoerderung.rueckreise.mitfahrer_name": "Mitfahrt_bei1",
     # Begründung kein Rabatt
     "konfiguration_checkboxen.grosskundenrabatt_begruendung_wenn_nein": "Begruendung3",
+    # Ermäßigungskarte "Ja, und zwar für die Strecke" (neben OBJ57)
+    "konfiguration_checkboxen.ermaessigungskarte_strecke": "Strecke",
+    # BahnCard-Beschaffung "Ja, und zwar" — genaue Angabe der Karte (neben Beschaffung_Ja)
+    "konfiguration_checkboxen.bahncard_beschaffung_karte": "Karte",
     # BEIDE Varianten des Feldes füllen
     "zusatz_infos.bemerkungen_feld": [
         "Bemerkungen_der_anstragstellenden_Person",
@@ -140,24 +144,36 @@ def _checkbox_konfiguration(config: dict, befoerderung: dict | None = None) -> d
         rueck = (befoerderung.get("rueckreise") or {}).get("typ", "").upper()
         hat_bahn = hin in ("BAHN", "BUS") or rueck in ("BAHN", "BUS")
 
-    # Bahn-spezifische Felder nur bei Bahn/Bus setzen.
+    # Bahn-spezifische Felder nur bei Bahn/Bus setzen — dort aber vollstaendig
+    # (jede Ja/Nein-Frage bekommt eine Antwort, keine leeren Fragen im Formular).
     if hat_bahn:
-        if not config["bahncard_business_vorhanden"]:
-            cb["BCB_Nein"] = "/Yes"
-        if not config["bahncard_privat_vorhanden"]:
+        cb["BCB_Ja" if config["bahncard_business_vorhanden"] else "BCB_Nein"] = "/Yes"
+        if config["bahncard_privat_vorhanden"]:
+            cb["BC_Ja"] = "/Yes"
+            stufe = config.get("bahncard_privat_stufe")
+            if stufe in (25, 50, 100):
+                cb[f"BC{stufe}"] = "/Yes"
+        else:
             cb["BC_Nein"] = "/Yes"
-        if not config["bahncard_beschaffung_beantragt"]:
-            cb["Beschaffung_Nein"] = "/Yes"
+        cb["Beschaffung_Ja" if config["bahncard_beschaffung_beantragt"] else "Beschaffung_Nein"] = "/Yes"
         cb["Obj6" if config["grosskundenrabatt_genutzt"] else "Obj7"] = "/Yes"
+        # Ermaeßigungskarte (Monats-/Zeitkarte): OBJ57=Ja ("und zwar fuer die
+        # Strecke", Textfeld via FIELD_MAPPING), OBJ58=Nein.
+        cb["OBJ57" if config.get("ermaessigungskarte_vorhanden") else "OBJ58"] = "/Yes"
 
-    cb["Obj8" if config["weitere_ermaessigungen_vorhanden"] else "Obj15"] = "/Yes"
+    # Weitere Ermaeßigungen (außer BahnCards/Ermaeßigungskarten/Großkunden-
+    # rabatt): Obj15=Ja, Obj8=Nein laut Feld-Tooltips im Vordruck — die
+    # Zuordnung war bis 2026-08 vertauscht (Default landete auf "Ja").
+    cb["Obj15" if config["weitere_ermaessigungen_vorhanden"] else "Obj8"] = "/Yes"
     cb["Obj52" if config["dienstgeschaeft_2km_umkreis"] else "Obj49"] = "/Yes"
     cb["Obj59" if config["anspruch_trennungsgeld"] else "Obj56"] = "/Yes"
 
-    # Obj53: Reisekosten werden ganz/teilweise von anderer Stelle uebernommen
-    # (typischer Fall: Tagungsgebuehr inkl. Uebernachtung/Verpflegung).
+    # Obj55: "Die Reisekosten werden von einer anderen Person oder Stelle
+    # uebernommen" (typischer Fall: Tagungsgebuehr inkl. Uebernachtung/
+    # Verpflegung). Obj53/Obj54 daneben waeren unentgeltliche Unterkunft/
+    # Verpflegung des Amtes wegen — bis 2026-08 wurde faelschlich Obj53 gesetzt.
     if config.get("kosten_durch_andere_stelle"):
-        cb["Obj53"] = "/Yes"
+        cb["Obj55"] = "/Yes"
 
     if config.get("weitere_anmerkungen_checkbox_aktivieren"):
         cb["Obj39"] = "/Yes"

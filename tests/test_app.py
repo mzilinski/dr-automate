@@ -331,6 +331,9 @@ class TestCheckboxKonfiguration:
         # Grosskundenrabatt-Obj7 auch nur bei Bahn relevant
         assert "Obj7" not in cb
         assert "Obj6" not in cb
+        # Ermaeßigungskarte (OBJ57/OBJ58) gehoert zur selben Bahn-Sektion
+        assert "OBJ57" not in cb
+        assert "OBJ58" not in cb
 
     def test_grosskundenrabatt_genutzt_sets_Obj6_when_bahn(self):
         cb = apply_checkbox_logic(_make_data(hin_typ="BAHN", config={"grosskundenrabatt_genutzt": True}))
@@ -342,24 +345,59 @@ class TestCheckboxKonfiguration:
         assert cb.get("Obj7") == "/Yes"
         assert "Obj6" not in cb
 
-    def test_kosten_durch_andere_stelle_sets_Obj53(self):
-        """Regressions-Test fuer issues.md #2."""
+    def test_kosten_durch_andere_stelle_sets_Obj55(self):
+        """Regressions-Test fuer issues.md #2. Obj55 = "Reisekosten werden von
+        anderer Person/Stelle uebernommen" — Obj53 waere "unentgeltliche
+        Unterkunft des Amtes wegen" (Feld-Tooltips im Vordruck)."""
         cb = apply_checkbox_logic(_make_data(config={"kosten_durch_andere_stelle": True}))
-        assert cb.get("Obj53") == "/Yes"
+        assert cb.get("Obj55") == "/Yes"
+        assert "Obj53" not in cb
+        assert "Obj54" not in cb
 
-    def test_kosten_durch_andere_stelle_false_does_not_set_Obj53(self):
+    def test_kosten_durch_andere_stelle_false_does_not_set_Obj55(self):
         cb = apply_checkbox_logic(_make_data(config={"kosten_durch_andere_stelle": False}))
+        assert "Obj55" not in cb
         assert "Obj53" not in cb
 
-    def test_weitere_ermaessigungen_ja_sets_Obj8(self):
+    def test_weitere_ermaessigungen_ja_sets_Obj15(self):
+        """Obj15 = "Ja", Obj8 = "Nein" laut Feld-Tooltips im Vordruck —
+        die Zuordnung war bis 2026-08 vertauscht (Default landete auf Ja)."""
         cb = apply_checkbox_logic(_make_data(config={"weitere_ermaessigungen_vorhanden": True}))
+        assert cb.get("Obj15") == "/Yes"
+        assert "Obj8" not in cb
+
+    def test_weitere_ermaessigungen_nein_sets_Obj8(self):
+        cb = apply_checkbox_logic(_make_data(config={"weitere_ermaessigungen_vorhanden": False}))
         assert cb.get("Obj8") == "/Yes"
         assert "Obj15" not in cb
 
-    def test_weitere_ermaessigungen_nein_sets_Obj15(self):
-        cb = apply_checkbox_logic(_make_data(config={"weitere_ermaessigungen_vorhanden": False}))
-        assert cb.get("Obj15") == "/Yes"
-        assert "Obj8" not in cb
+    def test_ermaessigungskarte_nein_sets_OBJ58_when_bahn(self):
+        cb = apply_checkbox_logic(_make_data(hin_typ="BAHN", config={"ermaessigungskarte_vorhanden": False}))
+        assert cb.get("OBJ58") == "/Yes"
+        assert "OBJ57" not in cb
+
+    def test_ermaessigungskarte_ja_sets_OBJ57_when_bahn(self):
+        cb = apply_checkbox_logic(_make_data(hin_typ="BAHN", config={"ermaessigungskarte_vorhanden": True}))
+        assert cb.get("OBJ57") == "/Yes"
+        assert "OBJ58" not in cb
+
+    def test_bahncard_business_ja_sets_BCB_Ja_when_bahn(self):
+        cb = apply_checkbox_logic(_make_data(hin_typ="BAHN", config={"bahncard_business_vorhanden": True}))
+        assert cb.get("BCB_Ja") == "/Yes"
+        assert "BCB_Nein" not in cb
+
+    def test_bahncard_privat_ja_sets_BC_Ja_und_stufe_when_bahn(self):
+        cb = apply_checkbox_logic(
+            _make_data(hin_typ="BAHN", config={"bahncard_privat_vorhanden": True, "bahncard_privat_stufe": 50})
+        )
+        assert cb.get("BC_Ja") == "/Yes"
+        assert cb.get("BC50") == "/Yes"
+        assert "BC_Nein" not in cb
+
+    def test_bahncard_beschaffung_ja_sets_Beschaffung_Ja_when_bahn(self):
+        cb = apply_checkbox_logic(_make_data(hin_typ="BAHN", config={"bahncard_beschaffung_beantragt": True}))
+        assert cb.get("Beschaffung_Ja") == "/Yes"
+        assert "Beschaffung_Nein" not in cb
 
     def test_weitere_anmerkungen_aktivieren_sets_Obj39(self):
         cb = apply_checkbox_logic(_make_data(config={"weitere_anmerkungen_checkbox_aktivieren": True}))
