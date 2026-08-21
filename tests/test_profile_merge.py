@@ -158,11 +158,13 @@ def test_bahncards_mapping_slot1_only():
     assert flags == {
         "bahncard_business_vorhanden": True,
         "bahncard_privat_vorhanden": True,
+        "bahncard_privat_stufe": 50,
         "grosskundenrabatt_genutzt": True,
     }
     assert bahncards_to_konfig_flags(None) == {
         "bahncard_business_vorhanden": False,
         "bahncard_privat_vorhanden": False,
+        "bahncard_privat_stufe": None,
         "grosskundenrabatt_genutzt": False,
     }
 

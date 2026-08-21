@@ -138,17 +138,28 @@ class KonfigurationCheckboxen(BaseModel):
 
     bahncard_business_vorhanden: bool = False
     bahncard_privat_vorhanden: bool = False
+    # Rabattstufe der privaten BahnCard (25/50/100) fuer die BC25/BC50/BC100-
+    # Checkboxen im Vordruck; kommt aus dem Profil (Slot _1).
+    bahncard_privat_stufe: int | None = None
     bahncard_beschaffung_beantragt: bool = False
+    # Freitext "Ja, und zwar" neben Beschaffung_Ja (welche Karte aufgegeben wurde).
+    bahncard_beschaffung_karte: str | None = ""
 
     grosskundenrabatt_genutzt: bool = False
     grosskundenrabatt_begruendung_wenn_nein: str | None = ""
 
+    # Ermaeßigungskarte (Monats-/Zeitkarte) fuer die Strecke — OBJ57/OBJ58
+    # im Vordruck; bei Ja verlangt das Formular die genaue Strecke.
+    ermaessigungskarte_vorhanden: bool = False
+    ermaessigungskarte_strecke: str | None = ""
+
     weitere_ermaessigungen_vorhanden: bool = False
     dienstgeschaeft_2km_umkreis: bool = False
     anspruch_trennungsgeld: bool = False
-    # Obj53-Checkbox im Vordruck: "Reisekosten werden ganz/teilweise von
-    # anderer Stelle uebernommen" — typischer Fall: Tagungsgebuehr enthaelt
-    # bereits Uebernachtung und/oder Verpflegung.
+    # Obj55-Checkbox im Vordruck: "Die Reisekosten werden von einer anderen
+    # Person oder Stelle uebernommen" — typischer Fall: Tagungsgebuehr enthaelt
+    # bereits Uebernachtung und/oder Verpflegung. (Obj53/Obj54 daneben sind
+    # unentgeltliche Unterkunft/Verpflegung des Amtes wegen.)
     kosten_durch_andere_stelle: bool = False
 
     weitere_anmerkungen_checkbox_aktivieren: bool = False
@@ -405,9 +416,11 @@ def bahncards_to_konfig_flags(bahncards: dict | None) -> dict:
     daher nicht überschrieben.
     """
     bc = bahncards or {}
+    stufe = 25 if bc.get("bc25_1") else 50 if bc.get("bc50_1") else 100 if bc.get("bc100_1") else None
     return {
         "bahncard_business_vorhanden": bool(bc.get("bcb_1")),
-        "bahncard_privat_vorhanden": bool(bc.get("bc25_1") or bc.get("bc50_1") or bc.get("bc100_1")),
+        "bahncard_privat_vorhanden": stufe is not None,
+        "bahncard_privat_stufe": stufe,
         "grosskundenrabatt_genutzt": bool(bc.get("grosskunde_1")),
     }
 
