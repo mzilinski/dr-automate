@@ -350,8 +350,9 @@ class TestCheckboxKonfiguration:
         )
         assert cb.get("BC_Ja") == "/Yes"
         assert cb.get("BC25") == "/Yes"
-        assert cb.get("Obj6") == "/Yes"
-        assert "Obj7" not in cb
+        # Großkundenrabatt ist reisebezogen: ohne Bahnfahrt "Nein", trotz Profil
+        assert cb.get("Obj7") == "/Yes"
+        assert "Obj6" not in cb
 
     def test_grosskundenrabatt_genutzt_sets_Obj6_when_bahn(self):
         cb = apply_checkbox_logic(_make_data(hin_typ="BAHN", config={"grosskundenrabatt_genutzt": True}))
@@ -465,9 +466,14 @@ class TestGrosskundenrabattBegruendung:
         data = _make_data(hin_typ="PKW", config={"grosskundenrabatt_begruendung_wenn_nein": "Eigener Grund"})
         assert grosskundenrabatt_begruendung(data) == "Eigener Grund"
 
-    def test_genutzt_ja_liefert_leer(self):
-        data = _make_data(hin_typ="PKW", config={"grosskundenrabatt_genutzt": True})
+    def test_genutzt_ja_bei_bahn_liefert_leer(self):
+        data = _make_data(hin_typ="BAHN", config={"grosskundenrabatt_genutzt": True})
         assert grosskundenrabatt_begruendung(data) == ""
+
+    def test_genutzt_ja_im_profil_aber_pkw_liefert_ableitung(self):
+        """Profil-Flag zählt ohne Bahnfahrt nicht — Frage ist reisebezogen."""
+        data = _make_data(hin_typ="PKW", rueck_typ="PKW", config={"grosskundenrabatt_genutzt": True})
+        assert grosskundenrabatt_begruendung(data) == "Keine Bahn-/Busfahrt: Hin- und Rückreise mit privatem Pkw."
 
 
 class TestCheckboxVerzicht:

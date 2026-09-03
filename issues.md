@@ -34,11 +34,13 @@
   PKW-Antrag (Cisco Akademietag 2026) kam deshalb von der Schulleitung als
   „unvollständig" zurück.
 - `_checkbox_konfiguration` beantwortet die Sektion jetzt immer aus den
-  Profil-Werten (Default „Nein"). Bei „Großkundenrabatt: Nein" ohne
-  Bahn-/Busfahrt leitet `grosskundenrabatt_begruendung()` die Pflicht-
-  Begründung (`Begruendung3`) aus der Verkehrsmittel-Wahl ab („Keine
-  Bahn-/Busfahrt: Hin- und Rückreise mit privatem Pkw."); bei Bahnreise
-  bleibt sie Nutzersache.
+  Profil-Werten (Default „Nein"). Die Großkundenrabatt-Frage ist
+  reisebezogen („Für diese Reise …"): ohne Bahn-/Busfahrt immer „Nein"
+  (auch wenn das Profil Großkunde=ja sagt), und
+  `grosskundenrabatt_begruendung()` leitet die Pflicht-Begründung
+  (`Begruendung3`) aus der Verkehrsmittel-Wahl ab („Keine Bahn-/Busfahrt:
+  Hin- und Rückreise mit privatem Pkw."); bei Bahnreise bleibt sie
+  Nutzersache.
 - Regressions-Tests: `test_pkw_only_reise_answers_bahn_sektion_with_nein`,
   `test_pkw_only_reise_with_profile_bahncard_sets_ja`,
   `TestGrosskundenrabattBegruendung`.

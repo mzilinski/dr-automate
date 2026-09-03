@@ -152,20 +152,20 @@ def _hat_bahn(befoerderung: dict | None) -> bool:
 def grosskundenrabatt_begruendung(data: dict) -> str:
     """Text für Begruendung3 („Großkundenrabatt: Nein — bitte Begründung").
 
-    Der Nutzer-Text gewinnt immer. Fehlt er, ist „Nein" angekreuzt und die
-    Reise enthält keine Bahn-/Busfahrt, wird der sachliche Grund aus der
-    Verkehrsmittel-Wahl abgeleitet — der Vordruck verlangt bei „Nein" eine
-    Begründung, und ohne Bahnfahrt ist „kein Bahnticket" die einzig richtige.
-    Bei Bahnreise ohne Rabatt bleibt das Feld leer (echte Begründungspflicht
-    des Nutzers, nichts erfinden).
+    Der Nutzer-Text gewinnt immer. Ohne Bahn-/Busfahrt wird die Frage
+    „Für diese Reise wird der Großkundenrabatt genutzt" immer mit „Nein"
+    beantwortet (siehe ``_checkbox_konfiguration``) und der sachliche Grund
+    aus der Verkehrsmittel-Wahl abgeleitet — der Vordruck verlangt bei „Nein"
+    eine Begründung, und ohne Bahnfahrt ist „kein Bahnticket" die einzig
+    richtige. Bei Bahnreise ohne Rabatt bleibt das Feld leer (echte
+    Begründungspflicht des Nutzers, nichts erfinden).
     """
     config = data.get("konfiguration_checkboxen") or {}
     eigen = (config.get("grosskundenrabatt_begruendung_wenn_nein") or "").strip()
-    if eigen or config.get("grosskundenrabatt_genutzt"):
-        return eigen
     befoerderung = data.get("befoerderung") or {}
-    if _hat_bahn(befoerderung):
-        return ""
+    if eigen or _hat_bahn(befoerderung):
+        # Bahnreise: „Ja" braucht keine Begründung, „Nein" ist Nutzersache.
+        return eigen
     hin = (befoerderung.get("hinreise") or {}).get("typ", "").upper()
     rueck = (befoerderung.get("rueckreise") or {}).get("typ", "").upper()
     if not hin and not rueck:
@@ -189,8 +189,7 @@ def _checkbox_konfiguration(config: dict, befoerderung: dict | None = None) -> d
     als „unvollständig" zurück. Die Werte kommen aus dem Nutzerprofil
     (``apply_profile_authoritative``), Default ist überall „Nein".
 
-    ``befoerderung`` wird hier nicht mehr benötigt und bleibt nur aus
-    Kompatibilität in der Signatur.
+    ``befoerderung`` steuert nur noch die reisebezogene Großkundenrabatt-Frage.
     """
     cb = {}
 
@@ -203,9 +202,12 @@ def _checkbox_konfiguration(config: dict, befoerderung: dict | None = None) -> d
     else:
         cb["BC_Nein"] = "/Yes"
     cb["Beschaffung_Ja" if config["bahncard_beschaffung_beantragt"] else "Beschaffung_Nein"] = "/Yes"
-    # Großkundenrabatt: Obj6=Ja, Obj7=Nein. Bei „Nein" ohne Bahnfahrt liefert
-    # grosskundenrabatt_begruendung() den Text für Begruendung3.
-    cb["Obj6" if config["grosskundenrabatt_genutzt"] else "Obj7"] = "/Yes"
+    # Großkundenrabatt: Obj6=Ja, Obj7=Nein. Die Frage ist reisebezogen („Für
+    # diese Reise …") — ohne Bahn-/Busfahrt wird kein Ticket gekauft, also
+    # „Nein", egal was das Profil sagt; grosskundenrabatt_begruendung()
+    # liefert dann die Pflicht-Begründung für Begruendung3.
+    genutzt = bool(config["grosskundenrabatt_genutzt"]) and _hat_bahn(befoerderung)
+    cb["Obj6" if genutzt else "Obj7"] = "/Yes"
     # Ermaeßigungskarte (Monats-/Zeitkarte): OBJ57=Ja ("und zwar fuer die
     # Strecke", Textfeld via FIELD_MAPPING), OBJ58=Nein.
     cb["OBJ57" if config.get("ermaessigungskarte_vorhanden") else "OBJ58"] = "/Yes"

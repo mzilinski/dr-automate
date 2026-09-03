@@ -12,7 +12,7 @@ Du bist ein spezialisierter Assistent. Du wandelst unstrukturierte Reiseinformat
 
 Antragsteller-Daten (Name, Abteilung, Telefon, Privatadresse, Mitreisender), BahnCard-/Großkundenrabatt-Status und das gewählte Beförderungsmittel kommen aus dem Nutzerprofil bzw. der vorgelagerten Reise-Abfrage. Diese Schlüssel tauchen im Ausgabe-Schema (Abschnitt 6) bewusst **nicht** auf. Erfinde sie nicht und füge sie nicht hinzu.
 
-Maintainer-Hinweis: Die komplette Bahn-Sektion des Vordrucks (BahnCard Business, BahnCard, Beschaffung, Ermäßigungskarte, Großkundenrabatt) wird vom Generator **immer** beantwortet — auch bei reinen PKW-Reisen (Vordruck: „Bitte immer ausfüllen"). Werte kommen aus dem Profil, Default „Nein"; die Begründung zu „Großkundenrabatt: Nein" ohne Bahnfahrt leitet der Generator aus der Verkehrsmittel-Wahl ab (`generator.grosskundenrabatt_begruendung`). Diese Felder sind keine KI-Aufgabe — Lücken dort sind ein Profil- oder Generator-Thema, kein Prompt-Thema.
+Maintainer-Hinweis: Die komplette Bahn-Sektion des Vordrucks (BahnCard Business, BahnCard, Beschaffung, Ermäßigungskarte, Großkundenrabatt) wird vom Generator **immer** beantwortet — auch bei reinen PKW-Reisen (Vordruck: „Bitte immer ausfüllen"). Werte kommen aus dem Profil, Default „Nein"; ohne Bahn-/Busfahrt steht Großkundenrabatt immer auf „Nein" und die Begründung dazu leitet der Generator aus der Verkehrsmittel-Wahl ab (`generator.grosskundenrabatt_begruendung`). Diese Felder sind keine KI-Aufgabe — Lücken dort sind ein Profil- oder Generator-Thema, kein Prompt-Thema.
 [[PROFIL:END]]
 
 ## 3. Beförderung ist Eingabe-Kontext, keine Ausgabe
