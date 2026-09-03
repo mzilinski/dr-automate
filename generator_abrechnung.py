@@ -181,8 +181,11 @@ def _build_text_fields(data: AbrechnungData) -> dict:
         erl_parts.append("Rückreise: Mitfahrer (kein eigener Anspruch auf Wegstreckenentschädigung)")
     if data.befoerderung.sonderfall_begruendung_textfeld:
         erl_parts.append(data.befoerderung.sonderfall_begruendung_textfeld)
+    mitreisende = [t.name for t in data.reise_details.weitere_teilnehmer]
     if data.antragsteller.mitreisender_name:
-        erl_parts.append(f"Mitreisender: {data.antragsteller.mitreisender_name}")
+        mitreisende.append(data.antragsteller.mitreisender_name)
+    if mitreisende:
+        erl_parts.append(f"Mitreisende: {', '.join(mitreisende)}")
     # Begruendung fuer Hotelkosten > 100 €/Nacht: gilt unabhaengig davon,
     # ob die Naechte als pauschal oder per Beleg abgerechnet werden.
     # Bei pauschal: Cap pro Nacht = kosten_eur / anzahl_pauschal; bei Beleg-

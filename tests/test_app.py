@@ -19,7 +19,7 @@ import pytest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app import app
-from generator import apply_checkbox_logic, generate_output_filename, grosskundenrabatt_begruendung
+from generator import apply_checkbox_logic, generate_output_filename, grosskundenrabatt_begruendung, teilnehmer_fields
 from models import ReiseantragData, validate_reiseantrag
 
 # --- FIXTURES ---
@@ -474,6 +474,41 @@ class TestGrosskundenrabattBegruendung:
         """Profil-Flag zählt ohne Bahnfahrt nicht — Frage ist reisebezogen."""
         data = _make_data(hin_typ="PKW", rueck_typ="PKW", config={"grosskundenrabatt_genutzt": True})
         assert grosskundenrabatt_begruendung(data) == "Keine Bahn-/Busfahrt: Hin- und Rückreise mit privatem Pkw."
+
+
+class TestTeilnehmerFields:
+    """Weitere teilnehmende Personen → Person.Name2–4 / Orga / Telefon."""
+
+    def test_ki_teilnehmer_fuellt_slot_2(self):
+        data = {
+            "antragsteller": {"mitreisender_name": ""},
+            "reise_details": {"weitere_teilnehmer": [{"name": "Karsten Haim", "dienststelle": "", "telefon": ""}]},
+        }
+        f = teilnehmer_fields(data)
+        assert f["Person.Name2"] == "Karsten Haim"
+        assert f["Person.Orga2"] == ""
+        assert "Person.Name3" not in f
+
+    def test_profil_default_und_ki_werden_dedupliziert(self):
+        data = {
+            "antragsteller": {"mitreisender_name": "karsten haim, Erika Musterfrau"},
+            "reise_details": {
+                "weitere_teilnehmer": [{"name": "Karsten Haim", "dienststelle": "BBS Lingen", "telefon": "1"}]
+            },
+        }
+        f = teilnehmer_fields(data)
+        assert f["Person.Name2"] == "Karsten Haim"
+        assert f["Person.Orga2"] == "BBS Lingen"
+        assert f["Person.Name3"] == "Erika Musterfrau"
+        assert "Person.Name4" not in f
+
+    def test_max_drei_slots(self):
+        data = {"reise_details": {"weitere_teilnehmer": [{"name": f"P{i}"} for i in range(5)]}}
+        f = teilnehmer_fields(data)
+        assert [f[k] for k in ("Person.Name2", "Person.Name3", "Person.Name4")] == ["P0", "P1", "P2"]
+
+    def test_ohne_teilnehmer_keine_felder(self):
+        assert teilnehmer_fields({"antragsteller": {"mitreisender_name": ""}}) == {}
 
 
 class TestCheckboxVerzicht:

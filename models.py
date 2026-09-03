@@ -36,6 +36,17 @@ class Antragsteller(BaseModel):
     mitreisender_name: str | None = ""
 
 
+class Teilnehmer(BaseModel):
+    """Weitere teilnehmende Person (Vordruck: „ggf. Angabe weiterer
+    teilnehmender Personen", Slots Person.Name2–4 mit Dienststelle/OE und
+    Telefon). Reise-spezifisch — kommt aus der KI-Extraktion (z.B.
+    „Anreise mit Karsten Haim im PKW") oder wird im Wizard eingetragen."""
+
+    name: str = Field(..., min_length=2, max_length=100)
+    dienststelle: str = Field(default="", max_length=100)
+    telefon: str = Field(default="", max_length=50)
+
+
 class ReiseDetails(BaseModel):
     """Details zur Reise."""
 
@@ -53,6 +64,24 @@ class ReiseDetails(BaseModel):
     dienstgeschaeft_beginn_zeit: str = Field(..., description="Format: HH:MM")
     dienstgeschaeft_ende_datum: str = Field(..., description="Format: DD.MM.YYYY")
     dienstgeschaeft_ende_zeit: str = Field(..., description="Format: HH:MM")
+
+    # Weitere teilnehmende Personen (max. 3 Slots im Vordruck; Überzählige
+    # werden vom Generator ignoriert). Zusammen mit dem Profil-Default
+    # ``antragsteller.mitreisender_name`` dedupliziert.
+    weitere_teilnehmer: list[Teilnehmer] = Field(default_factory=list)
+
+    @field_validator("weitere_teilnehmer", mode="before")
+    @classmethod
+    def drop_empty_teilnehmer(cls, v):
+        """Leere Zeilen aus dem Wizard (Name leer) still verwerfen."""
+        if not v:
+            return []
+        out = []
+        for t in v:
+            name = t.get("name") if isinstance(t, dict) else getattr(t, "name", "")
+            if (name or "").strip():
+                out.append(t)
+        return out
 
     @field_validator("start_datum", "ende_datum", "dienstgeschaeft_beginn_datum", "dienstgeschaeft_ende_datum")
     @classmethod

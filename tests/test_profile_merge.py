@@ -274,3 +274,25 @@ def test_generate_rejects_placeholder(client):
     resp = client.post("/generate", data={"json_data": json.dumps(data)})
     assert resp.status_code == 400
     assert "Platzhalter" in resp.get_json()["error"]
+
+
+def test_weitere_teilnehmer_leere_zeilen_werden_verworfen():
+    """Wizard schickt 3 Slots — leere Namen dürfen die Validierung nicht kippen."""
+    from models import ReiseDetails
+
+    rd = ReiseDetails(
+        zielort="MMBbS, Expo Plaza 3, 30539 Hannover",
+        reiseweg="Lingen -> Hannover -> Lingen",
+        zweck="Akademietag",
+        start_datum="16.11.2026",
+        start_zeit="07:00",
+        ende_datum="17.11.2026",
+        ende_zeit="17:00",
+        dienstgeschaeft_beginn_datum="16.11.2026",
+        dienstgeschaeft_beginn_zeit="09:30",
+        dienstgeschaeft_ende_datum="17.11.2026",
+        dienstgeschaeft_ende_zeit="14:30",
+        weitere_teilnehmer=[{"name": "Karsten Haim"}, {"name": "  ", "dienststelle": "x"}, {"name": ""}],
+    )
+    assert [t.name for t in rd.weitere_teilnehmer] == ["Karsten Haim"]
+    assert rd.weitere_teilnehmer[0].dienststelle == ""
