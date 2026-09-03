@@ -519,6 +519,19 @@
             </div>
           </div>
 
+          <h3 style="font-size:.92rem; margin:1.2rem 0 .5rem; color:var(--muted);">Weitere teilnehmende Personen (KI — editierbar, max. 3)</h3>
+          <div class="field-grid" id="teilnehmerRows">
+            <div><label class="field-label" for="t_name_1">Person 1 — Name</label><input type="text" id="t_name_1" placeholder="Vor- und Nachname"></div>
+            <div><label class="field-label" for="t_orga_1">Dienststelle / OE</label><input type="text" id="t_orga_1"></div>
+            <div><label class="field-label" for="t_tel_1">Telefon</label><input type="text" id="t_tel_1"></div>
+            <div><label class="field-label" for="t_name_2">Person 2 — Name</label><input type="text" id="t_name_2"></div>
+            <div><label class="field-label" for="t_orga_2">Dienststelle / OE</label><input type="text" id="t_orga_2"></div>
+            <div><label class="field-label" for="t_tel_2">Telefon</label><input type="text" id="t_tel_2"></div>
+            <div><label class="field-label" for="t_name_3">Person 3 — Name</label><input type="text" id="t_name_3"></div>
+            <div><label class="field-label" for="t_orga_3">Dienststelle / OE</label><input type="text" id="t_orga_3"></div>
+            <div><label class="field-label" for="t_tel_3">Telefon</label><input type="text" id="t_tel_3"></div>
+          </div>
+
           <h3 style="font-size:.92rem; margin:1.2rem 0 .3rem; color:var(--muted);">Angaben</h3>
           <div class="check-row"><input type="checkbox" id="k_kosten_andere"><label for="k_kosten_andere">Reisekosten ganz/teilweise von anderer Stelle (z.B. Tagungsgebühr inkl. Übernachtung/Verpflegung)</label></div>
           <div class="check-row"><input type="checkbox" id="k_2km"><label for="k_2km">Dienstort &lt; 2 km von Dienststätte/Wohnung</label></div>
@@ -926,6 +939,7 @@
       r_dg_ende_datum.value = rd.dienstgeschaeft_ende_datum || '';
       r_dg_ende_zeit.value = rd.dienstgeschaeft_ende_zeit || '';
       r_bemerkungen.value = (aiData && aiData.zusatz_infos && aiData.zusatz_infos.bemerkungen_feld) || '';
+      setTeilnehmer(Array.isArray(rd.weitere_teilnehmer) ? rd.weitere_teilnehmer : []);
 
       const kc = (aiData && aiData.konfiguration_checkboxen) || {};
       k_kosten_andere.checked = !!kc.kosten_durch_andere_stelle;
@@ -935,6 +949,29 @@
       v_tagegeld.checked = !!ve.verzicht_tagegeld;
       v_uebernachtung.checked = !!ve.verzicht_uebernachtungsgeld;
       v_fahrtkosten.checked = !!ve.verzicht_fahrtkosten;
+    }
+
+    // ── Weitere teilnehmende Personen (Step 4, 3 Slots wie im Vordruck) ──
+    function getTeilnehmer() {
+      const out = [];
+      for (let i = 1; i <= 3; i++) {
+        const name = document.getElementById(`t_name_${i}`).value.trim();
+        if (!name) continue;
+        out.push({
+          name,
+          dienststelle: document.getElementById(`t_orga_${i}`).value.trim(),
+          telefon: document.getElementById(`t_tel_${i}`).value.trim(),
+        });
+      }
+      return out;
+    }
+    function setTeilnehmer(list) {
+      for (let i = 1; i <= 3; i++) {
+        const t = (list && list[i - 1]) || {};
+        document.getElementById(`t_name_${i}`).value = t.name || '';
+        document.getElementById(`t_orga_${i}`).value = t.dienststelle || '';
+        document.getElementById(`t_tel_${i}`).value = t.telefon || '';
+      }
     }
 
     // ── Finales JSON zusammenbauen ───────────────────────────────────
@@ -957,6 +994,7 @@
           dienstgeschaeft_beginn_zeit: r_dg_beginn_zeit.value.trim(),
           dienstgeschaeft_ende_datum: r_dg_ende_datum.value.trim(),
           dienstgeschaeft_ende_zeit: r_dg_ende_zeit.value.trim(),
+          weitere_teilnehmer: getTeilnehmer(),
         },
         zusatz_infos: { bemerkungen_feld: bemerk },
         befoerderung: {
@@ -994,7 +1032,8 @@
       clearDienstreiseId();
       ['aiFreitext','sonderwuensche','pasteJson','r_zielort','r_reiseweg','r_zweck',
        'r_start_datum','r_start_zeit','r_ende_datum','r_ende_zeit','r_dg_beginn_datum',
-       'r_dg_beginn_zeit','r_dg_ende_datum','r_dg_ende_zeit','r_bemerkungen']
+       'r_dg_beginn_zeit','r_dg_ende_datum','r_dg_ende_zeit','r_bemerkungen',
+       't_name_1','t_orga_1','t_tel_1','t_name_2','t_orga_2','t_tel_2','t_name_3','t_orga_3','t_tel_3']
         .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
       document.getElementById('pdfFileInfo').style.display = 'none';
       document.getElementById('pdfDropLabel').textContent = 'PDF hierher ziehen oder klicken';
@@ -1105,6 +1144,7 @@
       'r_dg_ende_datum': 'Ende des Dienstgeschäfts.',
       'r_dg_ende_zeit': 'Uhrzeit des Dienstgeschäfts-Endes. Bsp.: 17:00',
       'r_bemerkungen': 'Erscheint unverändert im amtlichen Formular. Konkrete Verbindungs-/Fähr-/Hotelinfos — keine KI- oder Schätzhinweise.',
+      't_name_1': 'Vordruck „ggf. Angabe weiterer teilnehmender Personen": Kolleginnen/Kollegen, die mitreisen (die KI übernimmt sie aus dem Text). Profil-Standard-Mitreisende werden automatisch ergänzt.',
       // Step 4 — Angaben & Verzicht
       'k_kosten_andere': 'Veranstalter trägt Reisekosten ganz/teilweise — typisch: Tagungsgebühr inkl. Übernachtung/Verpflegung.',
       'k_2km': 'Dienstgeschäft im Umkreis von 2 km zur Dienststätte oder Wohnung — kein Tagegeld nach § 6 NRKVO.',

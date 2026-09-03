@@ -30,7 +30,6 @@ FIELD_MAPPING = {
     "antragsteller.name": "Person.Name1",
     "antragsteller.abteilung": "Person.Orga1",
     "antragsteller.telefon": "Person.Telefon1",
-    "antragsteller.mitreisender_name": "Person.Name2",
     "antragsteller.adresse_privat": ["Abfahrtsort", "RueckkehrNach"],
     # Reise
     "reise_details.zielort": "Reiseziel",
@@ -63,6 +62,50 @@ FIELD_MAPPING = {
     ],
     "CLEAR_DIENSTWAGEN": ["Genaue_Abfahrtsanschrift", "Genaue_Ankunftsanschrift"],
 }
+
+
+# Slots „ggf. Angabe weiterer teilnehmender Personen" im Vordruck.
+_TEILNEHMER_SLOTS = (
+    ("Person.Name2", "Person.Orga2", "Person.Telefon2"),
+    ("Person.Name3", "Person.Orga3", "Person.Telefon3"),
+    ("Person.Name4", "Person.Orga4", "Person.Telefon4"),
+)
+
+
+def teilnehmer_fields(data: dict) -> dict:
+    """Weitere teilnehmende Personen auf Person.Name2–4 / Orga2–4 / Telefon2–4 mappen.
+
+    Quellen (in dieser Reihenfolge, nach Name dedupliziert):
+    1. ``reise_details.weitere_teilnehmer`` — reise-spezifisch aus KI/Wizard,
+       mit Dienststelle/Telefon.
+    2. ``antragsteller.mitreisender_name`` — Profil-Default („Mitreisende",
+       mehrere mit Komma), nur Name.
+    Mehr als drei Personen passen nicht in den Vordruck — Überzählige gehören
+    in die Bemerkungen.
+    """
+    personen: list[tuple[str, str, str]] = []
+    seen: set[str] = set()
+
+    def _add(name: str, orga: str = "", tel: str = "") -> None:
+        name = (name or "").strip()
+        key = name.casefold()
+        if not name or key in seen:
+            return
+        seen.add(key)
+        personen.append((name, (orga or "").strip(), (tel or "").strip()))
+
+    for t in (data.get("reise_details") or {}).get("weitere_teilnehmer") or []:
+        if isinstance(t, dict):
+            _add(t.get("name", ""), t.get("dienststelle", ""), t.get("telefon", ""))
+    for name in re.split(r"[,;]", (data.get("antragsteller") or {}).get("mitreisender_name") or ""):
+        _add(name)
+
+    fields: dict[str, str] = {}
+    for (f_name, f_orga, f_tel), (name, orga, tel) in zip(_TEILNEHMER_SLOTS, personen, strict=False):
+        fields[f_name] = name
+        fields[f_orga] = orga
+        fields[f_tel] = tel
+    return fields
 
 
 def load_json_data(filepath):
@@ -395,6 +438,9 @@ def fill_pdf(json_input: dict | str, input_pdf_path: str, output_dir: str) -> st
                         fields_to_fill[pid] = value
                 else:
                     fields_to_fill[pdf_id] = value
+
+        # 1a. Weitere teilnehmende Personen (Slots 2–4)
+        fields_to_fill.update(teilnehmer_fields(data))
 
         # 1b. Großkundenrabatt-Begründung: Nutzer-Text oder abgeleiteter
         # Grund bei „Nein" ohne Bahnfahrt (Vordruck verlangt eine Begründung).
