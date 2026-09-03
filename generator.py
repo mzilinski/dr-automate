@@ -128,38 +128,87 @@ def _checkbox_befoerderung(trans: dict) -> dict:
     return cb
 
 
+_BAHN_TYPEN = ("BAHN", "BUS")
+
+# Klartext-Label je Verkehrsmittel für die automatische Großkundenrabatt-
+# Begründung (Begruendung3), wenn die Reise keine Bahn-/Busfahrt enthält.
+_VERKEHRSMITTEL_TEXT = {
+    "PKW": "privatem Pkw",
+    "DIENSTWAGEN": "Dienst-Kfz",
+    "MITFAHRT": "Mitfahrt im Pkw",
+    "FLUG": "Flugzeug",
+}
+
+
+def _hat_bahn(befoerderung: dict | None) -> bool:
+    """True, wenn Hin- oder Rückreise per Bahn/Bus erfolgt."""
+    if not befoerderung:
+        return False
+    hin = (befoerderung.get("hinreise") or {}).get("typ", "").upper()
+    rueck = (befoerderung.get("rueckreise") or {}).get("typ", "").upper()
+    return hin in _BAHN_TYPEN or rueck in _BAHN_TYPEN
+
+
+def grosskundenrabatt_begruendung(data: dict) -> str:
+    """Text für Begruendung3 („Großkundenrabatt: Nein — bitte Begründung").
+
+    Der Nutzer-Text gewinnt immer. Fehlt er, ist „Nein" angekreuzt und die
+    Reise enthält keine Bahn-/Busfahrt, wird der sachliche Grund aus der
+    Verkehrsmittel-Wahl abgeleitet — der Vordruck verlangt bei „Nein" eine
+    Begründung, und ohne Bahnfahrt ist „kein Bahnticket" die einzig richtige.
+    Bei Bahnreise ohne Rabatt bleibt das Feld leer (echte Begründungspflicht
+    des Nutzers, nichts erfinden).
+    """
+    config = data.get("konfiguration_checkboxen") or {}
+    eigen = (config.get("grosskundenrabatt_begruendung_wenn_nein") or "").strip()
+    if eigen or config.get("grosskundenrabatt_genutzt"):
+        return eigen
+    befoerderung = data.get("befoerderung") or {}
+    if _hat_bahn(befoerderung):
+        return ""
+    hin = (befoerderung.get("hinreise") or {}).get("typ", "").upper()
+    rueck = (befoerderung.get("rueckreise") or {}).get("typ", "").upper()
+    if not hin and not rueck:
+        return ""
+    hin_txt = _VERKEHRSMITTEL_TEXT.get(hin, hin.title())
+    rueck_txt = _VERKEHRSMITTEL_TEXT.get(rueck, rueck.title())
+    if hin == rueck:
+        return f"Keine Bahn-/Busfahrt: Hin- und Rückreise mit {hin_txt}."
+    return f"Keine Bahn-/Busfahrt: Hinreise mit {hin_txt}, Rückreise mit {rueck_txt}."
+
+
 def _checkbox_konfiguration(config: dict, befoerderung: dict | None = None) -> dict:
     """Konfigurations-Booleans auf PDF-Field-IDs mappen.
 
-    Bahncard- und Großkundenrabatt-Felder werden nur befüllt, wenn die Reise
-    auch BAHN oder BUS einschließt — bei reinen PKW-/Mitfahrt-/Flug-/Dienst­
-    wagen-Reisen würde "BCB_Nein/BC_Nein"-Ankreuzen sonst Sektionen
-    ankreuzen, die gar nicht ausgefüllt werden sollen.
+    Die Bahn-Sektion (BahnCard Business / BahnCard / Beschaffung /
+    Ermäßigungskarte, im Vordruck „Bitte immer ausfüllen") und die
+    Großkundenrabatt-Frage („Bitte immer beantworten!") werden **unabhängig
+    vom Verkehrsmittel** beantwortet — auch bei reinen PKW-/Mitfahrt-/Flug-/
+    Dienstwagen-Reisen. Bis 2026-09 blieb die Sektion bei Reisen ohne
+    Bahn/Bus leer (issues.md #3) und der Antrag kam von der Schulleitung
+    als „unvollständig" zurück. Die Werte kommen aus dem Nutzerprofil
+    (``apply_profile_authoritative``), Default ist überall „Nein".
+
+    ``befoerderung`` wird hier nicht mehr benötigt und bleibt nur aus
+    Kompatibilität in der Signatur.
     """
     cb = {}
 
-    hat_bahn = False
-    if befoerderung:
-        hin = (befoerderung.get("hinreise") or {}).get("typ", "").upper()
-        rueck = (befoerderung.get("rueckreise") or {}).get("typ", "").upper()
-        hat_bahn = hin in ("BAHN", "BUS") or rueck in ("BAHN", "BUS")
-
-    # Bahn-spezifische Felder nur bei Bahn/Bus setzen — dort aber vollstaendig
-    # (jede Ja/Nein-Frage bekommt eine Antwort, keine leeren Fragen im Formular).
-    if hat_bahn:
-        cb["BCB_Ja" if config["bahncard_business_vorhanden"] else "BCB_Nein"] = "/Yes"
-        if config["bahncard_privat_vorhanden"]:
-            cb["BC_Ja"] = "/Yes"
-            stufe = config.get("bahncard_privat_stufe")
-            if stufe in (25, 50, 100):
-                cb[f"BC{stufe}"] = "/Yes"
-        else:
-            cb["BC_Nein"] = "/Yes"
-        cb["Beschaffung_Ja" if config["bahncard_beschaffung_beantragt"] else "Beschaffung_Nein"] = "/Yes"
-        cb["Obj6" if config["grosskundenrabatt_genutzt"] else "Obj7"] = "/Yes"
-        # Ermaeßigungskarte (Monats-/Zeitkarte): OBJ57=Ja ("und zwar fuer die
-        # Strecke", Textfeld via FIELD_MAPPING), OBJ58=Nein.
-        cb["OBJ57" if config.get("ermaessigungskarte_vorhanden") else "OBJ58"] = "/Yes"
+    cb["BCB_Ja" if config["bahncard_business_vorhanden"] else "BCB_Nein"] = "/Yes"
+    if config["bahncard_privat_vorhanden"]:
+        cb["BC_Ja"] = "/Yes"
+        stufe = config.get("bahncard_privat_stufe")
+        if stufe in (25, 50, 100):
+            cb[f"BC{stufe}"] = "/Yes"
+    else:
+        cb["BC_Nein"] = "/Yes"
+    cb["Beschaffung_Ja" if config["bahncard_beschaffung_beantragt"] else "Beschaffung_Nein"] = "/Yes"
+    # Großkundenrabatt: Obj6=Ja, Obj7=Nein. Bei „Nein" ohne Bahnfahrt liefert
+    # grosskundenrabatt_begruendung() den Text für Begruendung3.
+    cb["Obj6" if config["grosskundenrabatt_genutzt"] else "Obj7"] = "/Yes"
+    # Ermaeßigungskarte (Monats-/Zeitkarte): OBJ57=Ja ("und zwar fuer die
+    # Strecke", Textfeld via FIELD_MAPPING), OBJ58=Nein.
+    cb["OBJ57" if config.get("ermaessigungskarte_vorhanden") else "OBJ58"] = "/Yes"
 
     # Weitere Ermaeßigungen (außer BahnCards/Ermaeßigungskarten/Großkunden-
     # rabatt): Obj15=Ja, Obj8=Nein laut Feld-Tooltips im Vordruck — die
@@ -344,6 +393,10 @@ def fill_pdf(json_input: dict | str, input_pdf_path: str, output_dir: str) -> st
                         fields_to_fill[pid] = value
                 else:
                     fields_to_fill[pdf_id] = value
+
+        # 1b. Großkundenrabatt-Begründung: Nutzer-Text oder abgeleiteter
+        # Grund bei „Nein" ohne Bahnfahrt (Vordruck verlangt eine Begründung).
+        fields_to_fill["Begruendung3"] = grosskundenrabatt_begruendung(data).replace("\n", "\r")
 
         # 2. Checkboxen
         checkbox_fields = apply_checkbox_logic(data)

@@ -19,7 +19,7 @@ import pytest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app import app
-from generator import apply_checkbox_logic, generate_output_filename
+from generator import apply_checkbox_logic, generate_output_filename, grosskundenrabatt_begruendung
 from models import ReiseantragData, validate_reiseantrag
 
 # --- FIXTURES ---
@@ -321,19 +321,37 @@ class TestCheckboxKonfiguration:
         cb = apply_checkbox_logic(_make_data(hin_typ="BAHN", config={"bahncard_beschaffung_beantragt": False}))
         assert cb.get("Beschaffung_Nein") == "/Yes"
 
-    def test_pkw_only_reise_does_NOT_set_bahncard_nein_checkboxes(self):
-        """Regressions-Test fuer issues.md #3: bei PKW-only-Reise sollten die
-        Bahn-Sektionen im Formular unangetastet bleiben."""
+    def test_pkw_only_reise_answers_bahn_sektion_with_nein(self):
+        """Der Vordruck verlangt die Bahn-Sektion („Bitte immer ausfüllen") und
+        die Großkundenrabatt-Frage („Bitte immer beantworten!") unabhängig vom
+        Verkehrsmittel — auch bei PKW-only muss überall „Nein" stehen, sonst
+        gilt der Antrag als unvollständig (Vorfall 2026-09-03)."""
         cb = apply_checkbox_logic(_make_data(hin_typ="PKW", rueck_typ="PKW"))
-        assert "BCB_Nein" not in cb
-        assert "BC_Nein" not in cb
-        assert "Beschaffung_Nein" not in cb
-        # Grosskundenrabatt-Obj7 auch nur bei Bahn relevant
-        assert "Obj7" not in cb
+        assert cb.get("BCB_Nein") == "/Yes"
+        assert cb.get("BC_Nein") == "/Yes"
+        assert cb.get("Beschaffung_Nein") == "/Yes"
+        assert cb.get("Obj7") == "/Yes"
         assert "Obj6" not in cb
-        # Ermaeßigungskarte (OBJ57/OBJ58) gehoert zur selben Bahn-Sektion
+        assert cb.get("OBJ58") == "/Yes"
         assert "OBJ57" not in cb
-        assert "OBJ58" not in cb
+
+    def test_pkw_only_reise_with_profile_bahncard_sets_ja(self):
+        """Profil-Werte (BahnCard/Großkunde) gelten auch bei PKW-Reise."""
+        cb = apply_checkbox_logic(
+            _make_data(
+                hin_typ="PKW",
+                rueck_typ="PKW",
+                config={
+                    "bahncard_privat_vorhanden": True,
+                    "bahncard_privat_stufe": 25,
+                    "grosskundenrabatt_genutzt": True,
+                },
+            )
+        )
+        assert cb.get("BC_Ja") == "/Yes"
+        assert cb.get("BC25") == "/Yes"
+        assert cb.get("Obj6") == "/Yes"
+        assert "Obj7" not in cb
 
     def test_grosskundenrabatt_genutzt_sets_Obj6_when_bahn(self):
         cb = apply_checkbox_logic(_make_data(hin_typ="BAHN", config={"grosskundenrabatt_genutzt": True}))
@@ -426,6 +444,30 @@ class TestCheckboxKonfiguration:
         cb = apply_checkbox_logic(_make_data(config={"anspruch_trennungsgeld": False}))
         assert cb.get("Obj56") == "/Yes"
         assert "Obj59" not in cb
+
+
+class TestGrosskundenrabattBegruendung:
+    """Begruendung3: Nutzer-Text gewinnt, sonst abgeleiteter Grund bei „Nein" ohne Bahnfahrt."""
+
+    def test_pkw_only_nein_ohne_text_liefert_ableitung(self):
+        text = grosskundenrabatt_begruendung(_make_data(hin_typ="PKW", rueck_typ="PKW"))
+        assert text == "Keine Bahn-/Busfahrt: Hin- und Rückreise mit privatem Pkw."
+
+    def test_gemischte_verkehrsmittel_ohne_bahn(self):
+        text = grosskundenrabatt_begruendung(_make_data(hin_typ="MITFAHRT", rueck_typ="PKW"))
+        assert text == "Keine Bahn-/Busfahrt: Hinreise mit Mitfahrt im Pkw, Rückreise mit privatem Pkw."
+
+    def test_bahnreise_nein_ohne_text_bleibt_leer(self):
+        """Echte Begründungspflicht des Nutzers — nichts erfinden."""
+        assert grosskundenrabatt_begruendung(_make_data(hin_typ="BAHN", rueck_typ="PKW")) == ""
+
+    def test_nutzer_text_gewinnt(self):
+        data = _make_data(hin_typ="PKW", config={"grosskundenrabatt_begruendung_wenn_nein": "Eigener Grund"})
+        assert grosskundenrabatt_begruendung(data) == "Eigener Grund"
+
+    def test_genutzt_ja_liefert_leer(self):
+        data = _make_data(hin_typ="PKW", config={"grosskundenrabatt_genutzt": True})
+        assert grosskundenrabatt_begruendung(data) == ""
 
 
 class TestCheckboxVerzicht:
