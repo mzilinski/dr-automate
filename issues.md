@@ -22,14 +22,26 @@
 - Regressions-Tests: `test_kosten_durch_andere_stelle_sets_Obj53` +
   `test_kosten_durch_andere_stelle_false_does_not_set_Obj53`.
 
-### 3. Antrag: BahnCard-Checkboxen nur bei BAHN/BUS ✓
+### 3. Antrag: Bahn-Sektion immer beantworten (revidiert 2026-09-03) ✓
 
-- `_checkbox_konfiguration(config, befoerderung)` bekommt jetzt die Beförderung
-  als zweiten Parameter, prüft `hin/rueck in (BAHN, BUS)` und setzt
-  `BCB_Nein`, `BC_Nein`, `Beschaffung_Nein`, `Obj6`/`Obj7` nur bei Bahn/Bus.
-- Bei reinen PKW-/Mitfahrt-/Dienstwagen-/Flug-Reisen bleibt die Bahn-Sektion
-  des Vordrucks unberührt.
-- Regressions-Test: `test_pkw_only_reise_does_NOT_set_bahncard_nein_checkboxes`.
+- **Ursprüngliche Entscheidung (2026-05):** BahnCard-/Großkundenrabatt-
+  Checkboxen nur bei BAHN/BUS setzen, bei reinen PKW-/Mitfahrt-/Dienstwagen-/
+  Flug-Reisen die Bahn-Sektion leer lassen.
+- **Revidiert 2026-09-03:** Der Vordruck 035_001 verlangt die Bahn-Sektion
+  („Ich besitze eine BahnCard Business / BahnCard", „Beschaffung aufgegeben",
+  „Ermäßigungskarte" — *Bitte immer ausfüllen*) und die Großkundenrabatt-Frage
+  (*Bitte immer beantworten!*) **unabhängig vom Verkehrsmittel**. Ein
+  PKW-Antrag (Cisco Akademietag 2026) kam deshalb von der Schulleitung als
+  „unvollständig" zurück.
+- `_checkbox_konfiguration` beantwortet die Sektion jetzt immer aus den
+  Profil-Werten (Default „Nein"). Bei „Großkundenrabatt: Nein" ohne
+  Bahn-/Busfahrt leitet `grosskundenrabatt_begruendung()` die Pflicht-
+  Begründung (`Begruendung3`) aus der Verkehrsmittel-Wahl ab („Keine
+  Bahn-/Busfahrt: Hin- und Rückreise mit privatem Pkw."); bei Bahnreise
+  bleibt sie Nutzersache.
+- Regressions-Tests: `test_pkw_only_reise_answers_bahn_sektion_with_nein`,
+  `test_pkw_only_reise_with_profile_bahncard_sets_ja`,
+  `TestGrosskundenrabattBegruendung`.
 
 ### 4. Pre-existing Fixes (zur Referenz)
 
