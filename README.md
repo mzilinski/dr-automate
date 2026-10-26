@@ -56,6 +56,7 @@ Web-Tool für den kompletten Reisekosten-Workflow nach **NRKVO** (niedersächsis
 | `TRUST_REMOTE_USER_HEADER` | **Nur in Produktion hinter Authelia/Traefik auf `true` setzen.** Erlaubt der App, die Identität aus dem `Remote-User`-Header zu lesen. In Dev/Tests bleibt es `false`, sonst wäre Header-Spoofing möglich. | `false` |
 | `DR_AUTOMATE_ALLOWED_GROUPS` | Komma-Liste der Authelia-Gruppen (`Remote-Groups`), die den Account-Modus nutzen dürfen; alle anderen gelten als Gast. Leer = keine Prüfung. | leer (Produktion: `admins,dr-automate-users`) |
 | `ADMIN_REMOTE_USERS` | Komma-Liste der `Remote-User`, die `/admin/account-requests` sehen dürfen. Leer = niemand. | leer |
+| `DR_AUTOMATE_API_GROUPS` | Authelia-Gruppen, die API-Keys anlegen und nutzen dürfen (siehe `docs/api.md`). | `admins` |
 | `DR_AUTOMATE_ENCRYPTION_KEY` | **Pflicht in Produktion**, wenn Account-Modus genutzt wird. Fernet-Key (32 byte url-safe-base64) für Application-Level-Encryption. Erzeugen mit `python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())'`. Verlust = Datenverlust. | ephemerer Key in Debug |
 | `DR_AUTOMATE_ENCRYPTION_KEY_OLD` | Optional. Alter Fernet-Key für Rotation (App liest mit beiden, schreibt mit dem aktuellen). | leer |
 | `DR_AUTOMATE_DATABASE_URL` | SQLite-URL. Bei Production: in persistentem Volume. | `sqlite:///data/dr-automate.db` |
@@ -206,6 +207,10 @@ dr-automate/
 | `/account/request` | GET, POST | Account-Anfrage-Formular (Rate Limited: 3/h, Honeypot) |
 | `/docs/<slug>` | GET | Markdown-Doku (getting-started, workflow, account, security, faq, admin) |
 | `/health` | GET | Health-Check für Monitoring |
+
+**REST-API v1** (`/api/v1/…`, Bearer-Key statt Login, nur `admins`): Reisen anlegen/lesen/ändern,
+Berechnung, PDFs, Extraktion — Beschreibung in [docs/api.md](docs/api.md), OpenAPI unter
+`/api/v1/openapi.json`, Entwurf und Entscheidungen in `plan-api-v1.md`.
 
 **Auth-only (Authelia-Header `Remote-User` erforderlich):**
 

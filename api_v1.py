@@ -162,6 +162,14 @@ def me():
 # ---------- Schema und Prompt ----------
 
 
+@bp.get("/openapi.json")
+@limiter.limit(LIMIT_LESEN, key_func=get_remote_address)
+def openapi():
+    import api_openapi
+
+    return jsonify(api_openapi.spec())
+
+
 @bp.get("/schema/antrag")
 @api_view(None)
 def schema_antrag():
@@ -232,6 +240,71 @@ def entfernung():
     except routing.RoutingError as err:
         raise ApiProblem(422, "Entfernung nicht ermittelbar", str(err), typ="routing") from None
     return jsonify({"km": r["km"], "minuten": r["duration_min"], "quelle": "OpenStreetMap / OSRM"})
+
+
+@bp.post("/extract")
+@api_view("extract", LIMIT_EXTRACT)
+def extract():
+    """KI-Extraktion über DeepSeek mit dem Key aus dem Server-Profil.
+    JSON-Body (ExtractV1) oder multipart mit ``pdf`` und optional ``daten``
+    (ExtractV1 als JSON-String). Ergebnis ist ein Entwurf — Beförderung
+    ergänzen und prüfen, dann POST /reisen."""
+    import json as _json
+    import os
+
+    import ai_extract
+    import pdf_text
+    from db import SessionLocal
+    from ki_kontext import _strip_citations
+    from models_db import UserProfile
+
+    pdf = request.files.get("pdf")
+    if pdf is not None:
+        roh = request.form.get("daten") or "{}"
+        try:
+            ex = am.ExtractV1.model_validate(_json.loads(roh))
+        except ValueError:
+            raise ApiProblem(400, "Feld 'daten' ist kein gültiges JSON", typ="format") from None
+    else:
+        ex = body(am.ExtractV1)
+
+    freitext = ex.freitext
+    if pdf is not None:
+        inhalt = pdf.stream.read()
+        if not inhalt.startswith(b"%PDF-"):
+            raise ApiProblem(422, "Datei ist kein PDF", typ="format")
+        try:
+            text = pdf_text.extract(inhalt, max_pages=int(os.environ.get("DR_AUTOMATE_MAX_PDF_PAGES", "50")))
+        except pdf_text.PdfTextError as e:
+            raise ApiProblem(e.status_code, "PDF nicht lesbar", str(e), typ="pdf") from None
+        freitext = text if not freitext else f"{text}\n\n--- Zusatz-Notizen ---\n{freitext}"
+    if not freitext.strip():
+        raise ApiProblem(422, "Kein Text", "freitext oder pdf angeben.", typ="validation")
+
+    with SessionLocal() as s:
+        p = s.query(UserProfile).filter(UserProfile.user_id == g.api_user.id).first()
+        key = p.deepseek_api_key if p else None
+    if not key:
+        raise ApiProblem(422, "Kein DeepSeek-Key im Profil", "Unter /profil hinterlegen.", typ="fachlich")
+
+    reise = {k: v.model_dump() for k, v in (("hinreise", ex.hinreise), ("rueckreise", ex.rueckreise)) if v}
+    profil = services.profil_daten(g.api_user)
+    kontext = _ki_kontext(_json.dumps(reise), _wohnort(profil["antragsteller"]["adresse_privat"]))
+    try:
+        ki = ai_extract.call_deepseek(
+            freitext=f"{freitext}\n\n{kontext}",
+            api_key=key,
+            system_prompt=_load_system_prompt(),
+            sonderwuensche=ex.hinweise,
+        )
+    except ai_extract.AIExtractError as e:
+        raise ApiProblem(e.status_code, "KI-Extraktion fehlgeschlagen", str(e), typ="ki") from None
+    return jsonify(
+        {
+            "antrag_entwurf": am.extrakt_v1(_strip_citations(ki)),
+            "hinweis": "KI-Entwurf: prüfen, befoerderung ergänzen, dann POST /api/v1/reisen.",
+        }
+    )
 
 
 # ---------- Reisen ----------

@@ -44,6 +44,7 @@ verarbeitet:
 | **Dienstreise-Anträge + Abrechnungen** (vollständiges JSON inkl. Reiseziel, Begründung, Beförderung, Bemerkungen) | Persistenz für Lifecycle-Verwaltung | Vertrag | SQLite-DB, **Fernet-verschlüsselt** |
 | Generierte PDFs | Download über Dashboard | Vertrag | Dateisystem, Zugriff nur durch Owner |
 | Genehmigungs-/Bezahlt-Datum, Aktenzeichen | Lifecycle-Tracking | Vertrag | SQLite-DB, plain |
+| API-Keys (nur `admins`): Name, Präfix, Berechtigungen, Zeitstempel; der Key selbst nur als SHA-256-Hash | Zugang zur REST-API | Vertrag | SQLite-DB; gelöscht mit dem Account |
 
 Encryption-Key liegt in einem Ansible-Vault, getrennt von der DB.
 
@@ -65,7 +66,8 @@ dr-automate übermittelt Daten in folgenden Fällen an Dritte:
    Schlüssels und dem Auslösen der Extraktion erteilst. Füge deshalb keine
    personenbezogenen Daten Dritter in den Text ein, die nicht für den Antrag
    nötig sind. Ohne KI-Extraktion (Copy-Paste-Weg) findet keine Übermittlung
-   statt. Details: [Datenschutzerklärung von DeepSeek](https://platform.deepseek.com/downloads/DeepSeek%20Privacy%20Policy.html).
+   statt. Das gilt genauso für `POST /api/v1/extract` (Berechtigung `extract`).
+   Details: [Datenschutzerklärung von DeepSeek](https://platform.deepseek.com/downloads/DeepSeek%20Privacy%20Policy.html).
 2. **OpenStreetMap Foundation (Nominatim, Vereinigtes Königreich) und der
    OSRM-Demo-Dienst** — beim Klick auf „Entfernung schätzen" gehen die in
    diesem Dialog stehenden Adressen (Start + Ziel) an

@@ -48,6 +48,14 @@ In Produktion (hinter Traefik) ist `TRUST_REMOTE_USER_HEADER=true` gesetzt. In j
 
 Die Gast-Pfade (`/`, `/generate`, `/extract`, …) sind in Authelia per `bypass` offen; ein dort angemeldeter Nutzer bringt seine `Remote-*`-Header trotzdem mit. `DR_AUTOMATE_ALLOWED_GROUPS` (Produktion: `admins,dr-automate-users`) begrenzt den Account-Modus auf diese Gruppen — Nutzer anderer Authelia-Rollen gelten in dr-automate als Gast.
 
+## REST-API
+
+`/api/v1` authentifiziert ausschließlich per persönlichem Bearer-Key; Authelia-Header und
+Session-Cookies werden dort ignoriert, CSRF entfällt (Bearer-Header schickt kein Browser
+von sich aus). Keys liegen nur als SHA-256-Hash vor, sind auf Scopes, höchstens 365 Tage
+und die Gruppe `admins` beschränkt und verfallen 90 Tage nach dem letzten Web-Login mit
+dieser Gruppe. Keine CORS-Header. Details: [API](/docs/api).
+
 ## Rate-Limiting (zwei Schichten)
 
 | Schicht | Wo | Konfiguration | Eigenschaften |

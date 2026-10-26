@@ -143,3 +143,28 @@ def authenticate(token: str) -> tuple[User, ApiKey] | None:
         s.expunge(key)
         s.expunge(user)
         return user, key
+
+
+def _cli() -> int:
+    """Offboarding: ``python api_keys.py widerrufen <remote_user>`` bzw. ``liste <remote_user>``."""
+    import sys
+
+    if len(sys.argv) != 3 or sys.argv[1] not in ("widerrufen", "liste"):
+        print("Aufruf: python api_keys.py widerrufen|liste <remote_user>")
+        return 2
+    with SessionLocal() as s:
+        user = s.scalar(select(User).where(User.remote_user == sys.argv[2]))
+    if user is None:
+        print(f"User {sys.argv[2]!r} nicht gefunden.")
+        return 1
+    if sys.argv[1] == "widerrufen":
+        print(f"{revoke_all(user.id)} Key(s) von {sys.argv[2]} widerrufen.")
+    else:
+        for k in list_keys(user.id):
+            status = "widerrufen" if k.revoked_at else f"gültig bis {k.expires_at:%d.%m.%Y}"
+            print(f"dra_{k.prefix}_…  {k.name}  {','.join(k.scopes)}  {status}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(_cli())
