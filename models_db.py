@@ -31,6 +31,7 @@ from sqlalchemy import (
     UniqueConstraint,
     func,
 )
+from sqlalchemy import false as sql_false
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from crypto import EncryptedJSON, EncryptedString
@@ -128,6 +129,10 @@ class UserProfile(Base):
     # PDFs + JSON im Account. User kann es ausschalten, wenn sie eine Reise
     # nur lokal abwickeln wollen (z.B. private Probefahrt).
     auto_save_dienstreisen: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    # Paperless-Anbindung (plan-api-v1.md, Abschnitt 11): Token des Users für die
+    # Paperless-REST-API (verschlüsselt) und ob PDFs automatisch abgelegt werden.
+    paperless_api_token: Mapped[str | None] = mapped_column(EncryptedString(512))
+    paperless_auto: Mapped[bool] = mapped_column(Boolean, default=False, server_default=sql_false(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
     )
@@ -172,6 +177,9 @@ class Dienstreise(Base):
     user: Mapped[User] = relationship("User", back_populates="dienstreisen")
     abrechnung: Mapped[Abrechnung | None] = relationship(
         "Abrechnung", back_populates="dienstreise", uselist=False, cascade="all, delete-orphan"
+    )
+    paperless_uploads: Mapped[list[PaperlessUpload]] = relationship(
+        "PaperlessUpload", back_populates="dienstreise", cascade="all, delete-orphan"
     )
 
 
@@ -242,3 +250,28 @@ class ApiKey(Base):
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     user: Mapped[User] = relationship("User", back_populates="api_keys")
+
+
+class PaperlessUpload(Base):
+    """Ausgangs-Warteschlange für PDFs nach Paperless — eine Zeile je Reise
+    und Art (antrag/abrechnung). Abgearbeitet von paperless_sync.py."""
+
+    __tablename__ = "paperless_uploads"
+    __table_args__ = (UniqueConstraint("dienstreise_id", "art", name="uq_paperless_uploads_reise_art"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    dienstreise_id: Mapped[int] = mapped_column(ForeignKey("dienstreisen.id", ondelete="CASCADE"), nullable=False)
+    art: Mapped[str] = mapped_column(String(20), nullable=False)  # antrag | abrechnung
+    # offen → gesendet (Task läuft in Paperless) → fertig | fehler
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="offen")
+    versuche: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    naechster_versuch: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    task_id: Mapped[str | None] = mapped_column(String(64))
+    dokument_id: Mapped[int | None] = mapped_column(Integer)
+    meldung: Mapped[str | None] = mapped_column(String(500))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    dienstreise: Mapped[Dienstreise] = relationship("Dienstreise", back_populates="paperless_uploads")

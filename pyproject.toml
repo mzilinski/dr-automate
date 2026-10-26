@@ -38,6 +38,6 @@ dev = [
 py-modules = [
     "abrechnung_calc", "ai_extract", "api_keys", "api_models", "api_openapi", "api_v1", "app", "auth",
     "crypto", "db", "extensions", "generator", "generator_abrechnung", "ki_kontext", "models", "models_db",
-    "nrkvo_rates", "pdf_text", "rotate_keys", "routing", "services",
+    "nrkvo_rates", "paperless_sync", "pdf_text", "rotate_keys", "routing", "services",
 ]
 

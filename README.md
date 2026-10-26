@@ -56,6 +56,7 @@ Web-Tool für den kompletten Reisekosten-Workflow nach **NRKVO** (niedersächsis
 | `TRUST_REMOTE_USER_HEADER` | **Nur in Produktion hinter Authelia/Traefik auf `true` setzen.** Erlaubt der App, die Identität aus dem `Remote-User`-Header zu lesen. In Dev/Tests bleibt es `false`, sonst wäre Header-Spoofing möglich. | `false` |
 | `DR_AUTOMATE_ALLOWED_GROUPS` | Komma-Liste der Authelia-Gruppen (`Remote-Groups`), die den Account-Modus nutzen dürfen; alle anderen gelten als Gast. Leer = keine Prüfung. | leer (Produktion: `admins,dr-automate-users`) |
 | `ADMIN_REMOTE_USERS` | Komma-Liste der `Remote-User`, die `/admin/account-requests` sehen dürfen. Leer = niemand. | leer |
+| `PAPERLESS_URL` | Basis-URL von Paperless-ngx; gesetzt = genehmigte Anträge/bezahlte Abrechnungen können dort abgelegt werden (Token pro Nutzer im Profil). `PAPERLESS_TAG`, `PAPERLESS_DOCTYPE_ANTRAG`, `PAPERLESS_DOCTYPE_ABRECHNUNG` für die Namen. | leer (aus) |
 | `DR_AUTOMATE_API_GROUPS` | Authelia-Gruppen, die API-Keys anlegen und nutzen dürfen (siehe `docs/api.md`). | `admins` |
 | `DR_AUTOMATE_ENCRYPTION_KEY` | **Pflicht in Produktion**, wenn Account-Modus genutzt wird. Fernet-Key (32 byte url-safe-base64) für Application-Level-Encryption. Erzeugen mit `python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())'`. Verlust = Datenverlust. | ephemerer Key in Debug |
 | `DR_AUTOMATE_ENCRYPTION_KEY_OLD` | Optional. Alter Fernet-Key für Rotation (App liest mit beiden, schreibt mit dem aktuellen). | leer |

@@ -367,3 +367,12 @@ def extrakt_v1(ki: dict) -> dict:
         "bemerkungen": (ki.get("zusatz_infos") or {}).get("bemerkungen_feld") or "",
         "angaben": {k: bool(kc.get(k)) for k in AngabenV1.model_fields},
     }
+
+
+class PaperlessV1(V1):
+    art: Literal["antrag", "abrechnung"]
+
+
+def paperless_v1(uploads: dict) -> dict:
+    """{art: {status, dokument_id, meldung}} — Status: offen, gesendet, fertig, fehler."""
+    return {art: {"status": u.status, "dokument_id": u.dokument_id, "meldung": u.meldung} for art, u in uploads.items()}

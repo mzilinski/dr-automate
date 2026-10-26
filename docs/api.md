@@ -44,6 +44,7 @@ Alle Pfade unter `/api/v1`. Datum/Zeit in Anträgen wie im Vordruck: `DD.MM.YYYY
 | POST | `/reisen/{id}/genehmigung` | reisen:write | `{"datum": "01.05.2026", "aktenzeichen": ""}` |
 | PUT | `/reisen/{id}/abrechnung` | reisen:write | Abrechnung speichern, Status `abgerechnet` |
 | POST | `/reisen/{id}/bezahlt` | reisen:write | `{"datum": "…"}` oder leer = heute; **409** ohne Abrechnung |
+| POST | `/reisen/{id}/paperless` | reisen:write | `{"art": "antrag"}` bzw. `"abrechnung"` an Paperless senden (202, Stand unter `paperless` in `GET /reisen/{id}`) |
 | DELETE | `/reisen/{id}` | reisen:write | Reise und PDFs löschen (204) |
 
 Name, Anschrift, Telefon, Bankdaten und BahnCards kommen **immer aus deinem Profil** —

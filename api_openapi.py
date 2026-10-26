@@ -40,6 +40,14 @@ ROUTEN = [
         am.BezahltV1,
         "json",
     ),
+    (
+        "post",
+        "/reisen/{reise_id}/paperless",
+        "reisen:write",
+        "PDF an Paperless senden (202, asynchron)",
+        am.PaperlessV1,
+        "json",
+    ),
     ("delete", "/reisen/{reise_id}", "reisen:write", "Reise und PDFs löschen", None, None),
     ("get", "/openapi.json", None, "Diese Beschreibung (ohne Key)", None, "json"),
 ]
@@ -101,7 +109,9 @@ def spec(server_url: str = "/api/v1") -> dict:
                 "content": {"application/json": {"schema": {"$ref": _REF.format(model=res.__name__)}}},
             }
         else:
-            code = "201" if (methode, pfad) == ("post", "/reisen") else "200"
+            code = {("post", "/reisen"): "201", ("post", "/reisen/{reise_id}/paperless"): "202"}.get(
+                (methode, pfad), "200"
+            )
             op["responses"][code] = {"description": "OK", "content": {"application/json": {}}}
         for code, text in _FEHLER.items():
             op["responses"][code] = {"description": text, "content": problem}

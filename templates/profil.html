@@ -169,6 +169,32 @@
   </label>
   {% endif %}
 
+  {% if api_berechtigt and paperless_aktiv %}
+  <h3 id="paperless">Paperless</h3>
+  <p style="font-size:.85rem;color:var(--muted);margin-bottom:.4rem;">
+    Genehmigte Anträge und bezahlte Abrechnungen landen als PDF in deinem
+    <a href="{{ paperless_url }}" target="_blank" rel="noopener">Paperless</a> (Tag „Dienstreise").
+    Token in Paperless unter Profil → „API-Auth-Token" erzeugen. Er liegt hier verschlüsselt.
+  </p>
+  {% if profile.paperless_api_token %}
+    <p class="help" style="color:var(--ok);">✓ Token ist gesetzt — Feld leer lassen, um ihn beizubehalten.</p>
+  {% endif %}
+  <label>Paperless-Token
+    <input type="password" name="paperless_api_token" autocomplete="off" maxlength="200"
+      placeholder="{% if profile.paperless_api_token %}•••• (gesetzt){% else %}Token aus Paperless{% endif %}">
+  </label>
+  <label class="check-row" style="margin-top:.5rem;">
+    <input type="checkbox" name="paperless_auto" value="1" {% if profile.paperless_auto %}checked{% endif %}>
+    <span>Automatisch ablegen (Antrag bei Genehmigung, Abrechnung bei „bezahlt")</span>
+  </label>
+  {% if profile.paperless_api_token %}
+  <label class="check-row" style="margin-top:.3rem;">
+    <input type="checkbox" name="clear_paperless_api_token" value="1">
+    <span>Gespeicherten Token entfernen</span>
+  </label>
+  {% endif %}
+  {% endif %}
+
   <h3>BahnCards &amp; Großkundenrabatte</h3>
   {% set bcs = profile.bahncards or {} %}
   <p style="font-size:.85rem;color:var(--muted);margin-bottom:.4rem;">Person 1 = Antragsteller:in, Person 2 = Mitreisende</p>

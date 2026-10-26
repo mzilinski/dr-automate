@@ -36,6 +36,7 @@ import auth
 import generator
 import generator_abrechnung
 import nrkvo_rates
+import paperless_sync
 import pdf_text
 import services
 from extensions import limiter
@@ -171,6 +172,9 @@ limiter.init_app(app)
 
 # REST-API v1 (Bearer-Keys, ohne CSRF/Session) — plan-api-v1.md
 api_v1.init_app(app, csrf)
+
+# PDFs nach Paperless (nur mit PAPERLESS_URL; Thread im gunicorn-Worker)
+paperless_sync.worker_starten()
 
 # Prüfe ob Template existiert
 if not os.path.exists(PDF_TEMPLATE_PATH):
@@ -347,7 +351,18 @@ def dashboard():
         )
         # Detach, damit kein lazy-load nach session-close
         session_db.expunge_all()
-    return render_template("dashboard.html", reisen=reisen, **_common_template_ctx())
+    from models_db import UserProfile
+
+    with SessionLocal() as session_db:
+        prof = session_db.query(UserProfile).filter(UserProfile.user_id == g.current_user.id).first()
+        paperless_bereit = bool(paperless_sync.aktiv() and prof and prof.paperless_api_token)
+    return render_template(
+        "dashboard.html",
+        reisen=reisen,
+        paperless_bereit=paperless_bereit,
+        paperless_status=paperless_sync.status_je_reise([r.id for r in reisen]) if paperless_bereit else {},
+        **_common_template_ctx(),
+    )
 
 
 # --- DIENSTREISE-CRUD (Auth-only) ---
@@ -497,6 +512,24 @@ def dienstreise_bezahlt(reise_id: int):
     return redirect(url_for("dashboard"))
 
 
+@app.route("/dienstreisen/<int:reise_id>/paperless", methods=["POST"])
+@auth.login_required
+def dienstreise_paperless(reise_id: int):
+    """PDF manuell (erneut) an Paperless senden."""
+    art = request.form.get("art", "")
+    if art not in paperless_sync.ARTEN:
+        abort(400)
+    try:
+        services.reise_laden(g.current_user.id, reise_id)
+        paperless_sync.einreihen(g.current_user.id, reise_id, art, erzwingen=True)
+        flash("Wird an Paperless gesendet (innerhalb einer Minute).", "success")
+    except services.PersistError:
+        abort(404)
+    except paperless_sync.NichtEingerichtet as e:
+        flash(str(e), "error")
+    return redirect(url_for("dashboard"))
+
+
 @app.route("/dienstreisen/<int:reise_id>/antrag.pdf", methods=["GET"])
 @auth.login_required
 def dienstreise_antrag_pdf(reise_id: int):
@@ -596,6 +629,8 @@ def _render_profil(**extra):
         api_scopes=api_keys.SCOPES,
         api_default_scopes=api_keys.DEFAULT_SCOPES,
         api_laufzeiten=api_keys.LAUFZEITEN_TAGE,
+        paperless_aktiv=paperless_sync.aktiv(),
+        paperless_url=paperless_sync.basis_url(),
         jetzt=_dt.utcnow(),
         **extra,
         **_common_template_ctx(),
@@ -667,6 +702,13 @@ def profil_save():
             new_key = (request.form.get("deepseek_api_key") or "").strip()
             if new_key:
                 profile.deepseek_api_key = new_key[:200]
+        # Paperless-Anbindung (nur API-Gruppen; Token: leer lassen = behalten)
+        if _api_berechtigt():
+            if request.form.get("clear_paperless_api_token") == "1":
+                profile.paperless_api_token = None
+            elif neu := (request.form.get("paperless_api_token") or "").strip():
+                profile.paperless_api_token = neu[:200]
+            profile.paperless_auto = request.form.get("paperless_auto") == "1"
         # Auto-Save-Flag: Checkbox kommt nur wenn aktiv im Form an;
         # fehlt sie → User hat sie abgewaehlt → false.
         profile.auto_save_dienstreisen = request.form.get("auto_save_dienstreisen") == "1"
