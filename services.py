@@ -248,6 +248,19 @@ def abrechnung_speichern(user_id: int, reise_id: int, model: AbrechnungData, pdf
         return abr.id
 
 
+def _paperless(user_id: int, reise_id: int, art: str) -> None:
+    """Genehmigter Antrag / bezahlte Abrechnung → Paperless, wenn im Profil
+    eingeschaltet. Darf den eigentlichen Vorgang nie scheitern lassen."""
+    import logging
+
+    import paperless_sync
+
+    try:
+        paperless_sync.einreihen(user_id, reise_id, art)
+    except Exception:
+        logging.getLogger(__name__).exception("Paperless-Einreihen fehlgeschlagen")
+
+
 def genehmigung_vermerken(user_id: int, reise_id: int, datum, aktenzeichen: str | None) -> None:
     from models_db import DienstreiseStatus
 
@@ -258,6 +271,7 @@ def genehmigung_vermerken(user_id: int, reise_id: int, datum, aktenzeichen: str 
         if reise.status in (DienstreiseStatus.entwurf, DienstreiseStatus.eingereicht):
             reise.status = DienstreiseStatus.genehmigt
         s.commit()
+    _paperless(user_id, reise_id, "antrag")
 
 
 def bezahlt_vermerken(user_id: int, reise_id: int, datum) -> None:
@@ -271,6 +285,7 @@ def bezahlt_vermerken(user_id: int, reise_id: int, datum) -> None:
         reise.bezahlt_datum = datum
         reise.status = DienstreiseStatus.bezahlt
         s.commit()
+    _paperless(user_id, reise_id, "abrechnung")
 
 
 def bezahlt_zuruecknehmen(user_id: int, reise_id: int) -> None:

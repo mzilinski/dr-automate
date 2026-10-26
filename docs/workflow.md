@@ -42,6 +42,15 @@ Nach der Reise:
 4. Die Zusammenfassung in Schritt 9 kommt aus derselben Server-Berechnung, mit der das PDF gefüllt wird: Tagegeld je Kalendertag (§ 7 NRKVO, ab dem 15. Aufenthaltstag vermindert), Kürzungen, Übernachtungsgeld (§ 8) und Wegstreckenentschädigung (§ 5, 125-€-Deckel für § 5 II). Hinweise zur Berechnung stehen dort und in den Erläuterungen des PDFs.
 5. **PDF generieren** – wieder mit Speicher-Option. Status: `abgerechnet`. Gespeichert wird die Abrechnung nur, wenn du sie über „Abrechnung" im Dashboard geöffnet hast (dann ist die Reise zugeordnet).
 
+## Ablage in Paperless (nur `admins`)
+
+Im Profil unter **Paperless** einen API-Token aus deinem Paperless (Profil → „API-Auth-Token")
+hinterlegen und „Automatisch ablegen" einschalten. Dann landet der **Antrag beim Vermerken der
+Genehmigung** und die **Abrechnung beim Vermerken „bezahlt"** als PDF in deinem Paperless —
+mit Tag `Dienstreise` und dir als Besitzer. Im Dashboard zeigt ein Knopf je PDF den Stand
+(⏳ unterwegs, ✓ abgelegt, ⚠ Fehler) und sendet auf Klick (erneut). Ein Duplikat erkennt
+Paperless selbst; das gilt als erledigt.
+
 ## Lifecycle-Zusammenfassung
 
 ```

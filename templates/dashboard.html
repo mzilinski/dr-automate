@@ -134,6 +134,21 @@
         {% if r.abrechnung and r.abrechnung.abrechnung_pdf_path %}
           <a href="{{ url_for('dienstreise_abrechnung_pdf', reise_id=r.id) }}">Abr.-PDF</a>
         {% endif %}
+        {% if paperless_bereit %}
+          {% for art, vorhanden in (('antrag', r.antrag_pdf_path), ('abrechnung', r.abrechnung and r.abrechnung.abrechnung_pdf_path)) if vorhanden %}
+            {% set up = paperless_status.get(r.id, {}).get(art) %}
+            <form method="post" action="{{ url_for('dienstreise_paperless', reise_id=r.id) }}" style="display:inline;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="art" value="{{ art }}">
+              <button type="submit" title="{{ (up.meldung if up and up.meldung else '') }}">
+                {% if up and up.status == 'fertig' %}✓ {{ 'Antrag' if art == 'antrag' else 'Abr.' }} in Paperless
+                {% elif up and up.status in ('offen', 'gesendet') %}⏳ {{ 'Antrag' if art == 'antrag' else 'Abr.' }} → Paperless
+                {% elif up and up.status == 'fehler' %}⚠ {{ 'Antrag' if art == 'antrag' else 'Abr.' }} erneut senden
+                {% else %}{{ 'Antrag' if art == 'antrag' else 'Abr.' }} → Paperless{% endif %}
+              </button>
+            </form>
+          {% endfor %}
+        {% endif %}
         {% if r.status.value == 'abgerechnet' %}
           <form method="post" action="{{ url_for('dienstreise_bezahlt', reise_id=r.id) }}"
                 style="display:inline;" onsubmit="return confirm('Geldeingang heute vermerken?');">

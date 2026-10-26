@@ -362,7 +362,31 @@ def reise_anlegen():
 @bp.get("/reisen/<int:reise_id>")
 @api_view("reisen:read")
 def reise_lesen(reise_id: int):
-    return jsonify(am.reise_v1(_reise(reise_id), mit_daten=True))
+    import paperless_sync
+
+    d = am.reise_v1(_reise(reise_id), mit_daten=True)
+    d["paperless"] = am.paperless_v1(paperless_sync.status_je_reise([reise_id]).get(reise_id, {}))
+    return jsonify(d)
+
+
+@bp.post("/reisen/<int:reise_id>/paperless")
+@api_view("reisen:write", LIMIT_SCHREIBEN)
+def reise_paperless(reise_id: int):
+    """PDF an Paperless senden (asynchron, Status über GET /reisen/{id})."""
+    import paperless_sync
+
+    r = _reise(reise_id)
+    art = body(am.PaperlessV1).art
+    vorhanden = r.antrag_pdf_path if art == "antrag" else (r.abrechnung and r.abrechnung.abrechnung_pdf_path)
+    if not vorhanden:
+        raise ApiProblem(409, "Kein PDF vorhanden", f"Für '{art}' gibt es noch kein PDF.", typ="status")
+    try:
+        paperless_sync.einreihen(g.api_user.id, reise_id, art, erzwingen=True)
+    except paperless_sync.NichtEingerichtet as e:
+        raise ApiProblem(422, "Paperless nicht eingerichtet", str(e), typ="fachlich") from None
+    resp = jsonify(am.paperless_v1(paperless_sync.status_je_reise([reise_id]).get(reise_id, {})))
+    resp.status_code = 202
+    return resp
 
 
 @bp.put("/reisen/<int:reise_id>/antrag")

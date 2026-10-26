@@ -44,6 +44,7 @@ verarbeitet:
 | **Dienstreise-Anträge + Abrechnungen** (vollständiges JSON inkl. Reiseziel, Begründung, Beförderung, Bemerkungen) | Persistenz für Lifecycle-Verwaltung | Vertrag | SQLite-DB, **Fernet-verschlüsselt** |
 | Generierte PDFs | Download über Dashboard | Vertrag | Dateisystem, Zugriff nur durch Owner |
 | Genehmigungs-/Bezahlt-Datum, Aktenzeichen | Lifecycle-Tracking | Vertrag | SQLite-DB, plain |
+| Paperless-Token (nur `admins`, wenn hinterlegt) | Ablage genehmigter Anträge/bezahlter Abrechnungen im eigenen Paperless | Einwilligung | SQLite-DB, **Fernet-verschlüsselt** |
 | API-Keys (nur `admins`): Name, Präfix, Berechtigungen, Zeitstempel; der Key selbst nur als SHA-256-Hash | Zugang zur REST-API | Vertrag | SQLite-DB; gelöscht mit dem Account |
 
 Encryption-Key liegt in einem Ansible-Vault, getrennt von der DB.

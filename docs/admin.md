@@ -35,6 +35,17 @@ Die Admin-Seite `/admin/account-requests` ist zusätzlich auf `ADMIN_REMOTE_USER
 Im `authelia_users`-Eintrag `disabled: true` setzen und deployen. Die Datensätze in
 dr-automate bleiben erhalten; bestehende Sessions werden beim nächsten ForwardAuth-Call ungültig.
 
+## Paperless-Anbindung
+
+`PAPERLESS_URL` (Compose, aus der Stack-`.env`) schaltet die Funktion ein; ohne sie bleibt
+der Profil-Abschnitt verborgen. In Paperless müssen existieren und dem Nutzer gehören:
+der Tag **`Dienstreise`** (fehlt er, wird ohne Tag abgelegt und das im Dashboard gemeldet)
+und optional die Dokumenttypen **`Dienstreiseantrag`** und **`Reisekostenabrechnung`**
+(Namen per `PAPERLESS_TAG`, `PAPERLESS_DOCTYPE_ANTRAG`, `PAPERLESS_DOCTYPE_ABRECHNUNG`
+änderbar). Der Upload läuft über die öffentliche URL, weil Port 8000 per nftables nur
+für die VPS offen ist. Warteschlange: Tabelle `paperless_uploads`, Log
+`docker logs dr-automate | grep Paperless`.
+
 ## API-Keys (Offboarding)
 
 Keys gelten nur für `DR_AUTOMATE_API_GROUPS` (Standard `admins`) und verfallen 90 Tage
