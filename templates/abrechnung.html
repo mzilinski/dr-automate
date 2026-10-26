@@ -234,15 +234,15 @@
     <nav>
       {% if is_authenticated %}
         <a href="{{ url_for('dashboard') }}">Dashboard</a>
-        <a href="{{ url_for('index') }}">Neuer Antrag</a>
-        <a href="{{ url_for('abrechnung_index') }}" class="active">Abrechnung</a>
+        <a href="{{ urls.antrag }}">Neuer Antrag</a>
+        <a href="{{ urls.abrechnung }}" class="active">Abrechnung</a>
         <a href="{{ url_for('profil_view') }}">Profil</a>
         <a href="{{ url_for('docs_view', slug='workflow') }}">Hilfe</a>
         <span class="pill auth">{{ current_user.display_name or current_user.remote_user }}</span>
         <a href="{{ authelia_logout_url }}" data-logout>Abmelden</a>
       {% else %}
-        <a href="{{ url_for('index') }}">Neuer Antrag</a>
-        <a href="{{ url_for('abrechnung_index') }}" class="active">Abrechnung</a>
+        <a href="{{ urls.antrag }}">Neuer Antrag</a>
+        <a href="{{ urls.abrechnung }}" class="active">Abrechnung</a>
         <a href="{{ url_for('docs_view', slug='workflow') }}">Hilfe</a>
         <a href="{{ url_for('account_request_get') }}">Account anfragen</a>
         <a href="{{ url_for('dashboard') }}">Anmelden</a>
@@ -279,7 +279,7 @@
         <div class="avatar empty" id="profileAvatar">?</div>
         <span class="profile-label" id="profileStatus">Profil wird geladen …</span>
       </div>
-      <a href="{{ url_for('profil_view') if is_authenticated else url_for('index') }}" class="btn btn-ghost btn-sm">Profil&nbsp;bearbeiten</a>
+      <a href="{{ url_for('profil_view') if is_authenticated else urls.antrag }}" class="btn btn-ghost btn-sm">Profil&nbsp;bearbeiten</a>
     </div>
 
     <nav class="stepper" id="stepper" aria-label="Wizard-Navigation">
@@ -925,7 +925,7 @@
         <span class="sep">·</span>
         <a href="{{ url_for('dashboard') }}">Dashboard</a>
         <span class="sep">·</span>
-        <a href="{{ url_for('index') }}">Neuer Antrag</a>
+        <a href="{{ urls.antrag }}">Neuer Antrag</a>
         <span class="sep">·</span>
         <a href="{{ url_for('docs_view', slug='workflow') }}">Hilfe</a>
         <span class="sep">·</span>
@@ -1333,7 +1333,7 @@
         fd.append('csrf_token', document.querySelector('input[name=csrf_token]').value);
 
         const headers = guestKey ? { 'X-DeepSeek-Key': guestKey } : {};
-        const res = await fetch('/extract', {
+        const res = await fetch('{{ urls.extract }}', {
           method: 'POST',
           headers: headers,
           body: fd,
@@ -1673,7 +1673,7 @@
 
     // Neue Abrechnung: kompletter Neustart ohne Reise-Zuordnung (?dienstreise)
     function neueAbrechnung() {
-      window.location.href = '{{ url_for("abrechnung_index") }}';
+      window.location.href = '{{ urls.abrechnung }}';
     }
 
     // ── Export ──────────────────────────────────────────────────────
@@ -1724,7 +1724,7 @@
           const reiseId = new URLSearchParams(window.location.search).get('dienstreise');
           if (reiseId) fd.set('dienstreise_id', reiseId);
         }
-        const res = await fetch('/abrechnung/generate', { method: 'POST', body: fd });
+        const res = await fetch('{{ urls.abr_generate }}', { method: 'POST', body: fd });
         if (!res.ok) {
           const err = await res.json().catch(() => ({ error: res.statusText }));
           showAlert(`Fehler: ${err.error || res.statusText}`);

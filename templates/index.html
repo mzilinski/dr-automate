@@ -113,15 +113,15 @@
     <nav>
       {% if is_authenticated %}
         <a href="{{ url_for('dashboard') }}">Dashboard</a>
-        <a href="{{ url_for('index') }}" class="active">Neuer Antrag</a>
-        <a href="{{ url_for('abrechnung_index') }}">Abrechnung</a>
+        <a href="{{ urls.antrag }}" class="active">Neuer Antrag</a>
+        <a href="{{ urls.abrechnung }}">Abrechnung</a>
         <a href="{{ url_for('profil_view') }}">Profil</a>
         <a href="{{ url_for('docs_view', slug='getting-started') }}">Hilfe</a>
         <span class="pill auth">{{ current_user.display_name or current_user.remote_user }}</span>
         <a href="{{ authelia_logout_url }}" data-logout>Abmelden</a>
       {% else %}
-        <a href="{{ url_for('index') }}" class="active">Neuer Antrag</a>
-        <a href="{{ url_for('abrechnung_index') }}">Abrechnung</a>
+        <a href="{{ urls.antrag }}" class="active">Neuer Antrag</a>
+        <a href="{{ urls.abrechnung }}">Abrechnung</a>
         <a href="{{ url_for('docs_view', slug='getting-started') }}">Hilfe</a>
         <a href="{{ url_for('account_request_get') }}">Account anfragen</a>
         <a href="{{ url_for('dashboard') }}">Anmelden</a>
@@ -229,7 +229,7 @@
             Daten für die Abrechnung <em style="font-weight:400;">(optional)</em>
           </summary>
           <p class="modal-note" style="margin-top:.75rem;">
-            Nur für die <a href="/abrechnung">Reisekostenabrechnung</a> nötig, beim Antrag nicht.
+            Nur für die <a href="{{ urls.abrechnung }}">Reisekostenabrechnung</a> nötig, beim Antrag nicht.
           </p>
           <div class="wiz-field">
             <label class="wiz-label" for="wiz_iban">IBAN</label>
@@ -578,7 +578,7 @@
       <small>
         v{{ app_version }}
         <span class="sep">·</span><a href="{{ url_for('dashboard') }}">Dashboard</a>
-        <span class="sep">·</span><a href="{{ url_for('abrechnung_index') }}">Zur Abrechnung</a>
+        <span class="sep">·</span><a href="{{ urls.abrechnung }}">Zur Abrechnung</a>
         <span class="sep">·</span><a href="{{ url_for('docs_view', slug='getting-started') }}">Hilfe</a>
         <span class="sep">·</span><a href="{{ impressum_url }}">Impressum</a>
         <span class="sep">·</span><a href="{{ datenschutz_url }}">Datenschutz</a>
@@ -911,7 +911,7 @@
         fd.append('csrf_token', document.querySelector('input[name="csrf_token"]').value);
         if (pdfFile) fd.append('pdf', pdfFile);
         const headers = guestKey ? { 'X-DeepSeek-Key': guestKey } : {};
-        const res = await fetch('/extract', { method: 'POST', headers, body: fd });
+        const res = await fetch('{{ urls.extract }}', { method: 'POST', headers, body: fd });
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
           showAlert('AI-Extraktion fehlgeschlagen: ' + (err.error || res.statusText), 'danger');
@@ -1128,7 +1128,7 @@
           const existing = document.getElementById('dienstreiseId')?.value;
           if (existing) fd.set('dienstreise_id', existing);
         }
-        const res = await fetch('/generate', { method: 'POST', body: fd });
+        const res = await fetch('{{ urls.generate }}', { method: 'POST', body: fd });
         if (res.ok) {
           const blob = await res.blob();
           const cd = res.headers.get('Content-Disposition') || '';

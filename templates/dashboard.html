@@ -63,14 +63,14 @@
     <p class="greet">Hallo {{ current_user.display_name or current_user.remote_user }} —
       hier siehst du alle deine Anträge und Abrechnungen.</p>
   </div>
-  <a href="{{ url_for('index') }}" class="btn btn-primary">+ Neuen Antrag erstellen</a>
+  <a href="{{ urls.antrag }}" class="btn btn-primary">+ Neuen Antrag erstellen</a>
 </div>
 
 {% if not reisen %}
 <div class="empty">
   <h2>Noch keine Reise angelegt</h2>
   <p>Erstelle deinen ersten Dienstreise-Antrag. Beim Abschluss wirst du gefragt, ob du ihn deinem Konto zuordnen willst.</p>
-  <a href="{{ url_for('index') }}" class="btn btn-primary">Antrag starten</a>
+  <a href="{{ urls.antrag }}" class="btn btn-primary">Antrag starten</a>
   <p class="meta" style="margin-top:1rem;">
     Hilfe: <a href="{{ url_for('docs_view', slug='workflow') }}">Workflow Antrag → Abrechnung</a>
   </p>
@@ -123,11 +123,11 @@
         {% endif %}
       </td>
       <td class="actions">
-        <a href="{{ url_for('index', dienstreise=r.id) }}">{% if r.antrag_pdf_path %}Antrag bearbeiten{% else %}Antrag{% endif %}</a>
+        <a href="{{ url_for('konto_index', dienstreise=r.id) }}">{% if r.antrag_pdf_path %}Antrag bearbeiten{% else %}Antrag{% endif %}</a>
         {% if r.antrag_pdf_path %}
           <a href="{{ url_for('dienstreise_antrag_pdf', reise_id=r.id) }}">PDF</a>
         {% endif %}
-        <a href="{{ url_for('abrechnung_index', dienstreise=r.id) }}"
+        <a href="{{ url_for('konto_abrechnung', dienstreise=r.id) }}"
            class="{% if r.status.value in ('genehmigt','abgerechnet') %}primary{% endif %}">
           {% if r.status.value in ('abgerechnet','bezahlt') %}Abrechnung bearbeiten{% else %}Abrechnung{% endif %}
         </a>

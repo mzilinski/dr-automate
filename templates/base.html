@@ -57,15 +57,15 @@
     <nav>
       {% if is_authenticated %}
         <a href="{{ url_for('dashboard') }}">Dashboard</a>
-        <a href="{{ url_for('index') }}">Neuer Antrag</a>
-        <a href="{{ url_for('abrechnung_index') }}">Abrechnung</a>
+        <a href="{{ urls.antrag }}">Neuer Antrag</a>
+        <a href="{{ urls.abrechnung }}">Abrechnung</a>
         <a href="{{ url_for('profil_view') }}">Profil</a>
         <a href="{{ url_for('docs_view', slug='getting-started') }}">Hilfe</a>
         <span class="pill auth">{{ current_user.display_name or current_user.remote_user }}</span>
         <a href="{{ authelia_logout_url }}" data-logout>Abmelden</a>
       {% else %}
-        <a href="{{ url_for('index') }}">Neuer Antrag</a>
-        <a href="{{ url_for('abrechnung_index') }}">Abrechnung</a>
+        <a href="{{ urls.antrag }}">Neuer Antrag</a>
+        <a href="{{ urls.abrechnung }}">Abrechnung</a>
         <a href="{{ url_for('docs_view', slug='getting-started') }}">Hilfe</a>
         <a href="{{ url_for('account_request_get') }}">Account anfragen</a>
         <a href="{{ url_for('dashboard') }}">Anmelden</a>

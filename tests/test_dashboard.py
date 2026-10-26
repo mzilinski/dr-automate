@@ -18,7 +18,7 @@ def test_save_flag_persists_reise(auth_client, auth_headers):
     headers = {**auth_headers, "Remote-User": "save_test"}
     payload = _example_input()
     r = auth_client.post(
-        "/generate",
+        "/konto/generate",
         data={"json_data": json.dumps(payload), "save_to_account": "1"},
         headers=headers,
     )
@@ -36,7 +36,7 @@ def test_save_flag_persists_reise(auth_client, auth_headers):
 def test_generate_without_save_flag_does_not_persist(auth_client, auth_headers):
     headers = {**auth_headers, "Remote-User": "nosave"}
     payload = _example_input()
-    r = auth_client.post("/generate", data={"json_data": json.dumps(payload)}, headers=headers)
+    r = auth_client.post("/konto/generate", data={"json_data": json.dumps(payload)}, headers=headers)
     assert r.status_code == 200
     # Kein X-Dienstreise-Id, wenn save_to_account nicht gesetzt war
     assert "X-Dienstreise-Id" not in r.headers
@@ -48,7 +48,9 @@ def test_idor_protection_on_dienstreise(auth_client, auth_headers):
     bob = {"Remote-User": "bob", "Remote-Name": "Bob"}
     payload = _example_input()
 
-    r = auth_client.post("/generate", data={"json_data": json.dumps(payload), "save_to_account": "1"}, headers=alice)
+    r = auth_client.post(
+        "/konto/generate", data={"json_data": json.dumps(payload), "save_to_account": "1"}, headers=alice
+    )
     assert r.status_code == 200
     reise_id = r.headers["X-Dienstreise-Id"]
 
@@ -68,7 +70,9 @@ def test_idor_protection_on_dienstreise(auth_client, auth_headers):
 def test_genehmigung_workflow(auth_client, auth_headers):
     headers = {**auth_headers, "Remote-User": "gene_test"}
     payload = _example_input()
-    r = auth_client.post("/generate", data={"json_data": json.dumps(payload), "save_to_account": "1"}, headers=headers)
+    r = auth_client.post(
+        "/konto/generate", data={"json_data": json.dumps(payload), "save_to_account": "1"}, headers=headers
+    )
     reise_id = int(r.headers["X-Dienstreise-Id"])
 
     # Form anzeigen
@@ -95,7 +99,9 @@ def test_dienstreise_delete_cleans_pdfs(auth_client, auth_headers):
 
     headers = {**auth_headers, "Remote-User": "deltest"}
     payload = _example_input()
-    r = auth_client.post("/generate", data={"json_data": json.dumps(payload), "save_to_account": "1"}, headers=headers)
+    r = auth_client.post(
+        "/konto/generate", data={"json_data": json.dumps(payload), "save_to_account": "1"}, headers=headers
+    )
     reise_id = int(r.headers["X-Dienstreise-Id"])
 
     # PDF jetzt da
@@ -148,7 +154,7 @@ def test_generate_with_dienstreise_id_updates_existing(auth_client, auth_headers
     headers = {**auth_headers, "Remote-User": "update_test"}
     payload = _example_input()
     r1 = auth_client.post(
-        "/generate",
+        "/konto/generate",
         data={"json_data": json.dumps(payload), "save_to_account": "1"},
         headers=headers,
     )
@@ -157,7 +163,7 @@ def test_generate_with_dienstreise_id_updates_existing(auth_client, auth_headers
 
     payload["reise_details"]["zweck"] = "Aktualisierter Zweck"
     r2 = auth_client.post(
-        "/generate",
+        "/konto/generate",
         data={"json_data": json.dumps(payload), "save_to_account": "1", "dienstreise_id": reise_id},
         headers=headers,
     )

@@ -18,12 +18,19 @@ In Produktion garantiert Traefik, dass externe Clients diese Header
 NICHT senden koennen — sie werden von der ForwardAuth-Middleware ueber-
 schrieben.
 
-Gast-Pfade (/, /generate, ...) sind in Authelia per ``bypass`` offen; ein
-dort angemeldeter Nutzer bringt trotzdem seine Header mit. Damit nicht jede
-Authelia-Rolle (z. B. ``household``) hier Accounts anlegt, prueft
-``DR_AUTOMATE_ALLOWED_GROUPS`` (komma-separiert) ``Remote-Groups``; wer
-keine der Gruppen hat, wird als Gast behandelt. Leer = keine Pruefung
-(Dev/Tests).
+Identitaet nur auf geschuetzten Pfaden: Gast-Pfade (/, /generate, /extract,
+...) sind in Authelia per ``bypass`` offen, und dort schickt Authelia die
+``Remote-*``-Header auch fuer Sessions, die erst den ersten Faktor (Passwort)
+haben (Authelia 4.39: ``isAuthzResult`` → Bypass = authorized,
+``handleAuthzAuthorizedStandard`` setzt die Header unabhaengig vom Level).
+Die App vertraut den Headern deshalb nur auf ``GESCHUETZTE_PFADE`` — dort
+verlangt Authelia two_factor. Eine Allowlist statt der Bypass-Liste, damit
+ein spaeter ergaenzter Bypass kein Loch reisst. Eingeloggte Nutzer landen ueber
+eine Weiterleitung von den Gast-Seiten auf ``/konto/…``.
+
+Zusaetzlich prueft ``DR_AUTOMATE_ALLOWED_GROUPS`` (komma-separiert)
+``Remote-Groups``; wer keine der Gruppen hat, wird als Gast behandelt.
+Leer = keine Pruefung (Dev/Tests).
 """
 
 from __future__ import annotations
@@ -44,8 +51,12 @@ from models_db import User, UserProfile
 logger = logging.getLogger(__name__)
 
 
-# Requests ohne Identitaetsbedarf: kein DB-Zugriff (SQLite-Schreiblast).
-SKIP_USER_ENDPOINTS = {"static", "health_check"}
+# Nur hier wird Remote-User vertraut (Authelia: two_factor, kein Bypass).
+GESCHUETZTE_PFADE = ("/konto", "/dashboard", "/dienstreisen", "/profil", "/admin")
+
+
+def pfad_geschuetzt(path: str) -> bool:
+    return any(path == p or path.startswith(p + "/") for p in GESCHUETZTE_PFADE)
 
 # last_login_at hoechstens so oft schreiben — sonst committet jeder Request.
 LAST_LOGIN_GRANULARITY = timedelta(minutes=15)
@@ -129,8 +140,8 @@ def _upsert_user(remote_user: str, email: str | None, display_name: str | None, 
 
 def load_current_user() -> User | None:
     """Liest die Identitaet aus Authelia-Headern. Vor jedem Request aufrufen."""
-    # /api/v1 authentifiziert ausschliesslich per Bearer-Key (api_v1.py).
-    if not _trust_header() or request.endpoint in SKIP_USER_ENDPOINTS or request.path.startswith("/api/v1/"):
+    # Gast-Pfade (inkl. /api/v1, das per Bearer-Key authentifiziert) nie.
+    if not _trust_header() or not pfad_geschuetzt(request.path):
         return None
     remote_user = request.headers.get("Remote-User", "").strip()
     if not remote_user:
@@ -149,6 +160,19 @@ def load_current_user() -> User | None:
     except Exception:  # pragma: no cover
         logger.exception("User-Upsert fehlgeschlagen fuer remote_user=%s", remote_user)
         return None
+
+
+def session_auf_gastpfad() -> bool:
+    """Bringt ein Request auf einem Gast-Pfad eine Authelia-Session einer
+    erlaubten Gruppe mit? Dann leitet die App GET-Seiten nach /konto/… um, wo
+    Authelia den zweiten Faktor verlangt. Die Header selbst werden hier NICHT
+    als Identitaet verwendet (Level unbekannt)."""
+    if not _trust_header() or pfad_geschuetzt(request.path):
+        return False
+    if not request.headers.get("Remote-User", "").strip():
+        return False
+    erlaubt = allowed_groups()
+    return not erlaubt or bool(request_groups() & erlaubt)
 
 
 def login_required(view):

@@ -173,6 +173,19 @@ limiter.init_app(app)
 # REST-API v1 (Bearer-Keys, ohne CSRF/Session) — plan-api-v1.md
 api_v1.init_app(app, csrf)
 
+
+def _konto_routen() -> None:
+    """Konto-Varianten der Wizard-Routen unter /konto/ (Authelia: two_factor).
+    Dieselben Views — nur hier gilt die Identität (auth.GESCHUETZTE_PFADE)."""
+    for rule, endpoint, view, methods in (
+        ("/konto/", "konto_index", index, ["GET"]),
+        ("/konto/abrechnung", "konto_abrechnung", abrechnung_index, ["GET"]),
+        ("/konto/generate", "konto_generate", generate, ["POST"]),
+        ("/konto/extract", "konto_extract", extract, ["POST"]),
+        ("/konto/abrechnung/generate", "konto_abrechnung_generate", abrechnung_generate, ["POST"]),
+    ):
+        app.add_url_rule(rule, endpoint=endpoint, view_func=view, methods=methods)
+
 # PDFs nach Paperless (nur mit PAPERLESS_URL; Thread im gunicorn-Worker)
 paperless_sync.worker_starten()
 
@@ -261,6 +274,24 @@ NRKVO_RATES_JS = {
 }
 
 
+def _wizard_urls(konto: bool) -> dict:
+    if konto:
+        return {
+            "antrag": url_for("konto_index"),
+            "abrechnung": url_for("konto_abrechnung"),
+            "generate": url_for("konto_generate"),
+            "extract": url_for("konto_extract"),
+            "abr_generate": url_for("konto_abrechnung_generate"),
+        }
+    return {
+        "antrag": url_for("index"),
+        "abrechnung": url_for("abrechnung_index"),
+        "generate": url_for("generate"),
+        "extract": url_for("extract"),
+        "abr_generate": url_for("abrechnung_generate"),
+    }
+
+
 def _common_template_ctx():
     user = getattr(g, "current_user", None)
     return {
@@ -271,6 +302,9 @@ def _common_template_ctx():
         "current_user": user,
         "is_authenticated": user is not None,
         "authelia_logout_url": os.environ.get("AUTHELIA_LOGOUT_URL", "/"),
+        # Ziele der Wizard-Links/-Requests: eingeloggt die /konto/-Varianten
+        # (Identität nur dort), sonst die Gast-Pfade.
+        "urls": _wizard_urls(user is not None),
         "wizard_profile_seed": _build_wizard_profile_seed(user),
     }
 
@@ -311,6 +345,21 @@ def _profile_antrag_overrides(user) -> tuple[dict | None, dict | None]:
 @app.before_request
 def load_user():
     g.current_user = auth.load_current_user()
+
+
+# Gast-Seite → Konto-Seite, wenn eine Authelia-Session mitkommt. Auf Gast-Pfaden
+# ist das Login-Level unbekannt (auch Passwort-only-Sessions bringen Header mit),
+# deshalb wird dort nichts aus dem Konto gezeigt; /konto/… verlangt in Authelia
+# den zweiten Faktor.
+_KONTO_ZIEL = {"/": "konto_index", "/abrechnung": "konto_abrechnung", "/landing": "dashboard"}
+
+
+@app.before_request
+def gast_seite_zum_konto():
+    ziel = _KONTO_ZIEL.get(request.path)
+    if ziel and request.method == "GET" and auth.session_auf_gastpfad():
+        return redirect(url_for(ziel, **request.args))
+    return None
 
 
 @app.route("/", methods=["GET"])
@@ -1392,6 +1441,9 @@ def too_large_handler(e):
     """Handler fuer Upload-Limit-Ueberschreitung (PDF-Upload)."""
     return jsonify({"error": f"Datei zu gross (max {MAX_UPLOAD_BYTES // (1024 * 1024)} MB)."}), 413
 
+
+
+_konto_routen()
 
 if __name__ == "__main__":
     logger.info(f"Starting server on {HOST}:{PORT} (debug={DEBUG_MODE})")
