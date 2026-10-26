@@ -39,7 +39,14 @@ import nrkvo_rates
 import pdf_text
 import services
 from extensions import limiter
-from ki_kontext import _format_reise_kontext, _ki_kontext, _load_system_prompt, _wohnort  # noqa: F401
+from ki_kontext import (  # noqa: F401
+    _format_reise_kontext,
+    _ki_kontext,
+    _load_system_prompt,
+    _strip_citations,
+    _strip_citations_raw,
+    _wohnort,
+)
 from models import (
     apply_profile_authoritative,
     bahncards_to_konfig_flags,
@@ -168,26 +175,6 @@ api_v1.init_app(app, csrf)
 # Prüfe ob Template existiert
 if not os.path.exists(PDF_TEMPLATE_PATH):
     logger.warning(f"Template file not found at {PDF_TEMPLATE_PATH}")
-
-
-_CITATION_RE = re.compile(r"\s*\[cite:[^\]]+\]", re.IGNORECASE)
-_CITATION_RAW_RE = re.compile(r"\[cite_start\]|\[cite_end\]|\s*\[cite:[^\]]+\]", re.IGNORECASE)
-
-
-def _strip_citations_raw(text: str) -> str:
-    """Entfernt KI-Zitatmarker aus rohem JSON-Text vor dem Parsen."""
-    return _CITATION_RAW_RE.sub("", text)
-
-
-def _strip_citations(obj):
-    """Entfernt KI-Zitatmarker wie [cite: 1, 2] rekursiv aus allen String-Werten."""
-    if isinstance(obj, dict):
-        return {k: _strip_citations(v) for k, v in obj.items()}
-    if isinstance(obj, list):
-        return [_strip_citations(i) for i in obj]
-    if isinstance(obj, str):
-        return _CITATION_RE.sub("", obj).strip()
-    return obj
 
 
 def _legal_urls():

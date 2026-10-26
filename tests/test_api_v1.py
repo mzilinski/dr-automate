@@ -431,3 +431,68 @@ def test_ungueltiger_status_filter_und_datum(auth_client, mit_profil):
 def test_api_reise_erscheint_im_dashboard(auth_client, admin, mit_profil):
     auth_client.post("/api/v1/reisen", json=antrag_v1(), headers=_bearer(mit_profil))
     assert b"Digitale Transformation" in auth_client.get("/dashboard", headers=admin).data
+
+
+# ---------- Phase 4: extract, OpenAPI ----------
+
+
+def test_openapi_ohne_key_und_vollstaendig(app_module, auth_client):
+    import api_openapi
+
+    r = auth_client.get("/api/v1/openapi.json")
+    assert r.status_code == 200
+    spec = r.get_json()
+    assert spec["openapi"] == "3.1.0" and "AntragV1" in spec["components"]["schemas"]
+    # Doku-Tabelle == registrierte Routen
+    registriert = set()
+    for rule in app_module.app.url_map.iter_rules():
+        if rule.rule.startswith("/api/v1/"):
+            pfad = rule.rule.removeprefix("/api/v1").replace("<int:reise_id>", "{reise_id}")
+            for m in rule.methods - {"HEAD", "OPTIONS"}:
+                registriert.add((m.lower(), pfad))
+    dokumentiert = {(m, p) for m, p, *_ in api_openapi.ROUTEN}
+    assert registriert == dokumentiert
+
+
+def test_extract_mit_profil_key(auth_client, admin, mit_profil):
+    from unittest.mock import patch
+
+    t = _key_anlegen(auth_client, admin, scopes=("extract",), name="ex")
+    auth_client.post("/profil", data={**PROFIL, "deepseek_api_key": "sk-eigener"}, headers=admin)
+    captured = {}
+
+    def fake(freitext, api_key, system_prompt, sonderwuensche=""):
+        captured.update(freitext=freitext, api_key=api_key)
+        return {
+            "reise_details": {"zielort": "Hannover [cite: 1]", "start_datum": "12.03.2027"},
+            "zusatz_infos": {"bemerkungen_feld": "ICE 10:12"},
+            "konfiguration_checkboxen": {"kosten_durch_andere_stelle": False},
+        }
+
+    with patch("ai_extract.call_deepseek", side_effect=fake):
+        r = auth_client.post(
+            "/api/v1/extract",
+            json={"freitext": "Tagung in Hannover", "hinreise": {"typ": "BAHN"}},
+            headers={**_bearer(t), "X-DeepSeek-Key": "sk-fremd"},
+        )
+    assert r.status_code == 200, r.get_json()
+    e = r.get_json()["antrag_entwurf"]
+    assert e["reise_details"]["zielort"] == "Hannover" and e["bemerkungen"] == "ICE 10:12"
+    assert captured["api_key"] == "sk-eigener"
+    assert "49808 Lingen" in captured["freitext"] and "Hinreise: Bahn" in captured["freitext"]
+
+
+def test_extract_ohne_scope_und_ohne_key(auth_client, admin, mit_profil):
+    assert auth_client.post("/api/v1/extract", json={"freitext": "x"}, headers=_bearer(mit_profil)).status_code == 403
+    t = _key_anlegen(auth_client, admin, scopes=("extract",), name="ex2")
+    r = auth_client.post("/api/v1/extract", json={"freitext": "x"}, headers=_bearer(t))
+    assert r.status_code == 422 and "DeepSeek-Key" in r.get_json()["title"]
+
+
+def test_cli_widerrufen(auth_client, admin, token, monkeypatch, capsys):
+    import api_keys
+
+    monkeypatch.setattr("sys.argv", ["api_keys.py", "widerrufen", admin["Remote-User"]])
+    assert api_keys._cli() == 0
+    assert "1 Key(s)" in capsys.readouterr().out
+    assert auth_client.get("/api/v1/me", headers=_bearer(token)).status_code == 401

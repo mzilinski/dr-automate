@@ -347,3 +347,23 @@ def reise_v1(r, mit_daten: bool = False) -> dict:
         d["abrechnung"] = abrechnung_from_internal(abr.abrechnung_json) if abr and abr.abrechnung_json else None
         d["berechnung"] = (abr.abrechnung_json or {}).get("berechnet") if abr and abr.abrechnung_json else None
     return d
+
+
+class ExtractV1(V1):
+    """Eingabe für die KI-Extraktion (DeepSeek, Key aus dem Server-Profil)."""
+
+    freitext: str = Field("", max_length=50000, description="Ausschreibung/E-Mail; optional, wenn ein PDF mitkommt")
+    hinreise: StreckeV1 | None = Field(None, description="für die Schätzung der Reisezeiten")
+    rueckreise: StreckeV1 | None = None
+    hinweise: str = Field("", max_length=2000, description="Sonderwünsche an die KI")
+
+
+def extrakt_v1(ki: dict) -> dict:
+    """KI-Ausgabe (Prompt-Schema) als Antrags-Entwurf im v1-Format."""
+    rd = ki.get("reise_details") or {}
+    kc = ki.get("konfiguration_checkboxen") or {}
+    return {
+        "reise_details": {k: rd.get(k, [] if k == "weitere_teilnehmer" else "") for k in ReiseDetailsV1.model_fields},
+        "bemerkungen": (ki.get("zusatz_infos") or {}).get("bemerkungen_feld") or "",
+        "angaben": {k: bool(kc.get(k)) for k in AngabenV1.model_fields},
+    }

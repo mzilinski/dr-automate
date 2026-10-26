@@ -35,9 +35,19 @@ Die Admin-Seite `/admin/account-requests` ist zusätzlich auf `ADMIN_REMOTE_USER
 Im `authelia_users`-Eintrag `disabled: true` setzen und deployen. Die Datensätze in
 dr-automate bleiben erhalten; bestehende Sessions werden beim nächsten ForwardAuth-Call ungültig.
 
+## API-Keys (Offboarding)
+
+Keys gelten nur für `DR_AUTOMATE_API_GROUPS` (Standard `admins`) und verfallen 90 Tage
+nach dem letzten Web-Login mit dieser Gruppe von selbst. Sofort sperren:
+
+```bash
+docker exec dr-automate python api_keys.py liste <remote_user>
+docker exec dr-automate python api_keys.py widerrufen <remote_user>
+```
+
 ## User löschen
 
-1. In dr-automate-DB: `DELETE FROM users WHERE remote_user='alice';` – Cascade entfernt Profil, Reisen, Abrechnungen, PDFs müssen separat aus dem Dateisystem gelöscht werden (`rm -rf /app/data/pdfs/<user_id>`).
+1. API-Keys widerrufen (siehe oben), dann in der dr-automate-DB: `DELETE FROM users WHERE remote_user='alice';` – Cascade entfernt Profil, Reisen, Abrechnungen, PDFs müssen separat aus dem Dateisystem gelöscht werden (`rm -rf /app/data/pdfs/<user_id>`).
 2. In Authelia: Eintrag aus `authelia_users` entfernen → Deploy.
 3. Vault-Variable löschen.
 
