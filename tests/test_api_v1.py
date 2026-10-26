@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 import uuid
 from datetime import datetime, timedelta
@@ -206,3 +207,138 @@ def test_rate_limit_fehlversuche(app_module, auth_client):
     finally:
         app_module.limiter.reset()
         app_module.limiter.enabled = False
+
+
+# ---------- Phase 2: Schema, Prompt, zustandslose Endpunkte ----------
+
+PROFIL = {
+    "vorname": "Erika",
+    "nachname": "Muster",
+    "abteilung": "BBS Lingen",
+    "telefon": "0591 123456",
+    "adresse_privat": "Am Weg 1, 49808 Lingen",
+    "iban": "DE89370400440532013000",
+    "bic": "COBADEFFXXX",
+    "abrechnende_dienststelle": "NLBV Aurich",
+}
+
+
+def antrag_v1():
+    with open("example_input.json") as f:
+        d = json.load(f)
+    return {
+        "reise_details": d["reise_details"],
+        "befoerderung": {
+            "hinreise": {"typ": "PKW", "paragraph_5_nrkvo": "III"},
+            "rueckreise": {"typ": "PKW", "paragraph_5_nrkvo": "III"},
+            "begruendung": "Materialtransport",
+        },
+        "bemerkungen": "Fähre 08:30",
+        "angaben": {"anspruch_trennungsgeld": False},
+    }
+
+
+def abrechnung_v1():
+    a = antrag_v1()
+    return {
+        "reise_details": a["reise_details"],
+        "befoerderung": {"hinreise": {"typ": "PKW"}, "rueckreise": {"typ": "PKW"}},
+        "uebernachtungen": {"beleg_naechte": 2, "beleg_kosten_eur": 180},
+        "wegstrecke": {"km_hinreise": 120, "km_rueckreise": 120},
+    }
+
+
+@pytest.fixture
+def mit_profil(auth_client, admin, token):
+    auth_client.post("/profil", data=PROFIL, headers=admin)
+    return token
+
+
+def test_schema_endpunkte(auth_client, token):
+    s = auth_client.get("/api/v1/schema/antrag", headers=_bearer(token)).get_json()
+    assert "reise_details" in s["properties"] and "antragsteller" not in s["properties"]
+    s = auth_client.get("/api/v1/schema/abrechnung", headers=_bearer(token)).get_json()
+    assert "uebernachtungen" in s["properties"] and "stammdaten" not in s["properties"]
+
+
+def test_prompt_mit_kontext(auth_client, mit_profil):
+    j = auth_client.get("/api/v1/prompt", headers=_bearer(mit_profil)).get_json()
+    assert "reise_details" in j["system_prompt"]
+    assert "49808 Lingen" in j["kontext"] and "Am Weg" not in j["kontext"]
+
+
+def test_antrag_pdf(auth_client, mit_profil):
+    r = auth_client.post("/api/v1/antrag/pdf", json=antrag_v1(), headers=_bearer(mit_profil))
+    assert r.status_code == 200, r.get_json()
+    assert r.mimetype == "application/pdf"
+    from io import BytesIO
+
+    from pypdf import PdfReader
+
+    fields = PdfReader(BytesIO(r.data)).get_fields()
+    assert fields["Person.Name1"]["/V"] == "Erika Muster"  # aus dem Profil
+
+
+def test_antragsteller_im_body_wird_abgelehnt(auth_client, mit_profil):
+    body = {**antrag_v1(), "antragsteller": {"name": "Fremd"}}
+    r = auth_client.post("/api/v1/antrag/pdf", json=body, headers=_bearer(mit_profil))
+    assert r.status_code == 422
+    assert r.get_json()["errors"][0]["loc"] == ["antragsteller"]
+
+
+def test_validierungsfehler_mit_ort(auth_client, mit_profil):
+    body = antrag_v1()
+    body["reise_details"]["start_datum"] = "32.13.2026"
+    r = auth_client.post("/api/v1/antrag/pdf", json=body, headers=_bearer(mit_profil))
+    assert r.status_code == 422
+    assert ["reise_details", "start_datum"] in [e["loc"] for e in r.get_json()["errors"]]
+    assert "32.13.2026" not in json.dumps(r.get_json()["errors"][0].get("input", ""))
+
+
+def test_profil_unvollstaendig(auth_client, token):
+    r = auth_client.post("/api/v1/antrag/pdf", json=antrag_v1(), headers=_bearer(token))
+    assert r.status_code == 422
+    assert "Profil unvollständig" in r.get_json()["detail"]
+
+
+def test_scope_fehlt(auth_client, admin):
+    nur_lesen = _key_anlegen(auth_client, admin, scopes=("reisen:read",), name="ro")
+    r = auth_client.post("/api/v1/antrag/pdf", json=antrag_v1(), headers=_bearer(nur_lesen))
+    assert r.status_code == 403
+
+
+def test_kein_json(auth_client, mit_profil):
+    r = auth_client.post("/api/v1/antrag/pdf", data="x", headers=_bearer(mit_profil))
+    assert r.status_code == 415
+    r = auth_client.post(
+        "/api/v1/antrag/pdf", data="{kaputt", headers={**_bearer(mit_profil), "Content-Type": "application/json"}
+    )
+    assert r.status_code == 400
+
+
+def test_abrechnung_berechnung(auth_client, mit_profil):
+    r = auth_client.post("/api/v1/abrechnung/berechnung", json=abrechnung_v1(), headers=_bearer(mit_profil))
+    assert r.status_code == 200, r.get_json()
+    j = r.get_json()
+    assert j["tagegeld_brutto_eur"] == 56.0  # 15.–17.05.: 2 Teiltage + 1 voller Tag
+    assert j["wegstreckenentschaedigung_eur"] == 60.0
+    assert j["uebernachtung_beleg_pro_nacht_eur"] == 90.0
+
+
+def test_abrechnung_pdf_braucht_bankdaten(auth_client, admin, token):
+    auth_client.post("/profil", data={**PROFIL, "iban": ""}, headers=admin)
+    r = auth_client.post("/api/v1/abrechnung/pdf", json=abrechnung_v1(), headers=_bearer(token))
+    assert r.status_code == 422 and "IBAN" in r.get_json()["detail"]
+    auth_client.post("/profil", data=PROFIL, headers=admin)
+    r = auth_client.post("/api/v1/abrechnung/pdf", json=abrechnung_v1(), headers=_bearer(token))
+    assert r.status_code == 200 and r.mimetype == "application/pdf"
+
+
+def test_entfernung(auth_client, token):
+    from unittest.mock import patch
+
+    with patch("routing.route_km", return_value={"km": 101.5, "duration_min": 75}):
+        r = auth_client.post(
+            "/api/v1/entfernung", json={"von": "49808 Lingen", "nach": "30159 Hannover"}, headers=_bearer(token)
+        )
+    assert r.get_json() == {"km": 101.5, "minuten": 75, "quelle": "OpenStreetMap / OSRM"}
