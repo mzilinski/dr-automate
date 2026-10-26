@@ -168,6 +168,11 @@
     @media (prefers-color-scheme: dark) {
       .warn-box { color: #d4a830; border-color: #7a5800; }
     }
+    .tage-table { width: 100%; border-collapse: collapse; font-size: .85rem; margin: .5rem 0 1rem; }
+    .tage-table th, .tage-table td { padding: .4rem .3rem; border-bottom: 1px solid var(--border); text-align: center; }
+    .tage-table th:first-child, .tage-table td:first-child { text-align: left; }
+    .tage-table input[type="checkbox"] { width: 1.05rem; height: 1.05rem; accent-color: var(--accent); }
+    .hinweis-list { margin: .5rem 0 0 1.1rem; padding: 0; }
 
     .file-drop {
       display: block;
@@ -212,26 +217,15 @@
     .global-nav .pill{font-size:.7rem;font-weight:600;padding:.16rem .5rem;border-radius:999px;
       border:1px solid var(--border);color:var(--muted);background:var(--surface-hi);}
     .global-nav .pill.auth{color:var(--ok);border-color:var(--ok);background:var(--ok-subtle);}
+    @media (max-width: 640px) {
+      .global-nav{flex-direction:column;align-items:flex-start;gap:.35rem;position:static;}
+      .global-nav nav{gap:.25rem .5rem;}
+    }
     .guest-strip{background:var(--warn-subtle);border-bottom:1px solid var(--border);
       padding:.5rem 1.2rem;font-size:.88rem;}
     .guest-strip a{color:var(--accent);}
   </style>
-  {% if wizard_profile_seed %}
-  <script>
-    (function() {
-      var seed = {{ wizard_profile_seed | tojson }};
-      try {
-        var existing = JSON.parse(localStorage.getItem('dr_profile') || '{}');
-        Object.keys(seed).forEach(function(k) {
-          if (seed[k]) existing[k] = seed[k];
-        });
-        // Server-Key-Marker (Klar-Key bleibt serverseitig, hier nur bool)
-        if (seed.has_deepseek_api_key) existing.has_server_deepseek_key = true;
-        localStorage.setItem('dr_profile', JSON.stringify(existing));
-      } catch (e) { console.error('Profile seed failed:', e); }
-    })();
-  </script>
-  {% endif %}
+  {% include '_profile_seed.html' %}
 </head>
 <body>
 
@@ -245,7 +239,7 @@
         <a href="{{ url_for('profil_view') }}">Profil</a>
         <a href="{{ url_for('docs_view', slug='workflow') }}">Hilfe</a>
         <span class="pill auth">{{ current_user.display_name or current_user.remote_user }}</span>
-        <a href="{{ authelia_logout_url }}">Abmelden</a>
+        <a href="{{ authelia_logout_url }}" data-logout>Abmelden</a>
       {% else %}
         <a href="{{ url_for('index') }}">Neuer Antrag</a>
         <a href="{{ url_for('abrechnung_index') }}" class="active">Abrechnung</a>
@@ -264,7 +258,7 @@
   </div>
   {% endif %}
 
-  <div class="alert-stack" id="alertStack"></div>
+  <div class="alert-stack" id="alertStack" role="status" aria-live="polite"></div>
 
   <div class="spinner-overlay" id="loadingSpinner">
     <div class="spinner-box">
@@ -285,7 +279,7 @@
         <div class="avatar empty" id="profileAvatar">?</div>
         <span class="profile-label" id="profileStatus">Profil wird geladen …</span>
       </div>
-      <a href="/" class="btn btn-ghost btn-sm">Profil&nbsp;bearbeiten</a>
+      <a href="{{ url_for('profil_view') if is_authenticated else url_for('index') }}" class="btn btn-ghost btn-sm">Profil&nbsp;bearbeiten</a>
     </div>
 
     <nav class="stepper" id="stepper" aria-label="Wizard-Navigation">
@@ -329,6 +323,10 @@
           <div id="aiExtractBlockAbr" class="full" style="display:none; margin-top:1.25rem; border-top:1.5px dashed var(--border); padding-top:1rem;">
             <p style="margin:0 0 .5rem 0;"><strong>Oder: AI macht das aus Freitext.</strong>
               Ausschreibung/E-Mail einfügen – DeepSeek füllt den Wizard, du prüfst Schritt&nbsp;für&nbsp;Schritt.
+            </p>
+            <p class="wiz-hint" style="margin:0 0 .5rem 0;">
+              Der Text geht an DeepSeek (China, kein EU-Datenschutzniveau) — keine unnötigen Daten Dritter einfügen.
+              <a href="{{ datenschutz_url }}">Details</a>
             </p>
             <textarea id="aiFreitextAbr" rows="6" placeholder="Ausschreibung / E-Mail / Notiz hier einfügen …"></textarea>
             <div style="margin-top:.6rem; display:flex; align-items:center; gap:1rem;">
@@ -479,11 +477,11 @@
                 <option value="FLUG">Flug</option>
               </select>
             </div>
-            <div>
+            <div id="f_hin_para_wrap">
               <label class="field-label" for="f_hin_para">§ 5 NRKVO</label>
               <select id="f_hin_para" data-bind="befoerderung.hinreise.paragraph_5_nrkvo">
-                <option value="II">II — kleine Wegstrecke (0,25 €/km)</option>
-                <option value="III">III — große Wegstrecke (0,38 €/km, triftiger Grund)</option>
+                <option value="II">II — kleine Wegstrecke ({{ '%.2f'|format(nrkvo.WEGSTRECKE_KLEIN)|replace('.', ',') }} €/km)</option>
+                <option value="III">III — große Wegstrecke ({{ '%.2f'|format(nrkvo.WEGSTRECKE_GROSS)|replace('.', ',') }} €/km, erhebliches dienstliches Interesse)</option>
               </select>
             </div>
             <div>
@@ -497,15 +495,15 @@
                 <option value="FLUG">Flug</option>
               </select>
             </div>
-            <div>
+            <div id="f_rueck_para_wrap">
               <label class="field-label" for="f_rueck_para">§ 5 NRKVO</label>
               <select id="f_rueck_para" data-bind="befoerderung.rueckreise.paragraph_5_nrkvo">
                 <option value="II">II — kleine Wegstrecke</option>
                 <option value="III">III — große Wegstrecke</option>
               </select>
             </div>
-            <div class="full">
-              <label class="field-label" for="f_sonderfall">Begründung bei § 5 III (Pflicht)</label>
+            <div class="full" id="f_sonderfall_wrap">
+              <label class="field-label" for="f_sonderfall">Begründung bei § 5 III / Flug (Pflicht)</label>
               <input type="text" id="f_sonderfall" data-bind="befoerderung.sonderfall_begruendung_textfeld" placeholder="z.B. Materialtransport, schlechte ÖPNV-Anbindung">
             </div>
           </div>
@@ -571,12 +569,16 @@
             Zähle nur unentgeltlich vom Amt bereitgestellte Mahlzeiten — diese kürzen das Tagegeld.
           </p>
 
+          {% set eur = '%.2f' %}
           <div class="info-box">
-            <strong>Tagegeld = Verpflegungsmehraufwand</strong> (§§ 6, 9 NRKVO Nds.) — kein
+            <strong>Tagegeld = Verpflegungsmehraufwand</strong> (§ 7 NRKVO) — kein
             Pauschal-Bonus, sondern Ausgleich für unterwegs entstandene Essenskosten.
-            Aktuelle Kürzungen bei gestellten Mahlzeiten:
-            Frühstück 5,60 € · Mittag 11,20 € · Abend 11,20 € (vom vollen Tagegeld 28 €).
-            Sind alle Mahlzeiten gestellt → Tagegeld geht automatisch auf 0.
+            Kürzung je gestellter Mahlzeit (§ 7 Abs. 3):
+            Frühstück {{ (eur|format(nrkvo.KUERZUNG_FRUEH))|replace('.', ',') }} € ·
+            Mittag {{ (eur|format(nrkvo.KUERZUNG_MITTAG))|replace('.', ',') }} € ·
+            Abend {{ (eur|format(nrkvo.KUERZUNG_ABEND))|replace('.', ',') }} €
+            (vom vollen Tagegeld {{ (eur|format(nrkvo.TAGEGELD_VOLL))|replace('.', ',') }} €), pro Tag höchstens bis auf 0.
+            Das gilt auch für Mahlzeiten, die in erstatteten Hotel-, Tagungs- oder Fahrtkosten enthalten sind.
             Wer komplett darauf verzichten will, nutzt die Checkbox
             <em>„Verzicht auf Tagegeld"</em> in Schritt 8.
           </div>
@@ -590,6 +592,17 @@
               Frühstück = Anzahl Übernachtungen; Mittag/Abend = volle DG-Tage + Beginn-/Ende-Tag
               falls die Mahlzeit ins DG-Fenster fällt. Werte ggf. korrigieren.
             </span>
+          </div>
+
+          <div class="check-row">
+            <input type="checkbox" id="f_tage_modus">
+            <label for="f_tage_modus">Mahlzeiten pro Tag erfassen (genauer: Kürzung je Tag gedeckelt)</label>
+          </div>
+          <div id="tageWrap" style="display:none;">
+            <table class="tage-table">
+              <thead><tr><th>Tag</th><th>Frühstück</th><th>Mittag</th><th>Abend</th></tr></thead>
+              <tbody id="tageBody"></tbody>
+            </table>
           </div>
 
           <div class="field-grid">
@@ -612,19 +625,23 @@
             <div>
               <label class="field-label" for="f_naechte_pauschal">Nächte mit Übernachtungsgeld</label>
               <input type="number" id="f_naechte_pauschal" data-bind="uebernachtungen.anzahl_pauschal" min="0" max="99" step="1" value="0">
-              <p class="wiz-hint">20 €/Nacht ohne Beleg, max. 14 Nächte</p>
+              <p class="wiz-hint">{{ (eur|format(nrkvo.UEBERNACHTUNG_PAUSCHAL))|replace('.', ',') }} €/Nacht ohne Beleg, max. {{ nrkvo.UEBERNACHTUNG_MAX_NAECHTE }} Nächte</p>
             </div>
             <div>
               <label class="field-label" for="f_naechte_unentgeltlich">Nächte unentgeltlich (Amt)</label>
               <input type="number" id="f_naechte_unentgeltlich" data-bind="uebernachtungen.anzahl_unentgeltlich" min="0" max="99" step="1" value="0">
             </div>
-            <div class="full">
+            <div>
+              <label class="field-label" for="f_naechte_beleg">Nächte mit Hotelbeleg</label>
+              <input type="number" id="f_naechte_beleg" data-bind="uebernachtungen.anzahl_beleg" min="0" max="99" step="1" value="0">
+            </div>
+            <div>
               <label class="field-label" for="f_uebern_kosten">Übernachtungskosten lt. Beleg (gesamt EUR)</label>
               <input type="number" id="f_uebern_kosten" data-bind="uebernachtungen.kosten_eur" min="0" step="0.01" value="0">
-              <p class="wiz-hint">Belege gehen in Papierform mit dem Antrag mit. Über 100 €/Nacht: Begründung Pflicht.</p>
             </div>
+            <p class="wiz-hint full">Belege gehen in Papierform mit. Über {{ nrkvo.UEBERNACHTUNG_BELEG_OHNE_BEGR|int }} €/Nacht (Kosten ÷ Belegnächte) ist eine Begründung Pflicht (§ 8 NRKVO: nur soweit unvermeidbar). Pauschal-, Beleg- und unentgeltliche Nächte zusammen dürfen die Nächte der Reise nicht übersteigen.</p>
             <div class="full" id="f_begr_100_wrapper" style="display:none;">
-              <label class="field-label" for="f_begr_100">Begründung &gt; 100 €/Nacht *</label>
+              <label class="field-label" for="f_begr_100">Begründung bei mehr als {{ nrkvo.UEBERNACHTUNG_BELEG_OHNE_BEGR|int }} €/Nacht</label>
               <input type="text" id="f_begr_100" data-bind="uebernachtungen.begruendung_ueber_100">
             </div>
           </div>
@@ -702,7 +719,7 @@
             <summary style="cursor:pointer; font-weight:600; color:var(--accent);">
               🗺 Entfernung schätzen (OpenStreetMap)
             </summary>
-            <div style="margin-top:.6rem; display:grid; grid-template-columns:1fr 1fr; gap:.5rem;">
+            <div class="field-grid" style="margin-top:.6rem;">
               <div>
                 <label class="field-label" for="r_from">Start-Adresse</label>
                 <input type="text" id="r_from" placeholder="z.B. Lingen, Am Biener Esch 11">
@@ -782,7 +799,7 @@
 
           <div class="check-row">
             <input type="checkbox" id="f_2km" data-bind="konfiguration_checkboxen.dienstgeschaeft_2km_umkreis">
-            <label for="f_2km">Dienstgeschäft im 2-km-Umkreis (kein Tagegeld)</label>
+            <label for="f_2km">Dienstgeschäft im 2-km-Umkreis (kein Tagegeld, außer bei Fortbildungsteilnahme)</label>
           </div>
           <div class="check-row">
             <input type="checkbox" id="f_trennung" data-bind="konfiguration_checkboxen.anspruch_trennungsgeld">
@@ -800,9 +817,25 @@
             <input type="checkbox" id="f_bcp" data-bind="konfiguration_checkboxen.bahncard_privat_vorhanden">
             <label for="f_bcp">BahnCard privat vorhanden</label>
           </div>
+          <div class="field-grid" id="f_bcp_stufe_wrap" style="margin:.2rem 0 .4rem 1.65rem;">
+            <div>
+              <label class="field-label" for="f_bcp_stufe">Stufe der privaten BahnCard</label>
+              <select id="f_bcp_stufe" data-bind="konfiguration_checkboxen.bahncard_privat_stufe" data-type="int">
+                <option value="25">BahnCard 25</option>
+                <option value="50">BahnCard 50</option>
+                <option value="100">BahnCard 100</option>
+              </select>
+            </div>
+          </div>
           <div class="check-row">
-            <input type="checkbox" id="f_erm" data-bind="konfiguration_checkboxen.weitere_ermaessigungen_vorhanden">
-            <label for="f_erm">Weitere Ermäßigungen / Ermäßigungskarte</label>
+            <input type="checkbox" id="f_erm" data-bind="konfiguration_checkboxen.ermaessigungskarte_vorhanden">
+            <label for="f_erm">Ermäßigungskarte (Monatskarte, Jobticket) für die Strecke vorhanden</label>
+          </div>
+          <div class="field-grid" id="f_erm_strecke_wrap" style="margin:.2rem 0 .4rem 1.65rem;">
+            <div class="full">
+              <label class="field-label" for="f_erm_strecke">Strecke der Ermäßigungskarte</label>
+              <input type="text" id="f_erm_strecke" data-bind="konfiguration_checkboxen.ermaessigungskarte_strecke" placeholder="z.B. Lingen – Osnabrück" maxlength="200">
+            </div>
           </div>
           <div class="check-row">
             <input type="checkbox" id="f_urlaub" data-bind="flags.urlaub_ueber_5_tage">
@@ -838,14 +871,15 @@
         <section class="wiz-step" data-step="9">
           <h2 class="step-title"><span class="step-title-num">09</span>Zusammenfassung &amp; PDF</h2>
           <p class="step-lead">
-            Live-Berechnung nach NRKVO Stand <strong>{{ nrkvo_stand }}</strong>. Zur Sicherheit
-            das JSON exportieren — beim nächsten Browser/Gerät kannst du dort wieder einsteigen.
+            Berechnung nach NRKVO Stand <strong>{{ nrkvo_stand }}</strong> — dieselbe, mit der der Server
+            das PDF füllt. Zur Sicherheit das JSON exportieren — beim nächsten Browser/Gerät kannst du
+            dort wieder einsteigen.
           </p>
 
           <div id="validationSummary" style="margin-bottom:1rem;"></div>
 
           <table class="summary-table">
-            <tr><td>Tagegeld brutto</td><td id="s_tg_brutto">0,00 €</td></tr>
+            <tr><td>Tagegeld brutto <span id="s_tg_tage" class="wiz-hint"></span></td><td id="s_tg_brutto">0,00 €</td></tr>
             <tr class="deduction"><td>− Kürzung Verpflegung</td><td id="s_kuerzung">0,00 €</td></tr>
             <tr><td>Tagegeld netto</td><td id="s_tg_netto">0,00 €</td></tr>
             <tr><td>Übernachtungsgeld pauschal</td><td id="s_uebern_pausch">0,00 €</td></tr>
@@ -861,9 +895,10 @@
             <tr class="total"><td>Auszahlbetrag</td><td id="s_auszahl">0,00 €</td></tr>
           </table>
 
+          <div id="summaryHinweise"></div>
           <div class="summary-note">
-            Die endgültige Berechnung erfolgt durch den Server beim PDF-Generieren. Diese Anzeige ist
-            nur eine Vorschau und ersetzt keine sachliche Prüfung.
+            Die Werte stammen aus der Server-Berechnung, mit der auch das PDF gefüllt wird. Sie
+            ersetzen keine sachliche Prüfung durch die abrechnende Stelle.
           </div>
 
           <form id="genForm" style="margin-top:1.25rem;">
@@ -875,7 +910,7 @@
               </button>
               <div class="btn-secondary-row">
                 <button type="button" class="btn btn-outline btn-sm" onclick="exportJson()">JSON exportieren</button>
-                <button type="button" class="btn btn-ghost btn-sm" onclick="goStep(1)">↩ Neue Abrechnung</button>
+                <button type="button" class="btn btn-ghost btn-sm" onclick="neueAbrechnung()">↩ Neue Abrechnung</button>
               </div>
             </div>
           </form>
@@ -886,7 +921,7 @@
 
     <footer class="app-footer">
       <small>
-        v0.2.0
+        v{{ app_version }}
         <span class="sep">·</span>
         <a href="{{ url_for('dashboard') }}">Dashboard</a>
         <span class="sep">·</span>
@@ -903,7 +938,7 @@
         <a href="{{ url_for('docs_view', slug='haftung') }}">Haftung</a>
         <span class="sep">·</span>
         <a href="{{ url_for('health_check') }}" target="_blank">Status</a>
-        {% if is_authenticated %}<span class="sep">·</span><a href="{{ authelia_logout_url }}">Abmelden</a>{% endif %}
+        {% if is_authenticated %}<span class="sep">·</span><a href="{{ authelia_logout_url }}" data-logout>Abmelden</a>{% endif %}
       </small>
     </footer>
 
@@ -911,19 +946,11 @@
 
   <script>
     const PROFILE_KEY = 'dr_profile';
-    const RATES = {
-      WEGSTRECKE_KLEIN: 0.25,
-      WEGSTRECKE_KLEIN_MAX: 125.0,
-      WEGSTRECKE_GROSS: 0.38,
-      TAGEGELD_VOLL: 28.0,
-      TAGEGELD_TEIL: 14.0,
-      KUERZUNG_FRUEH_PCT: 20,
-      KUERZUNG_MITTAG_PCT: 40,
-      KUERZUNG_ABEND_PCT: 40,
-      UEBERNACHTUNG_PAUSCHAL: 20.0,
-      UEBERNACHTUNG_MAX_NAECHTE: 14,
-      UEBERNACHTUNG_BELEG_OHNE_BEGR: 100.0,
-    };
+    const IS_AUTHENTICATED = {{ 'true' if is_authenticated else 'false' }};
+    // Sätze aus nrkvo_rates.py — nur für Anzeige/Tooltips. Gerechnet wird
+    // ausschließlich serverseitig (/abrechnung/calc, abrechnung_calc.py).
+    const RATES = {{ nrkvo | tojson }};
+    const eur = v => Number(v || 0).toFixed(2).replace('.', ',') + ' €';
 
     function blankState() {
       return {
@@ -942,8 +969,10 @@
         },
         konfiguration_checkboxen: {
           bahncard_business_vorhanden: false, bahncard_privat_vorhanden: false,
+          bahncard_privat_stufe: 25,
           bahncard_beschaffung_beantragt: false,
           grosskundenrabatt_genutzt: false, grosskundenrabatt_begruendung_wenn_nein: '',
+          ermaessigungskarte_vorhanden: false, ermaessigungskarte_strecke: '',
           weitere_ermaessigungen_vorhanden: false,
           dienstgeschaeft_2km_umkreis: false, anspruch_trennungsgeld: false,
           weitere_anmerkungen_checkbox_aktivieren: false,
@@ -955,8 +984,8 @@
         rrs_aktenzeichen: '',
         anlagen_beigefuegt: { genehmigung_035_001: false, anlagen_035_003: false },
         anordnung: { dienststelle: '', datum: '' },
-        verpflegung: { fruehstueck_anzahl: 0, mittag_anzahl: 0, abend_anzahl: 0 },
-        uebernachtungen: { anzahl_pauschal: 0, anzahl_unentgeltlich: 0, kosten_eur: 0, begruendung_ueber_100: '' },
+        verpflegung: { fruehstueck_anzahl: 0, mittag_anzahl: 0, abend_anzahl: 0, tage: [] },
+        uebernachtungen: { anzahl_pauschal: 0, anzahl_unentgeltlich: 0, anzahl_beleg: 0, kosten_eur: 0, begruendung_ueber_100: '' },
         beleg_betraege: {
           fahrkarte_eur: 0, zuschlaege_eur: 0, wagenklasse: '',
           sonstige_fahrt_eur: 0, sonstige_fahrt_erlaeuterung: '',
@@ -968,7 +997,20 @@
       };
     }
 
-    let state = blankState();
+    // Profil-Vorgaben für einen neuen State (vor dem Überlagern geladener
+    // Daten): Reiseart und BahnCard-Angaben. Geladene Werte gewinnen danach.
+    function profileDefaults(target) {
+      const p = loadProfile() || {};
+      if (p.rkr_default) target.rkr = p.rkr_default;
+      const k = target.konfiguration_checkboxen;
+      if (p.bahncard_business_vorhanden !== undefined) k.bahncard_business_vorhanden = !!p.bahncard_business_vorhanden;
+      if (p.bahncard_privat_vorhanden !== undefined) k.bahncard_privat_vorhanden = !!p.bahncard_privat_vorhanden;
+      if (p.bahncard_privat_stufe) k.bahncard_privat_stufe = p.bahncard_privat_stufe;
+      if (p.grosskundenrabatt_genutzt !== undefined) k.grosskundenrabatt_genutzt = !!p.grosskundenrabatt_genutzt;
+      return target;
+    }
+
+    let state = profileDefaults(blankState());
 
     // ── Path helpers ─────────────────────────────────────────────────
     function getPath(obj, path) {
@@ -995,6 +1037,7 @@
         b.classList.toggle('is-active', i + 1 === n);
         b.classList.toggle('is-done', i + 1 < n);
       });
+      if (n === 4) renderVerpflegungTage();
       if (n === 9) renderSummary();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -1037,7 +1080,7 @@
         status.classList.add('missing');
         return;
       }
-      status.textContent = `${p.name} · ${p.abteilung}`;
+      status.textContent = [p.name, p.abteilung].filter(Boolean).join(' · ');
       const parts = (p.name || '').trim().split(/\s+/);
       const initials = (parts[0]?.[0] || '') + (parts[parts.length - 1]?.[0] || '');
       avatar.textContent = initials.toUpperCase() || '?';
@@ -1059,7 +1102,8 @@
       if (state.anordnung && !state.anordnung.dienststelle) {
         state.anordnung.dienststelle = p.anordnende_dienststelle || '';
       }
-      if (p.rkr_default) state.rkr = p.rkr_default;
+      // Reiseart (RKR) kommt nur über profileDefaults() in einen NEUEN State —
+      // eine geladene Abrechnung behält ihre RKR.
 
       // AI-Extraktionsblock nur zeigen, wenn DeepSeek-Key hinterlegt ist
       const aiBlock = document.getElementById('aiExtractBlockAbr');
@@ -1113,13 +1157,27 @@
       const mittag = mittagBeginnTag + volleTage + mittagEndeTag;
       const abend  = abendBeginnTag  + volleTage + abendEndeTag;
 
+      // Zuordnung je Kalendertag des Dienstgeschäfts (für die Tages-Deckelung)
+      const tage = [];
+      for (let i = 0; i <= dgNights; i++) {
+        const d = new Date(dgStartD.getTime() + i * oneDay);
+        const erster = i === 0, letzter = i === dgNights && dgNights > 0;
+        tage.push({
+          datum: dateToGerman(d),
+          fruehstueck: i > 0,
+          mittag: erster ? mittagBeginnTag === 1 : (letzter ? mittagEndeTag === 1 : true),
+          abend: erster ? abendBeginnTag === 1 : (letzter ? abendEndeTag === 1 : true),
+        });
+      }
+      state.verpflegung.tage = mergeTage(tage);
+      document.getElementById('f_tage_modus').checked = true;
       state.verpflegung.fruehstueck_anzahl = fruehstueck;
       state.verpflegung.mittag_anzahl = mittag;
       state.verpflegung.abend_anzahl = abend;
       // Uebernachtungen: typischerweise auch vom Veranstalter gestellt
       state.uebernachtungen.anzahl_unentgeltlich = dgNights;
+      renderVerpflegungTage();
       syncFormFromState();
-      if (typeof recompute === 'function') recompute();
       showAlert(
         `Vorschlag: ${fruehstueck}× Frühstück, ${mittag}× Mittag, ${abend}× Abend ` +
         `(Dienstgeschäft ${dgStartT}–${dgEndeT}, ${dgNights} Übernachtungen). Bitte prüfen.`,
@@ -1133,6 +1191,65 @@
       const iso = new Date(s);
       return isNaN(iso) ? null : iso;
     }
+    function dateToGerman(d) {
+      return [d.getDate(), d.getMonth() + 1].map(n => String(n).padStart(2, '0')).join('.') + '.' + d.getFullYear();
+    }
+
+    // ── Mahlzeiten pro Kalendertag ───────────────────────────────────
+    // Kalendertage der Reise (Beginn bis Ende) als DD.MM.YYYY.
+    function reiseTage() {
+      const a = parseGermanDate(state.reise_details.start_datum);
+      const b = parseGermanDate(state.reise_details.ende_datum);
+      if (!a || !b || b < a) return [];
+      const out = [];
+      for (let t = a.getTime(); t <= b.getTime() && out.length < 400; t += 86400000) out.push(dateToGerman(new Date(t)));
+      return out;
+    }
+    // Vorhandene Tageswerte auf die aktuellen Reisetage abbilden.
+    function mergeTage(neu) {
+      const byDate = Object.fromEntries((neu || []).map(t => [t.datum, t]));
+      return reiseTage().map(d => ({
+        datum: d,
+        fruehstueck: !!byDate[d]?.fruehstueck, mittag: !!byDate[d]?.mittag, abend: !!byDate[d]?.abend,
+      }));
+    }
+    function recountVerpflegung() {
+      const t = state.verpflegung.tage;
+      state.verpflegung.fruehstueck_anzahl = t.filter(x => x.fruehstueck).length;
+      state.verpflegung.mittag_anzahl = t.filter(x => x.mittag).length;
+      state.verpflegung.abend_anzahl = t.filter(x => x.abend).length;
+    }
+    function renderVerpflegungTage() {
+      const modus = document.getElementById('f_tage_modus');
+      const wrap = document.getElementById('tageWrap');
+      const body = document.getElementById('tageBody');
+      const tageAktiv = modus.checked && reiseTage().length > 0;
+      if (modus.checked && !reiseTage().length) {
+        showAlert('Für die Erfassung pro Tag erst Reise-Beginn und -Ende in Schritt 3 eintragen.', 'warning');
+        modus.checked = false;
+      }
+      ['f_fruehstueck', 'f_mittag', 'f_abend'].forEach(id => { document.getElementById(id).readOnly = tageAktiv; });
+      wrap.style.display = tageAktiv ? '' : 'none';
+      body.replaceChildren();
+      if (!tageAktiv) { state.verpflegung.tage = []; return; }
+      state.verpflegung.tage = mergeTage(state.verpflegung.tage);
+      state.verpflegung.tage.forEach((t, i) => {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td'); td.textContent = t.datum; tr.appendChild(td);
+        ['fruehstueck', 'mittag', 'abend'].forEach(k => {
+          const c = document.createElement('td');
+          const cb = document.createElement('input');
+          cb.type = 'checkbox'; cb.checked = t[k];
+          cb.setAttribute('aria-label', `${k} am ${t.datum}`);
+          cb.addEventListener('change', () => { state.verpflegung.tage[i][k] = cb.checked; recountVerpflegung(); syncFormFromState(); });
+          c.appendChild(cb); tr.appendChild(c);
+        });
+        body.appendChild(tr);
+      });
+      recountVerpflegung();
+      syncFormFromState();
+    }
+    document.getElementById('f_tage_modus').addEventListener('change', renderVerpflegungTage);
 
     // ── Entfernung schaetzen via OSRM/Nominatim ──────────────────────
     function prefillRouteFields() {
@@ -1167,7 +1284,6 @@
         state.wegstrecke.km_hinreise = km;
         state.wegstrecke.km_rueckreise = km;
         syncFormFromState();
-        if (typeof recompute === 'function') recompute();
         // textContent statt innerHTML — data.source kommt zwar aus eigener
         // Server-Response, aber Defense-in-Depth + keine Sonderbehandlung
         // noetig (das <em> war rein dekorativ).
@@ -1184,9 +1300,10 @@
     // als Header (BYOK).
     async function extractWithAIAbr() {
       const profile = loadProfile() || {};
-      const guestKey = profile.deepseek_api_key?.trim();
+      const isAuth = IS_AUTHENTICATED;
+      // Eingeloggt gilt nur der Key aus dem Server-Profil (/extract holt ihn dort).
+      const guestKey = isAuth ? '' : profile.deepseek_api_key?.trim();
       const hasServerKey = !!profile.has_server_deepseek_key;
-      const isAuth = {{ 'true' if is_authenticated else 'false' }};
       if (!isAuth && !guestKey) {
         showAlert('Kein DeepSeek-API-Key im Profil hinterlegt. Trag den Key im Antrag-Profil-Wizard ein.', 'warning');
         return;
@@ -1211,6 +1328,8 @@
       try {
         const fd = new FormData();
         fd.append('freitext', freitext);
+        const wo = ((profile.plz_ort || profile.adresse || '').match(/\b\d{5}\s+[^,;\n]+/) || [''])[0];
+        fd.append('wohnort', wo.trim());
         fd.append('csrf_token', document.querySelector('input[name=csrf_token]').value);
 
         const headers = guestKey ? { 'X-DeepSeek-Key': guestKey } : {};
@@ -1271,8 +1390,11 @@
         const path = el.dataset.bind;
         let v;
         if (el.type === 'checkbox') v = el.checked;
-        else if (el.type === 'number') v = parseFloat(el.value) || 0;
+        // Ganzzahl-Felder (step=1: km, Anzahlen, Nächte) als int — der Server
+        // lehnt 12.5 km ab, die Vorschau hätte sonst trotzdem gerechnet.
+        else if (el.type === 'number') v = el.step === '1' ? Math.round(parseFloat(el.value) || 0) : (parseFloat(el.value) || 0);
         else if (el.type === 'date') v = isoToGerman(el.value);
+        else if (el.dataset.type === 'int') v = parseInt(el.value, 10) || null;
         else v = el.value;
         setPath(state, path, v);
       });
@@ -1289,27 +1411,26 @@
     document.addEventListener('change', e => {
       if (!e.target.matches('[data-bind]')) return;
       syncStateFromForm();
-      // Wenn dasselbe data-bind mehrfach im DOM steht (z.B. Verzicht-auf-
-      // Tagegeld in Step 4 + Step 8), die anderen Vorkommen visuell mit-
-      // ziehen, damit nicht jeweils nur die geklickte Checkbox aktualisiert
-      // aussieht.
-      const path = e.target.dataset.bind;
-      document.querySelectorAll(`[data-bind="${path}"]`).forEach(el => {
-        if (el === e.target) return;
-        const v = getPath(state, path);
-        if (el.type === 'checkbox') el.checked = !!v;
-        else if (el.type === 'number') el.value = v ?? 0;
-        else if (el.type === 'date') el.value = germanToIso(v);
-        else el.value = v ?? '';
-      });
+      updateBegrUeber100Visibility();
+      updateWegstreckeInfo();
+      if (e.target.dataset.bind.startsWith('reise_details.') && document.getElementById('f_tage_modus').checked) {
+        renderVerpflegungTage();
+      }
     });
 
+    // Ob die Begründung Pflicht ist (> 100 €/Nacht), entscheidet die
+    // Server-Berechnung in Schritt 9; das Feld ist bei Belegkosten immer da.
     function updateBegrUeber100Visibility() {
       const w = document.getElementById('f_begr_100_wrapper');
-      const naechte = state.uebernachtungen.anzahl_pauschal;
-      const kosten = state.uebernachtungen.kosten_eur;
-      const proNacht = naechte > 0 ? kosten / naechte : 0;
-      w.style.display = proNacht > RATES.UEBERNACHTUNG_BELEG_OHNE_BEGR ? '' : 'none';
+      w.style.display = state.uebernachtungen.kosten_eur > 0 ? '' : 'none';
+      const k = state.konfiguration_checkboxen;
+      document.getElementById('f_bcp_stufe_wrap').style.display = k.bahncard_privat_vorhanden ? '' : 'none';
+      document.getElementById('f_erm_strecke_wrap').style.display = k.ermaessigungskarte_vorhanden ? '' : 'none';
+    }
+    // Begründungspflicht: privater PKW § 5 III oder Flug (sonstiges Beförderungsmittel)
+    function needsSonderfall() {
+      const need = b => (b?.typ === 'PKW' && b?.paragraph_5_nrkvo === 'III') || b?.typ === 'FLUG';
+      return need(state.befoerderung.hinreise) || need(state.befoerderung.rueckreise);
     }
 
     const VALID_BEFOERDERUNG_TYPEN = new Set(['PKW','BAHN','BUS','DIENSTWAGEN','FLUG','MITFAHRT']);
@@ -1332,7 +1453,7 @@
         if (typ === 'PKW') {
           const para = _safeParagraph(b);
           const satz = para === 'III' ? RATES.WEGSTRECKE_GROSS : RATES.WEGSTRECKE_KLEIN;
-          return `PKW § ${para}: ${(satz * 100).toFixed(0)} ct/km`;
+          return `PKW § 5 ${para}: ${(satz * 100).toFixed(0)} ct/km`;
         }
         if (typ === 'MITFAHRT') return 'Mitfahrt — keine eigene Wegstreckenentschädigung';
         return `${typ} (keine Wegstrecke)`;
@@ -1342,103 +1463,20 @@
       info.append('Hinreise ' + labelFor(hin));
       info.appendChild(document.createElement('br'));
       info.append('Rückreise ' + labelFor(rueck));
+      info.appendChild(document.createElement('br'));
+      info.append(`§ 5 II höchstens ${eur(RATES.WEGSTRECKE_KLEIN_MAX)} je Dienstreise (nur selbst gefahrene PKW-Strecken).`);
+      // § 5-Auswahl nur bei selbst gefahrenem PKW, Begründung nur wenn Pflicht
+      document.getElementById('f_hin_para_wrap').style.display = _safeTyp(hin) === 'PKW' ? '' : 'none';
+      document.getElementById('f_rueck_para_wrap').style.display = _safeTyp(rueck) === 'PKW' ? '' : 'none';
+      document.getElementById('f_sonderfall_wrap').style.display = needsSonderfall() ? '' : 'none';
     }
 
-    // ── Berechnung ──────────────────────────────────────────────────
-    function parseDt(datum, zeit) {
-      const m = (datum || '').match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
-      const t = (zeit || '').match(/^(\d{1,2}):(\d{2})$/);
-      if (!m || !t) return null;
-      return new Date(+m[3], +m[2] - 1, +m[1], +t[1], +t[2]);
-    }
-    function tagegeldTage(start, ende) {
-      // Spiegelt abrechnung_calc.tagegeld_tage (Python ist autoritativ):
-      //   < 8 h Abwesenheit → kein Tagegeld
-      //   8–24 h            → 1 Teiltag (auch bei Mitternachts-Uebergang)
-      //   ≥ 24 h            → volle Tage zwischen Anreise- und Abreise-Tag + 2 Teiltage
-      if (!start || !ende || ende < start) return [0, 0];
-      const totalHours = (ende - start) / 3600000;
-      if (totalHours < 8) return [0, 0];
-      if (totalHours < 24) return [0, 1];
-      const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
-      const endeDay = new Date(ende.getFullYear(), ende.getMonth(), ende.getDate());
-      const diffDays = Math.round((endeDay - startDay) / (24 * 3600 * 1000));
-      return [Math.max(0, diffDays - 1), 2];
-    }
-    function compute() {
-      const r = RATES;
-      const rd = state.reise_details;
-      const start = parseDt(rd.start_datum, rd.start_zeit);
-      const ende = parseDt(rd.ende_datum, rd.ende_zeit);
-
-      let tgBrutto = 0;
-      if (!state.konfiguration_checkboxen.dienstgeschaeft_2km_umkreis) {
-        const [v, t] = tagegeldTage(start, ende);
-        tgBrutto = v * r.TAGEGELD_VOLL + t * r.TAGEGELD_TEIL;
-      }
-      let kuerz = state.verpflegung.fruehstueck_anzahl * r.TAGEGELD_VOLL * r.KUERZUNG_FRUEH_PCT / 100
-                + state.verpflegung.mittag_anzahl * r.TAGEGELD_VOLL * r.KUERZUNG_MITTAG_PCT / 100
-                + state.verpflegung.abend_anzahl * r.TAGEGELD_VOLL * r.KUERZUNG_ABEND_PCT / 100;
-      kuerz = Math.min(kuerz, tgBrutto);
-      let tgNetto = tgBrutto - kuerz;
-      if (state.verzicht_erklaerung.verzicht_tagegeld) { tgBrutto = 0; kuerz = 0; tgNetto = 0; }
-
-      const naechte = Math.min(state.uebernachtungen.anzahl_pauschal, r.UEBERNACHTUNG_MAX_NAECHTE);
-      let uebernPausch = naechte * r.UEBERNACHTUNG_PAUSCHAL;
-      if (state.verzicht_erklaerung.verzicht_uebernachtungsgeld) uebernPausch = 0;
-
-      let weg = 0;
-      if (!state.verzicht_erklaerung.verzicht_fahrtkosten) {
-        if (state.befoerderung.hinreise.typ === 'PKW') {
-          const s = state.befoerderung.hinreise.paragraph_5_nrkvo === 'III' ? r.WEGSTRECKE_GROSS : r.WEGSTRECKE_KLEIN;
-          weg += state.wegstrecke.km_hinreise * s;
-        }
-        if (state.befoerderung.rueckreise.typ === 'PKW') {
-          const s = state.befoerderung.rueckreise.paragraph_5_nrkvo === 'III' ? r.WEGSTRECKE_GROSS : r.WEGSTRECKE_KLEIN;
-          weg += state.wegstrecke.km_rueckreise * s;
-        }
-        const nurKlein = state.befoerderung.hinreise.paragraph_5_nrkvo === 'II'
-                      && state.befoerderung.rueckreise.paragraph_5_nrkvo === 'II';
-        if (nurKlein && weg > r.WEGSTRECKE_KLEIN_MAX) weg = r.WEGSTRECKE_KLEIN_MAX;
-      }
-
-      const fahrkarteSum = state.beleg_betraege.fahrkarte_eur + state.beleg_betraege.zuschlaege_eur;
-      let fahrkarte = fahrkarteSum;
-      let sonstFahrt = state.beleg_betraege.sonstige_fahrt_eur;
-      if (state.verzicht_erklaerung.verzicht_fahrtkosten) {
-        fahrkarte = 0;
-        sonstFahrt = 0;
-      }
-      const sonstKosten = state.beleg_betraege.sonstige_kosten_eur;
-      const uebernBeleg = state.uebernachtungen.kosten_eur;
-
-      const zwischen = tgNetto + uebernPausch + weg + fahrkarte + sonstFahrt + sonstKosten + uebernBeleg;
-      const auszahl = zwischen - state.abzuege.zuwendungen_eur - state.abzuege.reisekostenabschlag_eur - state.abzuege.eigenanteile_eur;
-
-      return { tgBrutto, kuerz, tgNetto, uebernPausch, uebernBeleg, weg, fahrkarte, sonstFahrt, sonstKosten, zwischen, auszahl };
-    }
-
-    function fmt(eur) {
-      return eur.toFixed(2).replace('.', ',') + ' €';
-    }
-    function renderSummary() {
-      const c = compute();
-      document.getElementById('s_tg_brutto').textContent = fmt(c.tgBrutto);
-      document.getElementById('s_kuerzung').textContent = '−' + fmt(c.kuerz);
-      document.getElementById('s_tg_netto').textContent = fmt(c.tgNetto);
-      document.getElementById('s_uebern_pausch').textContent = fmt(c.uebernPausch);
-      document.getElementById('s_uebern_beleg').textContent = fmt(c.uebernBeleg);
-      document.getElementById('s_wegstrecke').textContent = fmt(c.weg);
-      document.getElementById('s_fahrkarte').textContent = fmt(c.fahrkarte);
-      document.getElementById('s_sonst_fahrt').textContent = fmt(c.sonstFahrt);
-      document.getElementById('s_sonst_kosten').textContent = fmt(c.sonstKosten);
-      document.getElementById('s_zwischen').innerHTML = '<strong>' + fmt(c.zwischen) + '</strong>';
-      document.getElementById('s_zuw').textContent = '−' + fmt(state.abzuege.zuwendungen_eur);
-      document.getElementById('s_absch').textContent = '−' + fmt(state.abzuege.reisekostenabschlag_eur);
-      document.getElementById('s_eig').textContent = '−' + fmt(state.abzuege.eigenanteile_eur);
-      document.getElementById('s_auszahl').textContent = fmt(c.auszahl);
-
-      // Validation
+    // ── Zusammenfassung (Server-Berechnung) ─────────────────────────
+    // Die Vorschau kommt von /abrechnung/calc — dieselbe Logik, mit der der
+    // Server das PDF füllt. Eine eigene JS-Rechnung gibt es bewusst nicht mehr
+    // (sie wich bei Sommerzeit und Nächte-Deckel vom PDF ab).
+    function setText(id, v) { document.getElementById(id).textContent = v; }
+    function clientValidation() {
       const errs = [];
       const a = state.antragsteller, s = state.stammdaten;
       if (!a.name) errs.push('Name fehlt');
@@ -1453,31 +1491,109 @@
        'dienstgeschaeft_ende_datum', 'dienstgeschaeft_ende_zeit'].forEach(k => {
         if (!rd[k]) errs.push(`reise_details.${k} fehlt`);
       });
-      if (state.befoerderung.hinreise.paragraph_5_nrkvo === 'III' || state.befoerderung.rueckreise.paragraph_5_nrkvo === 'III') {
-        if (!state.befoerderung.sonderfall_begruendung_textfeld) errs.push('Begründung § 5 III fehlt');
+      if (needsSonderfall() && !state.befoerderung.sonderfall_begruendung_textfeld) {
+        errs.push('Begründung (§ 5 III bzw. Flug) fehlt');
       }
       if (state.rkr === 'RRS' && !state.rrs_aktenzeichen) errs.push('RRS-Aktenzeichen fehlt');
-      const naechte = state.uebernachtungen.anzahl_pauschal;
-      const proNacht = naechte > 0 ? state.uebernachtungen.kosten_eur / naechte : 0;
-      if (proNacht > RATES.UEBERNACHTUNG_BELEG_OHNE_BEGR && !state.uebernachtungen.begruendung_ueber_100) {
-        errs.push('Begründung > 100 €/Nacht fehlt');
+      if (state.beleg_betraege.sonstige_kosten_eur > 0 && !state.beleg_betraege.sonstige_kosten_erlaeuterung) {
+        errs.push('Erläuterung zu sonstigen Kosten fehlt');
       }
+      return errs;
+    }
+    function showValidation(errs) {
       const v = document.getElementById('validationSummary');
       const submit = document.getElementById('submitBtn');
+      v.replaceChildren();
+      const box = document.createElement('div');
       if (errs.length) {
-        v.innerHTML = `<div class="warn-box"><strong>Pflichtangaben fehlen:</strong><br>${errs.join('<br>')}</div>`;
-        submit.disabled = true;
+        box.className = 'warn-box';
+        const strong = document.createElement('strong'); strong.textContent = 'Pflichtangaben fehlen:';
+        box.appendChild(strong);
+        errs.forEach(e => { box.appendChild(document.createElement('br')); box.append(e); });
       } else {
-        v.innerHTML = '<div class="info-box" style="background:var(--ok-subtle); color:var(--ok); border-color:var(--ok);">Alle Pflichtangaben vorhanden.</div>';
-        submit.disabled = false;
+        box.className = 'info-box';
+        box.style.cssText = 'background:var(--ok-subtle); color:var(--ok); border-color:var(--ok);';
+        box.textContent = 'Alle Pflichtangaben vorhanden.';
+      }
+      v.appendChild(box);
+      submit.disabled = errs.length > 0;
+    }
+    let summarySeq = 0;
+    async function renderSummary() {
+      syncStateFromForm();
+      const errs = clientValidation();
+      const seq = ++summarySeq;
+      let b = null;
+      try {
+        const fd = new FormData();
+        fd.set('csrf_token', document.querySelector('input[name=csrf_token]').value);
+        fd.set('json_data', JSON.stringify(state));
+        const res = await fetch('/abrechnung/calc', { method: 'POST', body: fd, headers: { 'Accept': 'application/json' } });
+        const body = await res.json().catch(() => ({}));
+        if (seq !== summarySeq) return;  // veraltete Antwort
+        if (res.ok) b = body;
+        else if (!errs.length) errs.push(body.error || 'Berechnung fehlgeschlagen');
+      } catch (e) {
+        if (!errs.length) errs.push('Berechnung nicht erreichbar: ' + e.message);
+      }
+      if (b && b.begruendung_ueber_100_noetig && !state.uebernachtungen.begruendung_ueber_100) {
+        errs.push(`Begründung für ${eur(b.uebernachtung_beleg_pro_nacht_eur)}/Nacht (über ${eur(RATES.UEBERNACHTUNG_BELEG_OHNE_BEGR)}) fehlt`);
+      }
+      showValidation(errs);
+      const z = b || {};
+      const tageTxt = [];
+      if (z.tagegeld_volle_tage) tageTxt.push(`${z.tagegeld_volle_tage}× ${eur(RATES.TAGEGELD_VOLL)}`);
+      if (z.tagegeld_teiltage) tageTxt.push(`${z.tagegeld_teiltage}× ${eur(RATES.TAGEGELD_TEIL)}`);
+      if (z.tagegeld_reduzierte_tage) tageTxt.push(`${z.tagegeld_reduzierte_tage}× vermindert`);
+      setText('s_tg_tage', tageTxt.length ? `(${tageTxt.join(', ')})` : '');
+      setText('s_tg_brutto', eur(z.tagegeld_brutto_eur));
+      setText('s_kuerzung', '−' + eur(z.kuerzung_eur));
+      setText('s_tg_netto', eur(z.tagegeld_netto_eur));
+      setText('s_uebern_pausch', eur(z.uebernachtungsgeld_pauschal_eur));
+      setText('s_uebern_beleg', eur(z.uebernachtung_beleg_eur));
+      setText('s_wegstrecke', eur(z.wegstreckenentschaedigung_eur));
+      setText('s_fahrkarte', eur(z.fahrkarte_eur));
+      setText('s_sonst_fahrt', eur(z.sonstige_fahrt_eur));
+      setText('s_sonst_kosten', eur(z.sonstige_kosten_eur));
+      document.getElementById('s_zwischen').replaceChildren(Object.assign(document.createElement('strong'), { textContent: eur(z.zwischensumme_eur) }));
+      setText('s_zuw', '−' + eur(state.abzuege.zuwendungen_eur));
+      setText('s_absch', '−' + eur(state.abzuege.reisekostenabschlag_eur));
+      setText('s_eig', '−' + eur(state.abzuege.eigenanteile_eur));
+      setText('s_auszahl', eur(z.auszahlbetrag_eur));
+      const h = document.getElementById('summaryHinweise');
+      h.replaceChildren();
+      if (z.hinweise && z.hinweise.length) {
+        const box = document.createElement('div'); box.className = 'info-box';
+        box.append('Hinweise zur Berechnung (stehen auch in den Erläuterungen des PDFs):');
+        const ul = document.createElement('ul'); ul.className = 'hinweis-list';
+        z.hinweise.forEach(t => { const li = document.createElement('li'); li.textContent = t; ul.appendChild(li); });
+        box.appendChild(ul); h.appendChild(box);
       }
     }
 
     // ── Datei laden / einfügen ─────────────────────────────────────
+    // Importierte Werte auf den Typ der Vorlage bringen (Zahl/Bool/String),
+    // damit z.B. "10" aus einer Datei nicht zu String-Verkettung führt.
+    function coerceLike(template, value) {
+      if (typeof template === 'number') { const n = Number(value); return Number.isFinite(n) ? n : 0; }
+      if (typeof template === 'boolean') return !!value;
+      if (typeof template === 'string') return value == null ? '' : String(value);
+      return value;
+    }
+    function coerceSection(template, loaded) {
+      const out = { ...template };
+      Object.keys(loaded || {}).forEach(k => {
+        out[k] = k in template && template[k] !== null && typeof template[k] !== 'object'
+          ? coerceLike(template[k], loaded[k]) : loaded[k];
+      });
+      return out;
+    }
+
     function mergeIntoState(loaded) {
       // Antrags-JSON hat keine stammdaten/abrechnungs-Felder — die kommen aus Profil/State.
       // Abrechnungs-JSON ist Vollformat — komplett übernehmen.
-      const target = blankState();
+      if (!loaded || typeof loaded !== 'object' || Array.isArray(loaded)) throw new Error('Kein JSON-Objekt');
+      const target = profileDefaults(blankState());
       // Profil first-pass
       const p = loadProfile() || {};
       Object.assign(target.stammdaten, {
@@ -1491,16 +1607,25 @@
                        'verpflegung', 'uebernachtungen', 'beleg_betraege',
                        'wegstrecke', 'abzuege', 'flags'];
       sections.forEach(s => {
-        if (loaded[s] !== undefined) {
-          if (typeof loaded[s] === 'object' && loaded[s] !== null && !Array.isArray(loaded[s])) {
-            target[s] = { ...target[s], ...loaded[s] };
-          } else {
-            target[s] = loaded[s];
+        if (loaded[s] !== undefined && loaded[s] !== null) {
+          if (typeof loaded[s] === 'object' && !Array.isArray(loaded[s])) {
+            target[s] = coerceSection(target[s], loaded[s]);
+          } else if (typeof target[s] !== 'object') {
+            target[s] = coerceLike(target[s], loaded[s]);
           }
         }
       });
-      if (loaded.rkr) target.rkr = loaded.rkr;
+      ['hinreise', 'rueckreise'].forEach(r => {
+        target.befoerderung[r] = { typ: 'PKW', paragraph_5_nrkvo: 'II', ...(target.befoerderung[r] || {}) };
+      });
+      // Ältere Exporte: Ermäßigungskarte stand in weitere_ermaessigungen_vorhanden
+      const k = target.konfiguration_checkboxen;
+      if (k.weitere_ermaessigungen_vorhanden && !k.ermaessigungskarte_vorhanden) k.ermaessigungskarte_vorhanden = true;
+      if (![25, 50, 100].includes(Number(k.bahncard_privat_stufe))) k.bahncard_privat_stufe = 25;
+      if (!Array.isArray(target.verpflegung.tage)) target.verpflegung.tage = [];
+      if (loaded.rkr) target.rkr = String(loaded.rkr);
       state = target;
+      document.getElementById('f_tage_modus').checked = state.verpflegung.tage.length > 0;
       applyProfile();
       syncFormFromState();
     }
@@ -1546,6 +1671,11 @@
       reader.readAsText(file);
     }
 
+    // Neue Abrechnung: kompletter Neustart ohne Reise-Zuordnung (?dienstreise)
+    function neueAbrechnung() {
+      window.location.href = '{{ url_for("abrechnung_index") }}';
+    }
+
     // ── Export ──────────────────────────────────────────────────────
     function suggestFilename(ext) {
       const rd = state.reise_details;
@@ -1582,16 +1712,16 @@
         fd.set('csrf_token', csrf);
         fd.set('json_data', JSON.stringify(state));
         // Account-Auto-Save: wenn im Profil aktiv, save_to_account=1 mitschicken
-        // und (falls vorhanden) dienstreise_id aus URL ?dienstreise=N oder
-        // aus localStorage.dr_abrechnung_reise_id, damit der Server die
-        // bestehende Reise um die Abrechnung erweitert statt eine neue anzulegen.
+        // und die dienstreise_id aus ?dienstreise=N, damit der Server die
+        // bestehende Reise um die Abrechnung erweitert.
         let profileNow = null;
         try { profileNow = JSON.parse(localStorage.getItem('dr_profile') || 'null'); } catch {}
         const autoSave = profileNow && profileNow.auto_save_dienstreisen !== false;
-        if ({{ 'true' if is_authenticated else 'false' }} && autoSave) {
+        if (IS_AUTHENTICATED && autoSave) {
           fd.set('save_to_account', '1');
-          const urlParams = new URLSearchParams(window.location.search);
-          const reiseId = urlParams.get('dienstreise') || localStorage.getItem('dr_abrechnung_reise_id');
+          // Zuordnung NUR über ?dienstreise=N (Dashboard-Link). Ein früher
+          // gemerkter Wert überschrieb sonst still eine andere Reise.
+          const reiseId = new URLSearchParams(window.location.search).get('dienstreise');
           if (reiseId) fd.set('dienstreise_id', reiseId);
         }
         const res = await fetch('/abrechnung/generate', { method: 'POST', body: fd });
@@ -1612,6 +1742,8 @@
         const abrId = res.headers.get('X-Abrechnung-Id');
         if (abrId) {
           showAlert('PDF heruntergeladen und in deinem Konto gespeichert.', 'success');
+        } else if (IS_AUTHENTICATED && autoSave) {
+          showAlert('PDF heruntergeladen. Gespeichert wird eine Abrechnung nur, wenn sie über „Abrechnung" im Dashboard geöffnet wurde — JSON sicherheitshalber exportieren!', 'warning');
         } else {
           showAlert('PDF heruntergeladen — JSON sicherheitshalber auch exportieren!', 'success');
         }
@@ -1648,10 +1780,10 @@
       'f_ende_datum': 'Tatsächliche Rückkehr zu Hause.',
       'f_ende_zeit': 'Uhrzeit der Rückkehr zu Hause. Bsp.: 19:30',
       'f_hin_typ': 'Hauptverkehrsmittel der Hinreise. PKW = selbst gefahren (mit Wegstrecke). MITFAHRT = im PKW eines anderen mitgefahren (keine eigene Wegstrecke). Bei Flug: Zubringer wählen (PKW/MITFAHRT/Bahn) — Flugbeleg in Schritt 5.',
-      'f_hin_para': 'II = kleine Wegstrecke (0,25 €/km, max 125 €). III = große Wegstrecke (0,38 €/km), nur bei triftigem Grund (Materialtransport, schlechte ÖPNV-Anbindung, Mitnahme Kollege).',
+      'f_hin_para': `II = kleine Wegstrecke (${eur(RATES.WEGSTRECKE_KLEIN)}/km, max ${eur(RATES.WEGSTRECKE_KLEIN_MAX)} je Dienstreise). III = große Wegstrecke (${eur(RATES.WEGSTRECKE_GROSS)}/km), nur bei vorab festgestelltem erheblichem dienstlichem Interesse (Materialtransport, schlechte ÖPNV-Anbindung, Mitnahme Kollege).`,
       'f_rueck_typ': 'Hauptverkehrsmittel der Rückreise — kann von Hinreise abweichen.',
       'f_rueck_para': 'Wie Hinreise — II = kleine, III = große Wegstrecke.',
-      'f_sonderfall': 'Pflicht bei § 5 III. Bsp.: „Schlechte ÖPNV-Anbindung Fähranleger Harlesiel, Materialtransport (Präsentationstechnik)"',
+      'f_sonderfall': 'Pflicht bei § 5 III und bei Flug. Bsp.: „Schlechte ÖPNV-Anbindung Fähranleger Harlesiel, Materialtransport (Präsentationstechnik)"',
       'f_rkr': 'DR = Dienstreise · AFR = Aus-/Fortbildung · RPR = Personalrat · RRS = Rechtssache · GNE = Genehmigungsfreie Reise (z.B. < 8h ohne Übernachtung).',
       'f_rrs_az': 'Pflicht bei RKR=RRS. Aktenzeichen der Sachakten oder ersuchenden Behörde.',
       'f_anordnung_dienst': 'Wer hat die Reise vorab genehmigt? Bei beigefügter 035_001 oder GNE leer lassen. Bsp.: Schulleitung BBS Lingen',
@@ -1660,13 +1792,15 @@
       'f_anlage2': 'Häkchen wenn zusätzliche Anlagen (Formular 035_003, z.B. Detail-Reiseaufstellung bei mehreren Geschäftsorten) beiliegen.',
 
       // Step 4 — Verpflegung
-      'f_fruehstueck': 'Anzahl unentgeltlich bereitgestellter Frühstücke (z.B. im Tagungshotel inkludiert). Kürzt das Tagegeld um 5,60 € pro Stück.',
-      'f_mittag': 'Anzahl unentgeltlicher Mittagessen (z.B. Mittags-Buffet auf der Tagung). Kürzt um 11,20 € pro Stück.',
-      'f_abend': 'Anzahl unentgeltlicher Abendessen. Kürzt um 11,20 € pro Stück.',
-      'f_naechte_pauschal': 'Nächte ohne Hotelbeleg → pauschal 20 €/Nacht (max. 14 Nächte). Bei Hotelrechnung Feld unten nutzen.',
+      'f_fruehstueck': `Anzahl unentgeltlich bereitgestellter Frühstücke (auch: im erstatteten Hotelpreis enthalten). Kürzt das Tagegeld um ${eur(RATES.KUERZUNG_FRUEH)} pro Stück.`,
+      'f_mittag': `Anzahl unentgeltlicher Mittagessen (z.B. Mittags-Buffet auf der Tagung). Kürzt um ${eur(RATES.KUERZUNG_MITTAG)} pro Stück.`,
+      'f_abend': `Anzahl unentgeltlicher Abendessen. Kürzt um ${eur(RATES.KUERZUNG_ABEND)} pro Stück.`,
+      'f_tage_modus': 'Ordnet die Mahlzeiten den Kalendertagen zu. Dann wird die Kürzung je Tag höchstens auf das Tagegeld dieses Tages begrenzt (§ 7 Abs. 3 NRKVO) — sonst nur insgesamt.',
+      'f_naechte_pauschal': `Nächte ohne Hotelbeleg → pauschal ${eur(RATES.UEBERNACHTUNG_PAUSCHAL)}/Nacht (max. ${RATES.UEBERNACHTUNG_MAX_NAECHTE} Nächte). Bei Hotelrechnung die Felder daneben nutzen.`,
       'f_naechte_unentgeltlich': 'Nächte, die das Amt direkt gestellt hat (z.B. Schullandheim) — kein Übernachtungsgeld.',
-      'f_uebern_kosten': 'Tatsächliche Hotelkosten laut Rechnung — Beleg im Original beim Antrag beilegen. Über 100 €/Nacht: Begründung Pflicht.',
-      'f_begr_100': 'Warum war das Hotel teurer als 100 €/Nacht? Bsp.: „Sitzungshotel direkt am Tagungsort, günstigere Optionen ausgebucht"',
+      'f_naechte_beleg': 'Anzahl der Nächte auf der Hotelrechnung — Grundlage für den Preis pro Nacht.',
+      'f_uebern_kosten': `Tatsächliche Hotelkosten laut Rechnung — Beleg im Original beilegen. Über ${eur(RATES.UEBERNACHTUNG_BELEG_OHNE_BEGR)}/Nacht: Begründung Pflicht.`,
+      'f_begr_100': `Warum war das Hotel teurer als ${eur(RATES.UEBERNACHTUNG_BELEG_OHNE_BEGR)}/Nacht? Bsp.: „Sitzungshotel direkt am Tagungsort, günstigere Optionen ausgebucht"`,
 
       // Step 5 — Belege
       'f_fahrkarte': 'Bahn-Fahrkartenpreis (ohne Zuschläge). Bsp.: 49,50 € (Sparpreis 2. Klasse)',
@@ -1688,12 +1822,13 @@
       'f_eigen_erl': 'Art und Höhe des Eigenanteils. Bsp.: „Tagungs-Eigenanteil lt. Ausschreibung"',
 
       // Step 8 — Sonstiges
-      'f_2km': 'Dienstgeschäft im Umkreis von 2 km zur Dienststätte oder Wohnung — kein Tagegeld nach § 6 NRKVO.',
+      'f_2km': 'Dienstgeschäft im Umkreis von 2 km zur Dienststätte oder Wohnung — kein Tagegeld (§ 7 Abs. 1 NRKVO). Gilt nicht für Teilnehmende einer Fortbildung: dann nicht ankreuzen.',
       'f_trennung': 'Anspruch auf Trennungsgeld bei mehrtägigen Reisen mit auswärtigem Verbleiben (auch bei Nullauszahlung wegen Kürzungen).',
       'f_grosskunde': 'DB Großkunden-/Geschäftskundenrabatt für die Bahnfahrt genutzt? Wenn nein: Begründung unten ausfüllen.',
       'f_bcb': 'BahnCard Business der Dienststelle vorhanden?',
-      'f_bcp': 'Eigene private BahnCard 25 / 50 / 100?',
-      'f_erm': 'Sonstige Ermäßigung (Monatskarte, Jobticket, Verbund-Sondertarif) — nicht automatisch ja, nur weil Bahn genutzt wird.',
+      'f_bcp': 'Eigene private BahnCard 25 / 50 / 100? Die Stufe darunter auswählen.',
+      'f_erm': 'Monatskarte, Jobticket, Deutschlandticket o.ä., das für die Reisestrecke gilt — nicht automatisch ja, nur weil Bahn genutzt wird. Strecke darunter angeben.',
+      'f_erm_strecke': 'Für welche Strecke gilt die Karte? Bsp.: „Lingen – Osnabrück" oder „Deutschlandticket (bundesweit)"',
       'f_urlaub': 'Reise wurde mit > 5 Tagen Urlaub/Zeitausgleich verbunden — detaillierte Reise-Aufstellung wird Pflicht.',
       'f_grosskunde_begr': 'Warum kein Großkundenrabatt? Bsp.: „Nutzung PKW", „Verbindung nicht buchbar", „Sparpreis günstiger"',
       'f_verz_tageg': 'Erkläre den Verzicht auf Tagegeld (z.B. weil komplette Verpflegung gestellt wurde).',
@@ -1757,7 +1892,7 @@
     (async function autoLoadFromDashboard() {
       const params = new URLSearchParams(window.location.search);
       const reiseId = params.get('dienstreise');
-      const isAuth = {{ 'true' if is_authenticated else 'false' }};
+      const isAuth = IS_AUTHENTICATED;
       if (!reiseId || !isAuth) { goStep(1); return; }
       try {
         const r = await fetch(`/dienstreisen/${reiseId}/abrechnung-json`, {
@@ -1769,8 +1904,6 @@
           return;
         }
         const d = await r.json();
-        // dienstreise_id fuer spaeteren Save-Submit merken
-        try { localStorage.setItem('dr_abrechnung_reise_id', reiseId); } catch {}
         // Wenn schon eine Abrechnung existiert: die nehmen; sonst Antrag-JSON.
         const payload = d.abrechnung_json || d.antrag_json;
         if (!payload) {

@@ -16,11 +16,11 @@ WEGSTRECKE_KLEIN_MAX_EUR: Final = 125.00  # Cap pro Dienstreise
 WEGSTRECKE_GROSS_EUR_PRO_KM: Final = 0.38  # § 5 III, triftiger Grund
 WEGSTRECKE_FAHRRAD_EUR_PRO_KM: Final = 0.10
 
-# § 6 NRKVO i. V. m. § 9 Abs. 4a EStG — Tagegeld (Verpflegungspauschale)
+# § 7 Abs. 1 NRKVO i. V. m. § 9 Abs. 4a EStG — Tagegeld (Verpflegungspauschale)
 TAGEGELD_VOLLER_TAG_EUR: Final = 28.00  # 24-h-Tag
 TAGEGELD_TEILTAG_EUR: Final = 14.00  # > 8 h oder An-/Abreisetag
 
-# Kürzungen bei unentgeltlicher Verpflegung (Prozent vom vollen Tagegeld 28 €)
+# § 7 Abs. 3 NRKVO — Kürzungen bei unentgeltlicher Verpflegung (Prozent vom vollen Tagegeld 28 €)
 KUERZUNG_FRUEHSTUECK_PROZENT: Final = 20  # → 5,60 €
 KUERZUNG_MITTAGESSEN_PROZENT: Final = 40  # → 11,20 €
 KUERZUNG_ABENDESSEN_PROZENT: Final = 40  # → 11,20 €
@@ -30,11 +30,11 @@ UEBERNACHTUNG_PAUSCHAL_EUR: Final = 20.00  # ohne Beleg
 UEBERNACHTUNG_PAUSCHAL_MAX_NAECHTE: Final = 14
 UEBERNACHTUNG_BELEG_OHNE_BEGRUENDUNG_MAX_EUR: Final = 100.00  # darüber Begründungspflicht
 
-# § 6 NRKVO — Reduktion bei Daueraufenthalt
+# § 7 Abs. 2 NRKVO — Reduktion bei Daueraufenthalt (ab 15. Aufenthaltstag)
 DAUERAUFENTHALT_REDUKTION_AB_TAG: Final = 15
 DAUERAUFENTHALT_REDUKTION_PROZENT: Final = 50
 
-# 2-km-Regel (§ 6 NRKVO): kein Tagegeld bei Dienstgeschäft im Umkreis
+# 2-km-Regel (§ 7 Abs. 1 S. 4 NRKVO): kein Tagegeld bei Dienstgeschäft im Umkreis
 ZWEI_KM_REGEL_KEIN_TAGEGELD: Final = True
 
 

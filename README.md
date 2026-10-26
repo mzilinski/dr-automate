@@ -14,22 +14,22 @@ Web-Tool für den kompletten Reisekosten-Workflow nach **NRKVO** (niedersächsis
 ### Antrag (`/`)
 *   **5-Schritt-Wizard**: Eingabe (PDF/Text) → Reise (Verkehrsmittel-Abfrage) → KI-Extraktion → Prüfen (strukturierter Review, kein Roh-JSON) → PDF.
 *   **Profil-autoritativ**: Antragsteller-, BahnCard- und Großkundenrabatt-Daten kommen aus dem Profil — die KI erzeugt sie nicht (spart Tokens, keine Platzhalter im PDF). Bei eingeloggten Usern re-merged der Server diese Felder beim Erzeugen autoritativ; übrig gebliebene Platzhalter werden abgewiesen.
-*   **Verkehrsmittel als Zeit-Kontext**: Die Hin-/Rückreise-Wahl (Profil-Default `standard_verkehrsmittel`, pro Reise änderbar) wird der KI **vor** der Extraktion mitgegeben, damit Reisezeiten realistisch geschätzt werden.
-*   **LLM-gestützte Datenextraktion**: Strippbarer System-Prompt (`system_prompt.md`) konvertiert die Ausschreibung in das Reisedaten-JSON. Profil-/Beförderungs-Abschnitte werden zur Laufzeit entfernt.
+*   **Kontext für die KI**: Heutiges Datum, Postleitzahl/Ort des Wohnorts (Start/Ende der Reise) und die Hin-/Rückreise-Wahl (Profil-Default `standard_verkehrsmittel`, pro Reise änderbar) gehen **vor** der Extraktion an die KI — für Jahreszahlen, Reiseweg und realistische Reisezeiten. Straße, Name und IBAN gehen nicht an die KI.
+*   **LLM-gestützte Datenextraktion**: Der System-Prompt (`system_prompt.md`) konvertiert die Ausschreibung in das Reisedaten-JSON (nur Reisedaten, Bemerkungen und drei belegpflichtige Angaben). Erlaubte Ergänzungen sind ausdrücklich begrenzt auf geschätzte Reisezeiten und sicher bekannte Anschriften.
 *   **PDF-Befüllung**: Automatisches Ausfüllen des offiziellen Formulars inkl. Checkbox-Logik für alle Beförderungsarten (PKW § II/§ III, Bahn/Bus, Dienstwagen, Flug) und korrekten Zeilenumbrüchen in Freitextfeldern.
 
 ### Abrechnung (`/abrechnung`)
 *   **9-stufiger Wizard** mit Stepper-Navigation, Live-Berechnung und Pflichtfeld-Validierung.
 *   **Antrag-Import**: Antrags-JSON wird in das Abrechnungs-Schema überführt — alle übernehmbaren Felder (Antragsteller, Reise, Beförderung, Konfiguration) sind vorbefüllt.
-*   **NRKVO-Berechnung** (Stand 1.1.2025) clientseitig (live) und serverseitig (autoritativ): Tagegeld nach 24-h-Regel, Kürzungen für unentgeltliche Verpflegung (Frühstück 5,60 €, Mittag/Abend je 11,20 €), Wegstreckenentschädigung mit Cap (§ 5 II: 0,25 €/km max 125 €; § 5 III: 0,38 €/km), Übernachtungsgeld pauschal (20 €/Nacht, max 14), 2-km-Regel.
+*   **NRKVO-Berechnung** (Stand 1.1.2025) ausschließlich serverseitig (`abrechnung_calc.py`) — die Wizard-Vorschau holt dieselben Werte über `/abrechnung/calc`: Tagegeld je Kalendertag nach § 7 NRKVO i. V. m. § 9 Abs. 4a EStG (> 8 h bzw. An-/Abreisetag 14 €, voller Tag 28 €, ab dem 15. Aufenthaltstag −50 %), Kürzungen für unentgeltliche Verpflegung (Frühstück 5,60 €, Mittag/Abend je 11,20 €, optional pro Tag gedeckelt), Wegstreckenentschädigung (§ 5 II: 0,25 €/km, max. 125 € je Dienstreise; § 5 III: 0,38 €/km; nur selbst gefahrener PKW), Übernachtungsgeld pauschal (20 €/Nacht, max. 14) und Begründungspflicht über 100 €/Belegnacht, 2-km-Regel.
 *   **Export/Import**: Kompletter Wizard-State als JSON downloadbar mit sprechendem Dateinamen `YYYYMMDD_DR-Abrechnung_<Stadt>_<Thema>.json`. Wieder einlesen → Wiedereinstieg in beliebigem Schritt. Wichtig, da Daten nicht serverseitig gespeichert werden und Browser/Geräte-Wechsel sonst zum Datenverlust führen würde.
 *   **PDF-Befüllung** des offiziellen Formulars `035_002` inkl. char-für-char-IBAN, Tagegeld-Aufteilung in volle/Teiltage und Wegstrecken-Zeilen für Hin- und Rückreise.
 
 ### Geteilt
-*   **Optionale AI-Direktextraktion (BYOK)**: Mit hinterlegtem DeepSeek-API-Key wird der Freitext direkt im Tool an DeepSeek geschickt — der Copy-Paste-Umweg über ChatGPT/Claude entfällt. Key bleibt im `localStorage` und wird pro Request einmalig im Header durchgereicht; **kein Server-Logging**, **keine Persistierung**. Ohne Key bleibt alles wie gehabt. Sowohl Antrag als auch Abrechnungs-Wizard können den Freitext nutzen — das extrahierte JSON wird **immer** vor der PDF-Erzeugung zur Prüfung angezeigt.
+*   **Optionale AI-Direktextraktion (BYOK)**: Mit hinterlegtem DeepSeek-API-Key wird der Freitext direkt im Tool an DeepSeek geschickt — der Copy-Paste-Umweg über ChatGPT/Claude entfällt. Gäste: Key bleibt im `localStorage` und wird pro Request im Header durchgereicht. Account: Key liegt verschlüsselt im Server-Profil und verlässt den Server nur in Richtung DeepSeek. **Kein Logging.** Ohne Key bleibt alles wie gehabt. Sowohl Antrag als auch Abrechnungs-Wizard können den Freitext nutzen — das extrahierte JSON wird **immer** vor der PDF-Erzeugung zur Prüfung angezeigt.
 *   **Robuste Eingabe-Bereinigung**: Markdown-Code-Fences (` ```json ``` `), Begleittext vor/nach dem JSON, Trailing Commas und Zitatmarker (`[cite_start]`, `[cite: 1]` von NotebookLM/Gemini) werden client- und serverseitig entfernt.
 *   **Zwei Nutzungsmodi**:
-    *   **Gast (Default)**: Profil-Assistent im Browser, Daten ausschließlich im `localStorage`. Keine Server-Persistenz.
+    *   **Gast (Default)**: Profil-Assistent im Browser, Daten im `localStorage`; der Server nutzt sie nur zum Ausfüllen des PDFs. Keine Server-Persistenz.
     *   **Mit Account**: Login über Authelia (ForwardAuth via Traefik, 2-Faktor). Profil + Dienstreisen werden serverseitig in SQLite gespeichert, sensible Felder (Adresse, IBAN, BIC, Reise-JSONs) mit Fernet verschlüsselt. Dashboard mit Lifecycle (entwurf → genehmigt → abgerechnet).
 *   **Web-UI**: Eigene CSS-Komponenten (kein Bootstrap), Dark-/Light-Mode via `prefers-color-scheme`, Live-JSON-Validierung. Top-Nav mit Dashboard/Profil/Hilfe, Gast-Modus-Banner bei nicht-eingeloggter Nutzung.
 *   **In-App-Doku**: Markdown-basierte Hilfe unter `/docs/<slug>` ([getting-started](docs/getting-started.md), [workflow](docs/workflow.md), [account](docs/account.md), [security](docs/security.md), [admin](docs/admin.md), [faq](docs/faq.md)).
@@ -51,9 +51,11 @@ Web-Tool für den kompletten Reisekosten-Workflow nach **NRKVO** (niedersächsis
 | `FLASK_DEBUG` | Debug-Modus (nur lokal!) | `false` |
 | `PDF_TEMPLATE_PATH` | Pfad zur Antrags-PDF-Vorlage | `forms/DR-Antrag_035_001Stand4-2025pdf.pdf` |
 | `PDF_TEMPLATE_ABRECHNUNG_PATH` | Pfad zur Abrechnungs-PDF-Vorlage | `forms/Reisekostenvordruck.pdf` |
-| `SECRET_KEY` | **Pflicht in Produktion.** Secret für CSRF/Sessions. Generieren mit `python -c "import secrets; print(secrets.token_hex(32))"` | unsicherer Dev-Default |
-| `RATE_LIMIT` | Max. Requests/Minute für `/generate` | `10` |
+| `SECRET_KEY` | **Pflicht.** Secret für CSRF/Sessions. Generieren mit `python -c "import secrets; print(secrets.token_hex(32))"`. Ohne Wert startet die App nur mit `FLASK_DEBUG=true` (dann ephemerer Key). | — |
+| `RATE_LIMIT` | Max. Requests/Minute für `/generate`, `/extract` und `/abrechnung/generate` | `10` |
 | `TRUST_REMOTE_USER_HEADER` | **Nur in Produktion hinter Authelia/Traefik auf `true` setzen.** Erlaubt der App, die Identität aus dem `Remote-User`-Header zu lesen. In Dev/Tests bleibt es `false`, sonst wäre Header-Spoofing möglich. | `false` |
+| `DR_AUTOMATE_ALLOWED_GROUPS` | Komma-Liste der Authelia-Gruppen (`Remote-Groups`), die den Account-Modus nutzen dürfen; alle anderen gelten als Gast. Leer = keine Prüfung. | leer (Produktion: `admins,dr-automate-users`) |
+| `ADMIN_REMOTE_USERS` | Komma-Liste der `Remote-User`, die `/admin/account-requests` sehen dürfen. Leer = niemand. | leer |
 | `DR_AUTOMATE_ENCRYPTION_KEY` | **Pflicht in Produktion**, wenn Account-Modus genutzt wird. Fernet-Key (32 byte url-safe-base64) für Application-Level-Encryption. Erzeugen mit `python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())'`. Verlust = Datenverlust. | ephemerer Key in Debug |
 | `DR_AUTOMATE_ENCRYPTION_KEY_OLD` | Optional. Alter Fernet-Key für Rotation (App liest mit beiden, schreibt mit dem aktuellen). | leer |
 | `DR_AUTOMATE_DATABASE_URL` | SQLite-URL. Bei Production: in persistentem Volume. | `sqlite:///data/dr-automate.db` |
@@ -61,6 +63,10 @@ Web-Tool für den kompletten Reisekosten-Workflow nach **NRKVO** (niedersächsis
 | `DR_AUTOMATE_ADMIN_EMAIL` | E-Mail-Empfänger für Account-Anfragen aus `/account/request`. | leer |
 | `AUTHELIA_LOGOUT_URL` | Ziel des „Abmelden"-Links in der Nav. | `/` |
 | `MAIL_SERVER`, `MAIL_PORT`, `MAIL_USE_TLS`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_DEFAULT_SENDER` | SMTP-Konfig für Account-Anfrage-Mails. | leer (kein Versand) |
+| `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | Optionaler Hinweis auf neue Account-Anfragen (nur Anfrage-Nummer, keine personenbezogenen Daten). Beide leer = aus. | leer |
+| `DR_AUTOMATE_MAX_UPLOAD_BYTES` | Maximale Request-Größe (u. a. PDF-Upload in `/extract`). | `10485760` (10 MiB) |
+| `DR_AUTOMATE_MAX_PDF_PAGES` | Maximale Seitenzahl eines hochgeladenen PDFs. | `50` |
+| `DR_AUTOMATE_DOCS_DIR` | Verzeichnis der In-App-Doku (`/docs/<slug>`). | `docs` |
 | `IMPRESSUM_URL` | URL zur Impressumsseite | `#` |
 | `DATENSCHUTZ_URL` | URL zur Datenschutzerklärung | `#` |
 
@@ -81,7 +87,7 @@ Eine Beispiel-Konfiguration findest du in [.env.example](.env.example).
     # Mit uv (empfohlen):
     uv sync
 
-    # Oder mit pip:
+    # Oder mit pip (ohne Lockfile — Versionen können vom Image abweichen):
     pip install .
     pip install --group dev   # Tests, Linting
     ```
@@ -98,15 +104,11 @@ Eine Beispiel-Konfiguration findest du in [.env.example](.env.example).
 
 ### Option A: Profil-Assistent im Browser (empfohlen)
 
-Beim ersten Besuch öffnet sich automatisch ein Profil-Assistent. Die eingegebenen Daten (Name, Schule/Abteilung/Funktion, Telefon, Adresse, Mitreisender) werden ausschließlich im `localStorage` des Browsers gespeichert – sie werden nie an den Server übertragen. Der System-Prompt wird beim Kopieren automatisch mit diesen Daten befüllt.
+Beim ersten Besuch öffnet sich automatisch ein Profil-Assistent. Die eingegebenen Daten (Name, Schule/Abteilung/Funktion, Telefon, Adresse, Mitreisende) liegen im `localStorage` des Browsers und gehen nur beim Erzeugen des PDFs an den Server. Der System-Prompt enthält sie nicht — die KI bekommt im Kontextblock nur Postleitzahl und Ort.
 
-### Option B: Lokale System-Prompt-Datei
+### Option B: Account
 
-Für server-seitige Vorausfüllung (z. B. wenn mehrere Personen den selben Browser nutzen):
-
-1.  Kopiere die Datei `system_prompt.md` zu `system_prompt.local.md`.
-2.  Bearbeite `system_prompt.local.md` und fülle die Platzhalter (z. B. `[DEIN NAME]`, `[DEINE ABTEILUNG]`) mit deinen echten Daten.
-3.  Die Anwendung bevorzugt automatisch die `.local.md`-Datei, falls vorhanden. Diese Datei wird von Git ignoriert und landet nicht im Repository.
+Mit Account (Authelia) liegt das Profil verschlüsselt auf dem Server und ersetzt beim Öffnen der Wizards die Browser-Kopie. Eine personalisierte `system_prompt.local.md` gibt es nicht mehr.
 
 ## Nutzung mit Docker
 
@@ -195,7 +197,8 @@ dr-automate/
 | `/` | GET | Antrag-Wizard (Gast + Auth, mit Save-Banner bei Auth) |
 | `/abrechnung` | GET | Abrechnungs-Wizard |
 | `/abrechnung/generate` | POST | Abrechnungs-PDF generieren (Rate Limited). Mit `save_to_account=1` + Auth: persistiert in DB. |
-| `/abrechnung/calc` | POST | Server-autoritative NRKVO-Berechnung |
+| `/abrechnung/calc` | POST | Server-autoritative NRKVO-Berechnung (Quelle der Wizard-Vorschau, 60/min) |
+| `/api/route` | POST | Entfernung schätzen über OpenStreetMap/OSRM (30/h) |
 | `/generate` | POST | Antrags-PDF generieren (Rate Limited: 10/min). Mit `save_to_account=1` + Auth: persistiert in DB, Response-Header `X-Dienstreise-Id`. |
 | `/extract` | POST | KI-Extraktion via DeepSeek (BYOK, `X-DeepSeek-Key`-Header) |
 | `/example` | GET | Beispiel-JSON für Frontend |
@@ -214,13 +217,15 @@ dr-automate/
 | `/dienstreisen/<id>/genehmigung` | GET, POST | Genehmigungs-Datum/Aktenzeichen vermerken |
 | `/dienstreisen/<id>/antrag.pdf` | GET | Antrag-PDF-Download (Owner-Check) |
 | `/dienstreisen/<id>/abrechnung.pdf` | GET | Abrechnungs-PDF-Download (Owner-Check) |
+| `/dienstreisen/<id>/bezahlt` | POST | Geldeingang vermerken bzw. zurücksetzen (erst nach Abrechnung) |
 | `/dienstreisen/<id>/delete` | POST | Reise + PDFs löschen |
+| `/admin/account-requests` | GET, POST | Account-Anfragen verwalten (nur `ADMIN_REMOTE_USERS`) |
 | `/profil` | GET, POST | Server-seitiges Profil |
 | `/profil/json` | GET | Profil als JSON (für Wizard-Pre-Fill) |
 
 ## NRKVO-Sätze
 
-Die hinterlegten Sätze (Tagegeld, Wegstreckenentschädigung, Übernachtung, Kürzungen) liegen zentral in `nrkvo_rates.py` mit Stand-Datum. Bei einer Novelle dort anpassen — Frontend und Backend lesen aus derselben Quelle. Aktueller Stand wird im Footer der Abrechnungs-Seite angezeigt.
+Die hinterlegten Sätze (Tagegeld, Wegstreckenentschädigung, Übernachtung, Kürzungen) liegen zentral in `nrkvo_rates.py` mit Stand-Datum. Bei einer Novelle dort anpassen — die Templates bekommen sie als `nrkvo` (Anzeige/Tooltips), gerechnet wird nur in `abrechnung_calc.py`. Aktueller Stand wird im Footer der Abrechnungs-Seite angezeigt.
 
 ## Entwicklung
 

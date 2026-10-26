@@ -35,7 +35,7 @@ CI macht dasselbe — wenn lokal grün, ist die Pipeline auch grün.
 - **Eine Sache pro PR.** Lieber drei kleine als ein großer Mischmasch.
 - **Tests dazu**, wenn Logik geändert wird — besonders bei `apply_checkbox_logic` und den Pydantic-Modellen.
 - **Beschreibung mit Vorher/Nachher**, wenn UI-/Output-Verhalten betroffen ist.
-- **Nichts Hardcodiertes Persönliches** (Namen, Adressen, Telefonnummern). Persönliche Defaults gehören in `system_prompt.local.md` (gitignored).
+- **Nichts Hardcodiertes Persönliches** (Namen, Adressen, Telefonnummern). Persönliche Daten gehören ins Profil (Browser oder Server), nie in Code oder Prompt.
 
 ## Was nicht reinkommt
 

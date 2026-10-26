@@ -1,7 +1,8 @@
 """DeepSeek-API-Client für die Freitext-zu-JSON-Extraktion.
 
-BYOK-Modell: Der API-Key kommt pro Request mit (aus dem Browser/localStorage)
-und wird hier nur durchgereicht — nicht gespeichert, nicht geloggt.
+BYOK-Modell: Der API-Key kommt vom Aufrufer (``/extract``): bei Gästen aus dem
+Request-Header (localStorage), bei eingeloggten Nutzern aus dem verschlüsselten
+Server-Profil. Dieses Modul reicht ihn nur durch — es speichert und loggt nichts.
 """
 
 import json

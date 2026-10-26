@@ -1,6 +1,6 @@
 [project]
 name = "dr-automate"
-version = "0.2.0"
+version = "0.4.0"
 description = "Automatisierte Generierung von Dienstreise-Anträgen als PDF"
 readme = "README.md"
 license = { text = "MIT" }
@@ -31,8 +31,12 @@ dev = [
     "ruff>=0.14.13",
 ]
 
-# Es ist eine Flask-App, keine Bibliothek — nur die drei Python-Module ins Wheel,
-# nichts aus forms/ oder templates/ versuchen zu packen.
+# Es ist eine Flask-App, keine Bibliothek — nur die Python-Module ins Wheel,
+# nichts aus forms/ oder templates/ versuchen zu packen. Das Image startet
+# aus /app (COPY . /app); die Liste dient den Paket-Metadaten (Version).
 [tool.setuptools]
-py-modules = ["app", "generator", "models", "db", "crypto", "models_db", "auth"]
+py-modules = [
+    "abrechnung_calc", "ai_extract", "app", "auth", "crypto", "db", "generator",
+    "generator_abrechnung", "models", "models_db", "nrkvo_rates", "pdf_text", "rotate_keys", "routing",
+]
 

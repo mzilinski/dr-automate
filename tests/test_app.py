@@ -253,7 +253,7 @@ class TestCheckboxBefoerderungHin:
             ("DIENSTWAGEN", "II", "OBJ36"),
             ("PKW", "II", "OBJ42"),
             ("PKW", "III", "OBJ43"),
-            ("FLUG", "II", "OBJ43"),  # Flug → §5 III
+            ("FLUG", "II", "OBJ45"),  # Flug → sonstiges Beförderungsmittel
         ],
     )
     def test_hinreise_mapping(self, typ, para, expected_id):
@@ -294,7 +294,7 @@ class TestCheckboxBefoerderungRueck:
             ("DIENSTWAGEN", "II", "OBJ47"),
             ("PKW", "II", "OBJ48"),
             ("PKW", "III", "OBJ14"),
-            ("FLUG", "II", "OBJ14"),
+            ("FLUG", "II", "OBJ51"),
         ],
     )
     def test_rueckreise_mapping(self, typ, para, expected_id):

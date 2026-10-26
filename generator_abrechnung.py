@@ -11,8 +11,8 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
 import nrkvo_rates
-from abrechnung_calc import berechnung, tagegeld_tage
-from generator import set_need_appearances
+from abrechnung_calc import berechnung
+from generator import grosskundenrabatt_begruendung, hat_bahn, set_need_appearances
 from models import AbrechnungData
 
 logger = logging.getLogger(__name__)
@@ -36,6 +36,11 @@ def _fmt_eur(value: float) -> str:
     if value == 0:
         return ""
     return f"{value:.2f}".replace(".", ",")
+
+
+def _fmt_eur_text(value: float) -> str:
+    """Betrag für Fließtext (Erläuterungen), immer mit Einheit."""
+    return f"{value:.2f}".replace(".", ",") + " €"
 
 
 def _split_iban(iban: str) -> dict:
@@ -100,11 +105,13 @@ def _build_text_fields(data: AbrechnungData) -> dict:
     fields["Grund_der_RKR"] = rkr_text
     fields["Grund_der_RKR1"] = ""
 
-    # Begründung "kein Großkundenrabatt"
-    fields["Begruendung_nein"] = data.konfiguration_checkboxen.grosskundenrabatt_begruendung_wenn_nein or ""
+    # Begründung "kein Großkundenrabatt" — ohne Bahn-/Busfahrt leitet der
+    # Antrags-Generator sie aus der Verkehrsmittel-Wahl ab (gleiche Logik).
+    fields["Begruendung_nein"] = grosskundenrabatt_begruendung(data.model_dump())
 
-    # Strecke der Ermäßigungskarte (kein passendes Feld im Antrag → leer)
-    fields["Strecke"] = ""
+    # Strecke der Ermäßigungskarte („Ja, und zwar für die Strecke")
+    k = data.konfiguration_checkboxen
+    fields["Strecke"] = (k.ermaessigungskarte_strecke or "") if _hat_ermaessigungskarte(data) else ""
 
     # Verpflegungs-Beschreibung (Tage/Mahlzeiten/Nächte)
     verpf_parts = []
@@ -122,32 +129,28 @@ def _build_text_fields(data: AbrechnungData) -> dict:
     # RRS-Aktenzeichen
     fields["Bei_RRS"] = data.rrs_aktenzeichen if data.rkr == "RRS" else ""
 
-    # Tagegeld-Zeilen aufgesplittet: Zeile 1 = volle Tage, Zeile 2 = Teiltage,
-    # Zeile 3 = Netto nach Kürzung (nur wenn relevant). Kürzungsspalte ist
-    # rotes Admin-Feld und bleibt leer.
-    start_dt = datetime.strptime(f"{rd.start_datum} {rd.start_zeit}", "%d.%m.%Y %H:%M")
-    ende_dt = datetime.strptime(f"{rd.ende_datum} {rd.ende_zeit}", "%d.%m.%Y %H:%M")
-    if data.konfiguration_checkboxen.dienstgeschaeft_2km_umkreis:
-        voll_count, teil_count = 0, 0
-    else:
-        voll_count, teil_count = tagegeld_tage(start_dt, ende_dt)
-
-    voll_brutto = voll_count * nrkvo_rates.TAGEGELD_VOLLER_TAG_EUR
-    teil_brutto = teil_count * nrkvo_rates.TAGEGELD_TEILTAG_EUR
-
-    fields["Tage"] = str(voll_count) if voll_count else ""
-    fields["EUR"] = _fmt_eur(voll_brutto)
-    fields["Tage6"] = str(teil_count) if teil_count else ""
-    fields["EUR6"] = _fmt_eur(teil_brutto)
-    # Zeile 3: Netto-Tagegeld nach Kürzungen (Transparenz für Sachbearbeitung).
-    # Wichtig: auch bei Netto = 0 € füllen, sonst kann die Sachbearbeitung
-    # "keine Kürzung" nicht von "voll gekürzt" unterscheiden.
-    fields["Tage7"] = ""
-    if data.berechnet.kuerzung_eur > 0:
-        netto = data.berechnet.tagegeld_netto_eur
-        fields["EUR7"] = f"{netto:.2f}".replace(".", ",")
-    else:
-        fields["EUR7"] = ""
+    # Tagegeld: Der Vordruck rechnet „Tage × EUR" (Satz je Tag) — die
+    # Spalte EUR enthält den Tagessatz, nicht die Summe (wie bei der
+    # Wegstrecke km × Satz). Bis 2026-10 stand hier der Gesamtbetrag, was die
+    # Sachbearbeitung als Tage × Summe lesen musste. Zeilen:
+    #   1 = volle Tage (28 €), 2 = Teiltage (14 €),
+    #   3 = ab dem 15. Aufenthaltstag verminderte Tage (§ 7 Abs. 2 NRKVO).
+    # Kürzungen trägt die Amtsspalte ein; die Mahlzeiten stehen im Feld
+    # „Verpflegung", Brutto/Kürzung/Netto in den Erläuterungen.
+    b = data.berechnet
+    rows = [("Tage", "EUR", 0, 0.0), ("Tage6", "EUR6", 0, 0.0), ("Tage7", "EUR7", 0, 0.0)]
+    if not data.verzicht_erklaerung.verzicht_tagegeld:
+        reduziert_satz = (
+            nrkvo_rates.TAGEGELD_VOLLER_TAG_EUR * (100 - nrkvo_rates.DAUERAUFENTHALT_REDUKTION_PROZENT) / 100
+        )
+        rows = [
+            ("Tage", "EUR", b.tagegeld_volle_tage, nrkvo_rates.TAGEGELD_VOLLER_TAG_EUR),
+            ("Tage6", "EUR6", b.tagegeld_teiltage, nrkvo_rates.TAGEGELD_TEILTAG_EUR),
+            ("Tage7", "EUR7", b.tagegeld_reduzierte_tage, reduziert_satz),
+        ]
+    for f_tage, f_eur, anzahl, satz in rows:
+        fields[f_tage] = str(anzahl) if anzahl else ""
+        fields[f_eur] = _fmt_eur(satz) if anzahl else ""
 
     # Reisezeiten
     fields["Beginn_der_Dienstreise"] = _fmt_dt(rd.start_datum, rd.start_zeit)
@@ -156,7 +159,7 @@ def _build_text_fields(data: AbrechnungData) -> dict:
     fields["Ende_der_Dienstreise"] = _fmt_dt(rd.ende_datum, rd.ende_zeit)
 
     # Übernachtungsgeld (pauschal)
-    fields["Uebernachtungsgeld"] = _fmt_eur(data.berechnet.uebernachtungsgeld_pauschal_eur)
+    fields["Uebernachtungsgeld"] = _fmt_eur(b.uebernachtungsgeld_pauschal_eur)
 
     # Anordnung
     if data.anordnung.dienststelle or data.anordnung.datum:
@@ -186,62 +189,74 @@ def _build_text_fields(data: AbrechnungData) -> dict:
         mitreisende.append(data.antragsteller.mitreisender_name)
     if mitreisende:
         erl_parts.append(f"Mitreisende: {', '.join(mitreisende)}")
-    # Begruendung fuer Hotelkosten > 100 €/Nacht: gilt unabhaengig davon,
-    # ob die Naechte als pauschal oder per Beleg abgerechnet werden.
-    # Bei pauschal: Cap pro Nacht = kosten_eur / anzahl_pauschal; bei Beleg-
-    # only nehmen wir die anzahl_unentgeltlich + 1 als Annahme, oder zaehlen
-    # gegen die gesamte Aufenthaltsdauer (best effort — entscheidend ist,
-    # dass die Begruendung nicht still verloren geht).
-    if data.uebernachtungen.begruendung_ueber_100:
-        ref_naechte = max(
-            1,
-            data.uebernachtungen.anzahl_pauschal,
+    # Begründung für Hotelkosten > 100 €/Nacht (§ 8 Abs. 1 NRKVO: darüber
+    # nur, soweit unvermeidbar). €/Nacht rechnet abrechnung_calc über die
+    # Belegnächte; eine eingetragene Begründung geht nie still verloren.
+    if data.uebernachtungen.begruendung_ueber_100 and b.uebernachtung_beleg_eur:
+        erl_parts.append(
+            f"Übernachtung {_fmt_eur_text(b.uebernachtung_beleg_pro_nacht_eur)}/Nacht: "
+            f"{data.uebernachtungen.begruendung_ueber_100}"
         )
-        eur_pro_nacht = data.uebernachtungen.kosten_eur / ref_naechte
-        # Wenn der User explizit eine Begruendung eingetragen hat, sollte sie
-        # auf jeden Fall im PDF auftauchen — die Eintragung an sich impliziert
-        # > 100 €/Nacht. Schwellen-Check bleibt als zusaetzliche Plausibilitaet.
-        if (
-            eur_pro_nacht > nrkvo_rates.UEBERNACHTUNG_BELEG_OHNE_BEGRUENDUNG_MAX_EUR
-            or data.uebernachtungen.kosten_eur > nrkvo_rates.UEBERNACHTUNG_BELEG_OHNE_BEGRUENDUNG_MAX_EUR
-        ):
-            erl_parts.append(f"Übernachtung > 100 €/Nacht: {data.uebernachtungen.begruendung_ueber_100}")
+    if b.kuerzung_eur:
+        erl_parts.append(
+            f"Tagegeld {_fmt_eur_text(b.tagegeld_brutto_eur)} − Kürzung Verpflegung "
+            f"{_fmt_eur_text(b.kuerzung_eur)} = {_fmt_eur_text(b.tagegeld_netto_eur)}"
+        )
+    v = data.verzicht_erklaerung
+    verzichte = [
+        txt
+        for flag, txt in (
+            (v.verzicht_tagegeld, "Tagegeld"),
+            (v.verzicht_uebernachtungsgeld, "Übernachtungsgeld"),
+            (v.verzicht_fahrtkosten, "Fahrtkosten"),
+        )
+        if flag
+    ]
+    if verzichte:
+        erl_parts.append(f"Verzicht auf {', '.join(verzichte)}.")
+    erl_parts.extend(b.hinweise)
     if data.beleg_betraege.wagenklasse:
         erl_parts.append(f"Wagenklasse: {data.beleg_betraege.wagenklasse}")
     if data.beleg_betraege.sonstige_fahrt_erlaeuterung:
         erl_parts.append(data.beleg_betraege.sonstige_fahrt_erlaeuterung)
     fields["Erlaeuterungen"] = "\r".join(erl_parts)
 
-    # Erstattung Übernachtungskosten (mit Beleg)
-    fields["Erstattung_Uebernachtungskosten"] = _fmt_eur(data.uebernachtungen.kosten_eur)
+    # Erstattung Übernachtungskosten (mit Beleg) — Beträge aus der
+    # Berechnung, damit Verzichtserklärungen auch im PDF greifen.
+    fields["Erstattung_Uebernachtungskosten"] = _fmt_eur(b.uebernachtung_beleg_eur)
 
     # Bahn-Beträge
-    fields["Fahrkarte"] = _fmt_eur(data.beleg_betraege.fahrkarte_eur)
-    fields["Zuschlaege"] = _fmt_eur(data.beleg_betraege.zuschlaege_eur)
+    verzicht_fahrt = data.verzicht_erklaerung.verzicht_fahrtkosten
+    fields["Fahrkarte"] = "" if verzicht_fahrt else _fmt_eur(data.beleg_betraege.fahrkarte_eur)
+    fields["Zuschlaege"] = "" if verzicht_fahrt else _fmt_eur(data.beleg_betraege.zuschlaege_eur)
 
     # Sonstige Fahrtkosten (Page 1 — Belege beigefügt)
-    fields["Sonstige_Fahrauslagen"] = _fmt_eur(data.beleg_betraege.sonstige_fahrt_eur)
+    fields["Sonstige_Fahrauslagen"] = _fmt_eur(b.sonstige_fahrt_eur)
 
-    # Wegstrecke: Hinreise (Tage3/EUR3/Wegstreckenentschaedigung) + Rückreise (Tage4/EUR4/Wegstreckenentschaedigung1)
-    if data.befoerderung.hinreise.typ == "PKW" and data.wegstrecke.km_hinreise > 0:
-        satz = nrkvo_rates.wegstrecke_satz_eur(data.befoerderung.hinreise.paragraph_5_nrkvo)
-        fields["Tage3"] = str(data.wegstrecke.km_hinreise)
-        fields["EUR3"] = f"{satz:.2f}".replace(".", ",")
-        fields["Wegstreckenentschaedigung"] = _fmt_eur(data.wegstrecke.km_hinreise * satz)
-    else:
-        fields["Tage3"] = ""
-        fields["EUR3"] = ""
-        fields["Wegstreckenentschaedigung"] = ""
-
-    if data.befoerderung.rueckreise.typ == "PKW" and data.wegstrecke.km_rueckreise > 0:
-        satz = nrkvo_rates.wegstrecke_satz_eur(data.befoerderung.rueckreise.paragraph_5_nrkvo)
-        fields["Tage4"] = str(data.wegstrecke.km_rueckreise)
-        fields["EUR4"] = f"{satz:.2f}".replace(".", ",")
-        fields["Wegstreckenentschaedigung1"] = _fmt_eur(data.wegstrecke.km_rueckreise * satz)
-    else:
-        fields["Tage4"] = ""
-        fields["EUR4"] = ""
-        fields["Wegstreckenentschaedigung1"] = ""
+    # Wegstrecke: Hinreise (Tage3/EUR3/Wegstreckenentschaedigung) + Rückreise
+    # (Tage4/EUR4/Wegstreckenentschaedigung1). Die Summen kommen aus der
+    # Berechnung — dort ist der 125-€-Deckel (§ 5 II) bereits verteilt.
+    for befoerderung, km, betrag, (f_km, f_satz, f_sum) in (
+        (
+            data.befoerderung.hinreise,
+            data.wegstrecke.km_hinreise,
+            b.wegstrecke_hin_eur,
+            ("Tage3", "EUR3", "Wegstreckenentschaedigung"),
+        ),
+        (
+            data.befoerderung.rueckreise,
+            data.wegstrecke.km_rueckreise,
+            b.wegstrecke_rueck_eur,
+            ("Tage4", "EUR4", "Wegstreckenentschaedigung1"),
+        ),
+    ):
+        if befoerderung.typ == "PKW" and km > 0 and not verzicht_fahrt:
+            satz = nrkvo_rates.wegstrecke_satz_eur(befoerderung.paragraph_5_nrkvo)
+            fields[f_km] = str(km)
+            fields[f_satz] = f"{satz:.2f}".replace(".", ",")
+            fields[f_sum] = _fmt_eur(betrag)
+        else:
+            fields[f_km] = fields[f_satz] = fields[f_sum] = ""
 
     # Page 2: Erstattung sonstiger Kosten + Erläuterung
     fields["Sonstige_Fahrauslagen1"] = _fmt_eur(data.beleg_betraege.sonstige_kosten_eur)
@@ -259,35 +274,40 @@ def _build_text_fields(data: AbrechnungData) -> dict:
     }
 
 
+def _hat_ermaessigungskarte(data: AbrechnungData) -> bool:
+    """Ermäßigungskarte (Monatskarte/Jobticket) für die Strecke. Ältere
+    Wizard-Exporte kannten nur ``weitere_ermaessigungen_vorhanden`` für
+    diese Frage — das zählt weiterhin als „Ja"."""
+    k = data.konfiguration_checkboxen
+    return bool(k.ermaessigungskarte_vorhanden or k.weitere_ermaessigungen_vorhanden)
+
+
 def _build_button_fields(data: AbrechnungData) -> dict:
     """Befüllt alle Checkbox-Buttons."""
     cb = {}
     k = data.konfiguration_checkboxen
 
-    # BahnCard (OBJ21–28)
+    # BahnCard (OBJ21–28): OBJ23/24/25 = Business 25/50/100,
+    # OBJ26/27/28 = private BahnCard 25/50/100.
     if not k.bahncard_business_vorhanden and not k.bahncard_privat_vorhanden:
         cb["OBJ21"] = "/Yes"  # Nein
     else:
         cb["OBJ22"] = "/Yes"  # Ja, und zwar
-        # OBJ23/24/25 = Business 25/50/100, OBJ26/27/28 = 25/50/100
-        # Granularere Auswahl haben wir nicht im Modell — wir markieren nur
-        # die Kategorie. Default Business 25 / privat 25 wenn unklar.
         if k.bahncard_business_vorhanden:
-            cb["OBJ23"] = "/Yes"  # Business 25 (Default-Annahme)
+            # Die Business-Stufe erfasst weder Profil noch Wizard; die
+            # Dienststelle gibt in der Regel die Business 25 aus.
+            cb["OBJ23"] = "/Yes"
         if k.bahncard_privat_vorhanden:
-            cb["OBJ26"] = "/Yes"  # 25 (Default-Annahme)
+            stufe = k.bahncard_privat_stufe if k.bahncard_privat_stufe in (25, 50, 100) else 25
+            cb[{25: "OBJ26", 50: "OBJ27", 100: "OBJ28"}[stufe]] = "/Yes"
 
-    # Geschäftskundenrabatt: OBJ29=Ja, OBJ30=Nein
-    if k.grosskundenrabatt_genutzt:
-        cb["OBJ29"] = "/Yes"
-    else:
-        cb["OBJ30"] = "/Yes"
+    # Geschäftskundenrabatt: OBJ29=Ja, OBJ30=Nein. Reisebezogen wie im
+    # Antrag: ohne Bahn-/Busfahrt immer „Nein" (Begründung automatisch).
+    genutzt = k.grosskundenrabatt_genutzt and hat_bahn(data.befoerderung.model_dump())
+    cb["OBJ29" if genutzt else "OBJ30"] = "/Yes"
 
-    # Ermäßigungskarte: OBJ32=Nein, OBJ33=Ja
-    if k.weitere_ermaessigungen_vorhanden:
-        cb["OBJ33"] = "/Yes"
-    else:
-        cb["OBJ32"] = "/Yes"
+    # Ermäßigungskarte: OBJ32=Nein, OBJ33=Ja („und zwar für die Strecke")
+    cb["OBJ33" if _hat_ermaessigungskarte(data) else "OBJ32"] = "/Yes"
 
     # 2-km-Umkreis: OBJ34=Nein, OBJ35=Ja
     if k.dienstgeschaeft_2km_umkreis:
@@ -333,19 +353,19 @@ def _build_button_fields(data: AbrechnungData) -> dict:
         cb["OBJ3"] = "/Yes"
 
     # Beförderungsmittel (OBJ4=Bahn/Bus, OBJ5=Dienst-Kfz, OBJ6=PKW §II,
-    # OBJ7=PKW §III, OBJ8=sonstiges/Anhänger). Hinreise-Typ als primär.
-    typ = data.befoerderung.hinreise.typ
-    para = data.befoerderung.hinreise.paragraph_5_nrkvo
-    if typ in ("BAHN", "BUS"):
-        cb["OBJ4"] = "/Yes"
-    elif typ == "DIENSTWAGEN":
-        cb["OBJ5"] = "/Yes"
-    elif typ == "PKW":
-        cb["OBJ7" if para == "III" else "OBJ6"] = "/Yes"
-    elif typ == "FLUG":
-        cb["OBJ8"] = "/Yes"
-    # MITFAHRT: keine Box angekreuzt — der Mitfahrer macht für den PKW-Anteil
-    # keinen eigenen Posten geltend, der Hinweis steht in den Erläuterungen.
+    # OBJ7=PKW §III, OBJ8=sonstiges/Anhänger). Unabhängige Kästchen — Hin-
+    # und Rückreise werden beide angekreuzt (z. B. Bahn hin, PKW zurück).
+    for b in (data.befoerderung.hinreise, data.befoerderung.rueckreise):
+        if b.typ in ("BAHN", "BUS"):
+            cb["OBJ4"] = "/Yes"
+        elif b.typ == "DIENSTWAGEN":
+            cb["OBJ5"] = "/Yes"
+        elif b.typ == "PKW":
+            cb["OBJ7" if b.paragraph_5_nrkvo == "III" else "OBJ6"] = "/Yes"
+        elif b.typ == "FLUG":
+            cb["OBJ8"] = "/Yes"
+        # MITFAHRT: keine Box — der Mitfahrer macht für den PKW-Anteil keinen
+        # eigenen Posten geltend, der Hinweis steht in den Erläuterungen.
 
     # Zuwendungen Dritter: OBJ9=Nein, OBJ10=Ja
     if data.abzuege.zuwendungen_eur > 0:
@@ -365,13 +385,8 @@ def _build_button_fields(data: AbrechnungData) -> dict:
     else:
         cb["OBJ54"] = "/Yes"
 
-    # Auszuzahlen / Zurückzuzahlen: OBJ56/OBJ57
-    if data.berechnet.auszahlbetrag_eur >= 0:
-        cb["OBJ56"] = "/Yes"
-    else:
-        cb["OBJ57"] = "/Yes"
-
-    # OBJ58/OBJ59 sind Admin-Felder → bleiben leer
+    # OBJ56/OBJ57 („Auszuzahlen"/„Zurückzuzahlen") und OBJ58/OBJ59 stehen in
+    # der Amtsspalte und sind im Vordruck schreibgeschützt (Ff=1) → leer.
 
     return cb
 

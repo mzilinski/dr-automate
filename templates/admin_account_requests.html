@@ -83,7 +83,7 @@
           {% endif %}
           <form method="post" action="{{ url_for('admin_account_request_delete', req_id=it.id) }}"
                 style="display:inline"
-                onsubmit="return confirm('Anfrage #{{ it.id }} ({{ it.display_name }}) wirklich löschen?');">
+                data-confirm="Anfrage #{{ it.id }} ({{ it.display_name }}) wirklich löschen?">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn btn-danger">Löschen</button>
           </form>
@@ -93,4 +93,12 @@
     {% endfor %}
   {% endif %}
 </div>
+{% endblock %}
+{% block scripts %}
+<script>
+  // Bestätigung über data-confirm statt Inline-Handler: Nutzerdaten (Name aus
+  // dem öffentlichen Anfrageformular) landen so nie im JavaScript-Kontext.
+  document.querySelectorAll('form[data-confirm]').forEach(f =>
+    f.addEventListener('submit', e => { if (!confirm(f.dataset.confirm)) e.preventDefault(); }));
+</script>
 {% endblock %}

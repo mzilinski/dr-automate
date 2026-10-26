@@ -59,17 +59,18 @@ Die App generiert aktuell den **Antrag** (Formular `035_001`) aus LLM-JSON. Date
 | Wegstrecke § 5 II (kleine) | 0,25 €/km, max 125 € pro Reise | § 5 NRKVO |
 | Wegstrecke § 5 III (große, triftiger Grund) | 0,38 €/km | § 5 NRKVO |
 | Wegstrecke Fahrrad | 0,10 €/km | § 5 NRKVO |
-| Tagegeld > 8 h / An- bzw. Abreisetag | 14 € | § 6 NRKVO i. V. m. § 9 Abs. 4a EStG |
+| Tagegeld > 8 h / An- bzw. Abreisetag | 14 € | § 7 NRKVO i. V. m. § 9 Abs. 4a EStG |
 | Tagegeld 24-h-Tag | 28 € | dito |
 | Übernachtungsgeld pauschal | 20 €/Nacht, max 14 Nächte | § 8 NRKVO |
 | Übernachtungskosten mit Beleg | bis 100 €/Nacht (sonst Begründung) | § 8 NRKVO |
-| Kürzung Frühstück | 20 % vom vollen Tagegeld (5,60 €) | § 6 NRKVO |
-| Kürzung Mittag-/Abendessen | je 40 % (11,20 €) | § 6 NRKVO |
-| Reduktion ab Tag 15 am selben Ort | -50 % Tagegeld | § 6 NRKVO |
+| Kürzung Frühstück | 20 % vom vollen Tagegeld (5,60 €) | § 7 Abs. 3 NRKVO |
+| Kürzung Mittag-/Abendessen | je 40 % (11,20 €) | § 7 Abs. 3 NRKVO |
+| Reduktion ab Tag 15 am selben Ort (ohne Hin-/Rückreisetage) | -50 % Tagegeld | § 7 Abs. 2 NRKVO |
 
 **Regeln:**
-- Tag = 24 h ab Reisebeginn, nicht Kalendertag.
-- Bei < 2 km Umkreis (`konfiguration_checkboxen.dienstgeschaeft_2km_umkreis` = `true`): kein Tagegeld.
+- Tagegeld je **Kalendertag** (§ 9 Abs. 4a S. 3 EStG): eintägig > 8 h → 14 €; mehrtägig mit Übernachtung An- und Abreisetag je 14 € (unabhängig von der Stundenzahl), jeder Tag dazwischen 28 €; über Mitternacht ohne Übernachtung höchstens einmal 14 € (Tag mit überwiegender Abwesenheit).
+- Kürzung pro Kalendertag höchstens bis auf 0 € (bei Erfassung pro Tag), sonst nur insgesamt gedeckelt.
+- Bei < 2 km Umkreis (`konfiguration_checkboxen.dienstgeschaeft_2km_umkreis` = `true`): kein Tagegeld (§ 7 Abs. 1 S. 4 NRKVO; gilt nicht für Fortbildungsteilnehmende — dann Häkchen nicht setzen).
 - Bei `verzicht_*` aus Antrag: Posten nicht ausgewiesen.
 - Sätze in `nrkvo_rates.py` zentral, mit Stand-Datum versioniert.
 

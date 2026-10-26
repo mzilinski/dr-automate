@@ -45,6 +45,15 @@
   .actions a.primary, .actions button.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent);}
   .danger-btn{color:var(--err);border-color:var(--err);}
   .gene-info{color:var(--ok);font-size:.82rem;margin-top:.25rem;}
+  @media (max-width: 760px) {
+    table.reisen thead{display:none;}
+    table.reisen, table.reisen tbody, table.reisen tr, table.reisen td{display:block;width:100%;}
+    table.reisen tr{border-bottom:1px solid var(--border);padding:.4rem 0;}
+    table.reisen td{border-bottom:0;padding:.35rem .9rem;}
+    table.reisen td[data-label]::before{content:attr(data-label);display:block;font-size:.72rem;
+      font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+    .actions{justify-content:flex-start;}
+  }
 </style>
 {% endblock %}
 {% block content %}
@@ -80,23 +89,23 @@
   <tbody>
     {% for r in reisen %}
     <tr>
-      <td>
+      <td data-label="Reise">
         <div class="titel">{{ r.titel }}</div>
         {% if r.zielort %}<div class="meta">{{ r.zielort }}</div>{% endif %}
       </td>
-      <td>
+      <td data-label="Reisedatum">
         {% if r.start_datum %}{{ r.start_datum.strftime("%d.%m.%Y") }}{% else %}—{% endif %}
         {% if r.ende_datum and r.ende_datum != r.start_datum %}
           – {{ r.ende_datum.strftime("%d.%m.%Y") }}
         {% endif %}
       </td>
-      <td>
+      <td data-label="Status">
         <span class="badge {{ r.status.value }}">{{ r.status.value }}</span>
         {% if r.status.value == 'bezahlt' and r.bezahlt_datum %}
           <div class="meta">am {{ r.bezahlt_datum.strftime("%d.%m.%Y") }}</div>
         {% endif %}
       </td>
-      <td>
+      <td data-label="Genehmigung">
         {% if r.genehmigung_datum %}
           <a href="{{ url_for('dienstreise_genehmigung_form', reise_id=r.id) }}"
              title="Datum / Aktenzeichen bearbeiten"

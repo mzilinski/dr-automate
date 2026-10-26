@@ -4,60 +4,41 @@ Dieser Abschnitt richtet sich an den Betreiber (Admin), nicht an Endnutzer.
 
 ## Neuen User anlegen
 
-User-Verwaltung läuft über **Authelia** im paperless_etal-Stack. Self-Service ist deaktiviert; Admin trägt User manuell ein.
+User-Verwaltung läuft über **Authelia** im paperless_etal-Stack (datengetrieben, Details in
+`paperless_etal/docs/konzept-authelia-rollen.md`). Self-Service ist deaktiviert.
 
-### Schritt-für-Schritt
-
-1. **Anfrage prüfen.** Im dr-automate-Dashboard liegt jede Account-Anfrage in `account_requests` (oder kommt per E-Mail an `DR_AUTOMATE_ADMIN_EMAIL`).
-2. **Argon2id-Hash erzeugen:**
+1. **Anfrage prüfen** unter `/admin/account-requests` (Hinweis kommt per E-Mail an
+   `DR_AUTOMATE_ADMIN_EMAIL` und als Telegram-Nachricht nur mit der Anfrage-Nummer).
+2. **Argon2id-Hash erzeugen** (Tag wie im Stack):
    ```bash
-   docker run --rm authelia/authelia:4.39.10 \
-     authelia crypto hash generate argon2 --password 'SecureInitialPassword'
+   docker run --rm authelia/authelia:<tag> authelia crypto hash generate argon2 --password '…'
    ```
-   Output kopieren (`$argon2id$v=19$m=65536,t=3,p=4$...`).
-3. **Vault-Variable anlegen:** in `~/Developer/paperless_etal/ansible/inventory/group_vars/all/vault.yml`:
-   ```yaml
-   vault_authelia_password_hash_alice: '$argon2id$...'
-   ```
-4. **User in Template eintragen:** in `~/Developer/paperless_etal/ansible/roles/docker-deploy/templates/authelia-users.yml.j2`:
-   ```yaml
-     alice:
-       disabled: false
-       displayname: "Alice Beispiel"
-       password: '{{ vault_authelia_password_hash_alice }}'
-       email: alice@example.org
-       groups:
-         - dr-automate-users   # NICHT adults — sonst hat sie auch Landing-Zugriff!
-   ```
-5. **Deploy:**
-   ```bash
-   cd ~/Developer/paperless_etal
-   ansible-playbook playbooks/deploy.yml --tags authelia
-   ```
-6. **Authelia lädt die User-DB alle 5 Minuten neu** (`refresh_interval: 5m`). Innerhalb dieser Frist ist der User loginfähig.
-7. **User benachrichtigen** mit Login-Link (`https://dr-automate.zilinski.eu/`) und Initial-Passwort. Beim ersten Login richtet Authelia automatisch TOTP/WebAuthn ein.
+3. **Vault:** `vault_authelia_password_hash_<name>` in `ansible/inventory/group_vars/all/vault.yml` anhängen.
+4. **Nutzerliste:** Eintrag in `authelia_users` (`ansible/inventory/group_vars/all/vars.yml`) mit
+   `groups: [dr-automate-users]` — nur dr-automate, keine Landing.
+5. **Deploy:** `ansible-playbook playbooks/deploy.yml --limit cloud --tags env` (Restart von Authelia per Handler).
+6. Anfrage auf der Admin-Seite als erledigt markieren und den Nutzer mit Login-Link
+   (`https://dr-automate.zilinski.eu/`) benachrichtigen. Beim ersten Login richtet Authelia TOTP/WebAuthn ein.
 
 ## Gruppen
 
-| Gruppe | Zugriff |
+| Gruppe | Zugriff auf dr-automate |
 |---|---|
-| `adults` | Landing + Cisco-Email + dr-automate + alle Family-Tools |
-| `dr-automate-users` | **NUR** dr-automate. Keine Landing! |
+| `admins` | ja (plus Infrastruktur-Tools) |
+| `dr-automate-users` | **nur** dr-automate, keine Landing |
+| alle anderen (`household`, `readers`, …) | nur Gast-Modus — `DR_AUTOMATE_ALLOWED_GROUPS` lässt sie nicht in den Account-Modus |
 
-Wichtig: Wenn jemand nur dr-automate nutzen soll – `dr-automate-users`. Wenn vollständiger Familien-Zugang gewünscht – `adults`.
+Die Admin-Seite `/admin/account-requests` ist zusätzlich auf `ADMIN_REMOTE_USERS` beschränkt.
 
 ## User deaktivieren
 
-```yaml
-alice:
-  disabled: true   # ← reicht; Datensätze bleiben in dr-automate erhalten
-```
-Deploy. Bestehender Login wird auch durch existierende Sessions binnen kurzer Zeit ungültig (Authelia prüft `disabled` bei jedem ForwardAuth-Call).
+Im `authelia_users`-Eintrag `disabled: true` setzen und deployen. Die Datensätze in
+dr-automate bleiben erhalten; bestehende Sessions werden beim nächsten ForwardAuth-Call ungültig.
 
 ## User löschen
 
 1. In dr-automate-DB: `DELETE FROM users WHERE remote_user='alice';` – Cascade entfernt Profil, Reisen, Abrechnungen, PDFs müssen separat aus dem Dateisystem gelöscht werden (`rm -rf /app/data/pdfs/<user_id>`).
-2. In Authelia: User-Block aus `authelia-users.yml.j2` entfernen → Deploy.
+2. In Authelia: Eintrag aus `authelia_users` entfernen → Deploy.
 3. Vault-Variable löschen.
 
 ## Encryption-Key-Rotation
@@ -74,7 +55,12 @@ Deploy. Bestehender Login wird auch durch existierende Sessions binnen kurzer Ze
      DR_AUTOMATE_ENCRYPTION_KEY_OLD: '{{ vault_dr_automate_encryption_key_old }}'
    ```
 4. Restart Container. App liest mit beiden Keys (MultiFernet), schreibt nur mit dem neuen.
-5. Bei Bedarf alle verschlüsselten Felder durchschreiben (Re-Save aller Profile/Reisen). Danach kann der alte Key entfernt werden.
+5. Bestandsdaten umschlüsseln:
+   ```bash
+   docker exec dr-automate python rotate_keys.py --check   # zählt die verschlüsselten Werte
+   docker exec dr-automate python rotate_keys.py           # schreibt alle mit dem neuen Key
+   ```
+   Erst danach den alten Key aus Vault und `.env` entfernen und den Container neu starten. Ohne diesen Schritt sind alle nicht neu gespeicherten Datensätze mit dem Entfernen des alten Keys verloren.
 
 ## DB-Migrationen
 
@@ -87,14 +73,10 @@ alembic revision -m "add new column XY" --autogenerate
 
 ## Backups
 
-`scripts/backup.sh` im paperless_etal-Stack sichert auch das `dr-automate-data`-Volume. Wiederherstellung:
-
-```bash
-docker compose stop dr-automate
-docker run --rm -v dr-automate-data:/data -v /backup:/backup alpine \
-  tar xzf /backup/dr-automate-data-YYYY-MM-DD.tar.gz -C /data
-docker compose start dr-automate
-```
+`scripts/backup.sh` im paperless_etal-Stack sichert das `dr-automate-data`-Volume täglich nach
+`/backups/<timestamp>/dr-automate/data-backup.tar.gz`. Wiederherstellung über
+`scripts/restore.sh` (Volume-Tabelle dort enthält `dr-automate-data`). Der Encryption-Key
+ist **nicht** im Backup — ohne den Vault-Key sind die verschlüsselten Felder nicht lesbar.
 
 ## Logs einsehen
 

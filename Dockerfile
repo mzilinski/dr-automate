@@ -7,15 +7,23 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
+# uv nur als Build-Werkzeug: exportiert die im uv.lock fixierten Versionen
+# (mit Hashes) — sonst loeste `pip install .` bei jedem Rebuild nur gegen die
+# `>=`-Grenzen auf und Produktion lief mit anderen Paketstaenden als die Tests.
+COPY --from=ghcr.io/astral-sh/uv:0.13.5 /uv /usr/local/bin/uv
+
 # Dependency-Manifest zuerst kopieren für Layer-Caching
 COPY pyproject.toml uv.lock README.md ./
 
-# Runtime-Dependencies aus pyproject.toml installieren
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir .
+# Runtime-Dependencies exakt nach uv.lock installieren
+RUN uv export --frozen --no-dev --no-emit-project --format requirements-txt -o /tmp/requirements.txt && \
+    pip install --no-cache-dir --require-hashes -r /tmp/requirements.txt && \
+    rm /tmp/requirements.txt
 
-# Restliche Dateien kopieren
+# Restliche Dateien kopieren; das Projekt selbst nur fuer die Paket-Metadaten
+# (Version in /health und im Footer) installieren.
 COPY . /app
+RUN pip install --no-cache-dir --no-deps . && rm -rf build *.egg-info
 
 # Verzeichnisse erstellen.
 # - forms/ enthaelt die PDF-Vorlagen (read-only, im Image)

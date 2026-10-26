@@ -3,16 +3,22 @@ Server-autoritative Berechnung der Reisekostenabrechnung nach NRKVO.
 
 Eingabe: AbrechnungData (Wizard-State).
 Ausgabe: BerechneteWerte (Tagegeld, Kürzungen, Übernachtungsgeld, Wegstrecke,
-Zwischensumme, Auszahlbetrag).
+Zwischensumme, Auszahlbetrag) plus die Aufschlüsselung, die Wizard-Vorschau
+und PDF-Generator brauchen.
 
-Identische Logik liegt zusätzlich im Frontend für Live-Berechnung; diese hier
-ist die einzig autoritative Quelle für das PDF.
+Einzige Rechenlogik im Projekt: Der Wizard rechnet nicht selbst, sondern
+holt die Vorschau über ``POST /abrechnung/calc`` — so können Vorschau und
+PDF nicht auseinanderlaufen.
 """
 
-from datetime import datetime
+import logging
+from dataclasses import dataclass
+from datetime import date, datetime, timedelta
 
 import nrkvo_rates as r
 from models import AbrechnungData, BerechneteWerte
+
+logger = logging.getLogger(__name__)
 
 DATE_FMT = "%d.%m.%Y"
 TIME_FMT = "%H:%M"
@@ -27,29 +33,96 @@ def _round2(x: float) -> float:
     return round(x, 2)
 
 
-def tagegeld_tage(start: datetime, ende: datetime) -> tuple[int, int]:
-    """Liefert (volle_24h_tage, teiltage).
+@dataclass
+class TagegeldTag:
+    """Ein Kalendertag der Reise mit seinem Tagegeld-Anspruch."""
 
-    NRKVO-Logik:
-    - Abwesenheit < 8 h: kein Tagegeld.
-    - 8 h ≤ Abwesenheit < 24 h: 1 Teiltag (auch bei Mitternachts-Ueberquerung —
-      eine 23:00→06:00 Reise sind 7 h und damit unter Tagegeld-Schwelle;
-      eine 18:00→09:00 Reise sind 15 h = 1 Teiltag, nicht 2).
-    - Abwesenheit ≥ 24 h: An- und Abreisetag je Teiltag, dazwischen volle Tage
-      (kalendrisch gezaehlt).
+    datum: date
+    stunden: float
+    art: str  # "voll" (24 h), "teil" (An-/Abreisetag bzw. > 8 h) oder "" (kein Anspruch)
+    reduziert: bool = False  # § 7 Abs. 2 NRKVO: ab dem 15. Aufenthaltstag −50 %
+
+    @property
+    def betrag(self) -> float:
+        if self.art == "voll":
+            satz = r.TAGEGELD_VOLLER_TAG_EUR
+        elif self.art == "teil":
+            satz = r.TAGEGELD_TEILTAG_EUR
+        else:
+            return 0.0
+        if self.reduziert:
+            satz = satz * (100 - r.DAUERAUFENTHALT_REDUKTION_PROZENT) / 100
+        return satz
+
+
+def _stunden_pro_tag(start: datetime, ende: datetime) -> list[tuple[date, float]]:
+    """Abwesenheitsstunden je Kalendertag (echte Uhrzeit-Differenz, ohne
+    Sommerzeit-Sprung — die Reisezeiten sind Ortszeit-Angaben)."""
+    out = []
+    tag = start.date()
+    while tag <= ende.date():
+        tag_start = max(start, datetime.combine(tag, datetime.min.time()))
+        tag_ende = min(ende, datetime.combine(tag + timedelta(days=1), datetime.min.time()))
+        out.append((tag, max(0.0, (tag_ende - tag_start).total_seconds() / 3600.0)))
+        tag += timedelta(days=1)
+    return out
+
+
+def tagegeld_kalender(start: datetime, ende: datetime, mit_uebernachtung: bool = False) -> list[TagegeldTag]:
+    """Tagegeld-Anspruch je Kalendertag nach § 7 NRKVO i. V. m. § 9 Abs. 4a S. 3 EStG.
+
+    - Eintägig: mehr als 8 h Abwesenheit → Teiltag (14 €).
+    - Mehrtägig mit Übernachtung (oder ≥ 24 h): An- und Abreisetag je Teiltag
+      unabhängig von der Stundenzahl, jeder Tag dazwischen voller Tag (28 €).
+    - Über Mitternacht ohne Übernachtung (< 24 h): bei insgesamt mehr als 8 h
+      ein Teiltag, zugeordnet dem Tag mit der überwiegenden Abwesenheit.
+    - § 7 Abs. 2: Dauert der Aufenthalt (ohne Hin- und Rückreisetag) länger als
+      14 Tage, wird das Tagegeld vom 15. Aufenthaltstag an um 50 % vermindert.
     """
-    delta = ende - start
-    total_hours = delta.total_seconds() / 3600.0
+    if ende < start:
+        return []
+    stunden = _stunden_pro_tag(start, ende)
+    total_hours = (ende - start).total_seconds() / 3600.0
+    tage = [TagegeldTag(datum=d, stunden=h, art="") for d, h in stunden]
 
-    if total_hours < 8:
-        return (0, 0)
-    if total_hours < 24:
-        # Reise < 24 h zaehlt immer als 1 Teiltag, egal ob Datum-Uebergang.
-        return (0, 1)
+    if len(tage) == 1:
+        if total_hours > 8:
+            tage[0].art = "teil"
+        return tage
 
-    # ≥ 24 h: kalendrisch volle Tage zwischen Anreise- und Abreise-Tag.
-    voll_tage = max(0, (ende.date() - start.date()).days - 1)
-    return (voll_tage, 2)
+    if mit_uebernachtung or total_hours >= 24:
+        tage[0].art = "teil"
+        tage[-1].art = "teil"
+        aufenthalt = tage[1:-1]
+        for t in aufenthalt:
+            t.art = "voll"
+        for t in aufenthalt[r.DAUERAUFENTHALT_REDUKTION_AB_TAG - 1 :]:
+            t.reduziert = True
+        return tage
+
+    # Über Mitternacht, < 24 h, keine Übernachtung → höchstens ein Teiltag.
+    if total_hours > 8:
+        max(tage, key=lambda t: t.stunden).art = "teil"
+    return tage
+
+
+def tagegeld_tage(start: datetime, ende: datetime, mit_uebernachtung: bool = False) -> tuple[int, int]:
+    """Liefert (volle_tage, teiltage) — Kurzform von ``tagegeld_kalender``."""
+    tage = tagegeld_kalender(start, ende, mit_uebernachtung)
+    return (sum(1 for t in tage if t.art == "voll"), sum(1 for t in tage if t.art == "teil"))
+
+
+def _mit_uebernachtung(data: AbrechnungData) -> bool:
+    u = data.uebernachtungen
+    return bool(u.anzahl_pauschal or u.anzahl_unentgeltlich or u.anzahl_beleg or u.kosten_eur)
+
+
+def _kuerzung_satz(fruehstueck: int, mittag: int, abend: int) -> float:
+    return (
+        fruehstueck * r.kuerzung_fruehstueck_eur()
+        + mittag * r.kuerzung_mittagessen_eur()
+        + abend * r.kuerzung_abendessen_eur()
+    )
 
 
 def berechnung(data: AbrechnungData) -> BerechneteWerte:
@@ -57,96 +130,119 @@ def berechnung(data: AbrechnungData) -> BerechneteWerte:
     rd = data.reise_details
     start = _parse_dt(rd.start_datum, rd.start_zeit)
     ende = _parse_dt(rd.ende_datum, rd.ende_zeit)
+    verzicht = data.verzicht_erklaerung
+    hinweise: list[str] = []
+    reale_naechte = max(0, (ende.date() - start.date()).days)
 
     # 1. Tagegeld
-    tagegeld_brutto = 0.0
-    if not data.konfiguration_checkboxen.dienstgeschaeft_2km_umkreis:
-        voll, teil = tagegeld_tage(start, ende)
-        tagegeld_brutto = voll * r.TAGEGELD_VOLLER_TAG_EUR + teil * r.TAGEGELD_TEILTAG_EUR
+    tage: list[TagegeldTag] = []
+    if data.konfiguration_checkboxen.dienstgeschaeft_2km_umkreis:
+        hinweise.append("Dienstgeschäft im 2-km-Umkreis: kein Tagegeld (§ 7 Abs. 1 Satz 4 NRKVO).")
+    else:
+        tage = tagegeld_kalender(start, ende, _mit_uebernachtung(data))
+    tagegeld_brutto = sum(t.betrag for t in tage)
+    if any(t.reduziert for t in tage):
+        hinweise.append(
+            f"Aufenthalt länger als 14 Tage: Tagegeld ab dem {r.DAUERAUFENTHALT_REDUKTION_AB_TAG}. "
+            f"Aufenthaltstag um {r.DAUERAUFENTHALT_REDUKTION_PROZENT} % vermindert (§ 7 Abs. 2 NRKVO)."
+        )
 
-    # 2. Kürzungen für unentgeltliche Verpflegung
-    kuerzung = (
-        data.verpflegung.fruehstueck_anzahl * r.kuerzung_fruehstueck_eur()
-        + data.verpflegung.mittag_anzahl * r.kuerzung_mittagessen_eur()
-        + data.verpflegung.abend_anzahl * r.kuerzung_abendessen_eur()
-    )
-    # Kürzung kann Tagegeld nicht negativ machen
-    kuerzung = min(kuerzung, tagegeld_brutto)
+    # 2. Kürzungen für unentgeltliche Verpflegung (§ 7 Abs. 3): pro Kalendertag
+    #    höchstens bis auf 0 — mit Tageszuordnung exakt, sonst nur insgesamt.
+    v = data.verpflegung
+    if v.tage:
+        betrag_je_tag = {t.datum.strftime(DATE_FMT): t.betrag for t in tage}
+        kuerzung = 0.0
+        for vt in v.tage:
+            if vt.datum not in betrag_je_tag:
+                hinweise.append(f"Verpflegung am {vt.datum} liegt außerhalb der Reise und wird ignoriert.")
+                continue
+            soll = _kuerzung_satz(int(vt.fruehstueck), int(vt.mittag), int(vt.abend))
+            kuerzung += min(soll, betrag_je_tag[vt.datum])
+    else:
+        kuerzung = min(_kuerzung_satz(v.fruehstueck_anzahl, v.mittag_anzahl, v.abend_anzahl), tagegeld_brutto)
     tagegeld_netto = tagegeld_brutto - kuerzung
 
-    if data.verzicht_erklaerung and data.verzicht_erklaerung.verzicht_tagegeld:
-        tagegeld_netto = 0.0
-        kuerzung = 0.0
-        tagegeld_brutto = 0.0
+    if verzicht.verzicht_tagegeld:
+        tagegeld_brutto = kuerzung = tagegeld_netto = 0.0
 
-    # 3. Übernachtungsgeld pauschal (20 €/Nacht, max 14, plausibilisiert
-    #    gegen tatsaechliche Reisedauer — bei eintaegiger Reise sind 0
-    #    Naechte moeglich, bei n-Tage-Reise max n Naechte).
-    max_naechte_real = max(0, (ende.date() - start.date()).days)
-    naechte_input = data.uebernachtungen.anzahl_pauschal
-    naechte = min(
-        naechte_input,
-        r.UEBERNACHTUNG_PAUSCHAL_MAX_NAECHTE,
-        max_naechte_real,
+    # 3. Übernachtungsgeld (§ 8): pauschal 20 €/Nacht für höchstens 14 Nächte
+    #    je Dienstreise, plausibilisiert gegen die tatsächliche Zahl der Nächte.
+    u = data.uebernachtungen
+    naechte = min(u.anzahl_pauschal, r.UEBERNACHTUNG_PAUSCHAL_MAX_NAECHTE, reale_naechte)
+    if naechte < u.anzahl_pauschal:
+        hinweise.append(f"Pauschal-Nächte auf {naechte} gedeckelt (Reise hat {reale_naechte} Nächte, max. 14).")
+    beleg_naechte = u.anzahl_beleg or (
+        max(1, reale_naechte - u.anzahl_pauschal - u.anzahl_unentgeltlich) if u.kosten_eur else 0
     )
-    if naechte < naechte_input:
-        import logging as _logging
-
-        _logging.getLogger(__name__).warning(
-            "Pauschal-Naechte %d > Reisedauer %d Naechte; auf %d gedeckelt.",
-            naechte_input,
-            max_naechte_real,
-            naechte,
+    pro_nacht = u.kosten_eur / beleg_naechte if beleg_naechte else 0.0
+    begruendung_noetig = pro_nacht > r.UEBERNACHTUNG_BELEG_OHNE_BEGRUENDUNG_MAX_EUR
+    if u.anzahl_pauschal + u.anzahl_beleg + u.anzahl_unentgeltlich > reale_naechte:
+        hinweise.append(
+            f"Es sind mehr Nächte angegeben (pauschal + Beleg + unentgeltlich) als die Reise hat ({reale_naechte})."
         )
     uebernachtungsgeld_pauschal = naechte * r.UEBERNACHTUNG_PAUSCHAL_EUR
-    if data.verzicht_erklaerung and data.verzicht_erklaerung.verzicht_uebernachtungsgeld:
-        uebernachtungsgeld_pauschal = 0.0
+    uebernachtung_beleg = u.kosten_eur
+    if verzicht.verzicht_uebernachtungsgeld:
+        # Übernachtungsgeld nach § 8 umfasst Pauschale UND nachgewiesene Kosten.
+        uebernachtungsgeld_pauschal = uebernachtung_beleg = 0.0
 
-    # 4. Wegstreckenentschädigung
-    wegstrecke = 0.0
-    if not (data.verzicht_erklaerung and data.verzicht_erklaerung.verzicht_fahrtkosten):
-        # Hinreise
-        if data.befoerderung.hinreise.typ == "PKW":
-            satz = r.wegstrecke_satz_eur(data.befoerderung.hinreise.paragraph_5_nrkvo)
-            wegstrecke += data.wegstrecke.km_hinreise * satz
-        # Rückreise
-        if data.befoerderung.rueckreise.typ == "PKW":
-            satz = r.wegstrecke_satz_eur(data.befoerderung.rueckreise.paragraph_5_nrkvo)
-            wegstrecke += data.wegstrecke.km_rueckreise * satz
+    # 4. Wegstreckenentschädigung (§ 5): nur selbst gefahrene PKW-Strecken.
+    #    Der Höchstbetrag 125 € gilt für den § 5-II-Anteil je Dienstreise,
+    #    auch wenn eine Strecke nach § 5 III abgerechnet wird.
+    weg_hin = weg_rueck = 0.0
+    if not verzicht.verzicht_fahrtkosten:
+        rest_klein = r.WEGSTRECKE_KLEIN_MAX_EUR
+        gedeckelt = False
+        beitraege = []
+        for b, km in (
+            (data.befoerderung.hinreise, data.wegstrecke.km_hinreise),
+            (data.befoerderung.rueckreise, data.wegstrecke.km_rueckreise),
+        ):
+            if b.typ != "PKW" or not km:
+                beitraege.append(0.0)
+                continue
+            betrag = km * r.wegstrecke_satz_eur(b.paragraph_5_nrkvo)
+            if b.paragraph_5_nrkvo != "III":
+                if betrag > rest_klein:
+                    betrag, gedeckelt = rest_klein, True
+                rest_klein -= betrag
+            beitraege.append(betrag)
+        weg_hin, weg_rueck = beitraege
+        if gedeckelt:
+            hinweise.append(
+                f"Wegstreckenentschädigung nach § 5 II auf {r.WEGSTRECKE_KLEIN_MAX_EUR:.0f} € je Dienstreise gedeckelt."
+            )
+    wegstrecke = weg_hin + weg_rueck
 
-        # Cap bei § 5 II (kleine Wegstrecke): 125 € pro Reise — nur greifen, wenn
-        # AUSSCHLIESSLICH § 5 II verwendet wird (gemischte Reisen sind selten,
-        # bei reiner § 5 III ist kein Cap definiert).
-        nur_klein = (
-            data.befoerderung.hinreise.paragraph_5_nrkvo == "II"
-            and data.befoerderung.rueckreise.paragraph_5_nrkvo == "II"
-        )
-        if nur_klein and wegstrecke > r.WEGSTRECKE_KLEIN_MAX_EUR:
-            wegstrecke = r.WEGSTRECKE_KLEIN_MAX_EUR
-
-    # 5. Belegte Beträge (kein Verzicht-Mechanismus auf Belege)
-    belege = (
-        data.beleg_betraege.fahrkarte_eur
-        + data.beleg_betraege.zuschlaege_eur
-        + data.beleg_betraege.sonstige_fahrt_eur
-        + data.beleg_betraege.sonstige_kosten_eur
-        + data.uebernachtungen.kosten_eur
-    )
-    if data.verzicht_erklaerung and data.verzicht_erklaerung.verzicht_fahrtkosten:
-        # Belegfahrtkosten + Wegstrecke unterdrücken
-        belege -= (
-            data.beleg_betraege.fahrkarte_eur
-            + data.beleg_betraege.zuschlaege_eur
-            + data.beleg_betraege.sonstige_fahrt_eur
-        )
+    # 5. Belegte Beträge
+    bb = data.beleg_betraege
+    fahrkarte = bb.fahrkarte_eur + bb.zuschlaege_eur
+    sonstige_fahrt = bb.sonstige_fahrt_eur
+    if verzicht.verzicht_fahrtkosten:
+        fahrkarte = sonstige_fahrt = 0.0
+    sonstige_kosten = bb.sonstige_kosten_eur
 
     # 6. Zwischensumme
-    zwischensumme = tagegeld_netto + uebernachtungsgeld_pauschal + wegstrecke + belege
+    zwischensumme = (
+        tagegeld_netto
+        + uebernachtungsgeld_pauschal
+        + uebernachtung_beleg
+        + wegstrecke
+        + fahrkarte
+        + sonstige_fahrt
+        + sonstige_kosten
+    )
 
     # 7. Auszahlbetrag (kann negativ sein → Rückzahlung)
     abzuege = data.abzuege.zuwendungen_eur + data.abzuege.reisekostenabschlag_eur + data.abzuege.eigenanteile_eur
     auszahlbetrag = zwischensumme - abzuege
 
+    for h in hinweise:
+        logger.info("Abrechnung: %s", h)
+
+    voll = [t for t in tage if t.art == "voll"]
+    teil = [t for t in tage if t.art == "teil"]
     return BerechneteWerte(
         tagegeld_brutto_eur=_round2(tagegeld_brutto),
         kuerzung_eur=_round2(kuerzung),
@@ -155,4 +251,18 @@ def berechnung(data: AbrechnungData) -> BerechneteWerte:
         wegstreckenentschaedigung_eur=_round2(wegstrecke),
         zwischensumme_eur=_round2(zwischensumme),
         auszahlbetrag_eur=_round2(auszahlbetrag),
+        tagegeld_volle_tage=sum(1 for t in voll if not t.reduziert),
+        tagegeld_teiltage=sum(1 for t in teil if not t.reduziert),
+        tagegeld_reduzierte_tage=sum(1 for t in tage if t.reduziert),
+        uebernachtung_pauschal_naechte=0 if verzicht.verzicht_uebernachtungsgeld else naechte,
+        uebernachtung_beleg_eur=_round2(uebernachtung_beleg),
+        uebernachtung_beleg_pro_nacht_eur=_round2(pro_nacht),
+        begruendung_ueber_100_noetig=begruendung_noetig,
+        wegstrecke_hin_eur=_round2(weg_hin),
+        wegstrecke_rueck_eur=_round2(weg_rueck),
+        fahrkarte_eur=_round2(fahrkarte),
+        sonstige_fahrt_eur=_round2(sonstige_fahrt),
+        sonstige_kosten_eur=_round2(sonstige_kosten),
+        abzuege_eur=_round2(abzuege),
+        hinweise=hinweise,
     )
