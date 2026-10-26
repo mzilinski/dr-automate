@@ -17,3 +17,4 @@ htmlcov/
 coverage.xml
 *.egg-info/
 system_prompt.local.md
+mcp/

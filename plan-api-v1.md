@@ -1,6 +1,6 @@
 # Entwurf: dr-automate API v1
 
-Stand: 2026-10-26 · Status: **entschieden (Abschnitt 11), Umsetzung läuft** · Liegt bewusst nicht in `docs/`
+Stand: 2026-10-26 · Status: **umgesetzt** (Phasen 1–6, Branch `feat/api-v1`; Entscheidungen in Abschnitt 12) · Liegt bewusst nicht in `docs/`
 (alles dort ist unter `/docs/<slug>` öffentlich).
 
 ## 1. Ziel und Abgrenzung
