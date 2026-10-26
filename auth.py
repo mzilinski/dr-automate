@@ -37,6 +37,7 @@ from flask import abort, current_app, g, redirect, request, url_for
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
+import api_keys
 from db import SessionLocal
 from models_db import User, UserProfile
 
@@ -61,22 +62,32 @@ def allowed_groups() -> set[str]:
     return {g.strip() for g in raw.split(",") if g.strip()}
 
 
-def _upsert_user(remote_user: str, email: str | None, display_name: str | None) -> User:
+def request_groups() -> set[str]:
+    """Authelia-Gruppen des aktuellen Requests (leer ohne vertrauten Header)."""
+    if not _trust_header():
+        return set()
+    return {g.strip() for g in request.headers.get("Remote-Groups", "").split(",") if g.strip()}
+
+
+def _upsert_user(remote_user: str, email: str | None, display_name: str | None, api_berechtigt: bool = False) -> User:
     """Idempotent: legt User an oder aktualisiert email/name/last_login_at.
 
     Schreibt nur, wenn sich etwas geaendert hat oder der letzte Login laenger
-    als ``LAST_LOGIN_GRANULARITY`` zurueckliegt. Zwei parallele Erst-Requests
+    als ``LAST_LOGIN_GRANULARITY`` zurueckliegt. Mit ``api_berechtigt`` (User
+    ist in einer API-Gruppe) wird ``api_berechtigt_bis`` verlaengert. Zwei parallele Erst-Requests
     (IntegrityError auf remote_user) loesen sich ueber erneutes Lesen auf.
     """
     with SessionLocal() as session:
         user = session.execute(select(User).where(User.remote_user == remote_user)).scalar_one_or_none()
         now = datetime.utcnow()
+        api_bis = now + api_keys.BERECHTIGUNG_DAUER if api_berechtigt else None
         if user is None:
             user = User(
                 remote_user=remote_user,
                 email=email,
                 display_name=display_name,
                 last_login_at=now,
+                api_berechtigt_bis=api_bis,
             )
             session.add(user)
             try:
@@ -100,6 +111,12 @@ def _upsert_user(remote_user: str, email: str | None, display_name: str | None) 
             stale = user.last_login_at is None or now - user.last_login_at > LAST_LOGIN_GRANULARITY
             if stale:
                 user.last_login_at = now
+            if api_bis and (
+                user.api_berechtigt_bis is None
+                or api_bis - user.api_berechtigt_bis > api_keys.BERECHTIGUNG_GRANULARITAET
+            ):
+                user.api_berechtigt_bis = api_bis
+                stale = True
             if changed or stale:
                 session.commit()
             if changed:
@@ -112,23 +129,23 @@ def _upsert_user(remote_user: str, email: str | None, display_name: str | None) 
 
 def load_current_user() -> User | None:
     """Liest die Identitaet aus Authelia-Headern. Vor jedem Request aufrufen."""
-    if not _trust_header() or request.endpoint in SKIP_USER_ENDPOINTS:
+    # /api/v1 authentifiziert ausschliesslich per Bearer-Key (api_v1.py).
+    if not _trust_header() or request.endpoint in SKIP_USER_ENDPOINTS or request.path.startswith("/api/v1/"):
         return None
     remote_user = request.headers.get("Remote-User", "").strip()
     if not remote_user:
         return None
     # Header sind ASCII per Spec; defensiv kuerzen.
     remote_user = remote_user[:128]
+    gruppen = request_groups()
     erlaubt = allowed_groups()
-    if erlaubt:
-        gruppen = {g.strip() for g in request.headers.get("Remote-Groups", "").split(",") if g.strip()}
-        if not gruppen & erlaubt:
-            logger.info("Remote-User %s ohne dr-automate-Gruppe — Gast-Modus", remote_user)
-            return None
+    if erlaubt and not gruppen & erlaubt:
+        logger.info("Remote-User %s ohne dr-automate-Gruppe — Gast-Modus", remote_user)
+        return None
     email = (request.headers.get("Remote-Email", "") or "").strip()[:254] or None
     display_name = (request.headers.get("Remote-Name", "") or "").strip()[:200] or None
     try:
-        return _upsert_user(remote_user, email, display_name)
+        return _upsert_user(remote_user, email, display_name, api_berechtigt=bool(gruppen & api_keys.api_groups()))
     except Exception:  # pragma: no cover
         logger.exception("User-Upsert fehlgeschlagen fuer remote_user=%s", remote_user)
         return None
