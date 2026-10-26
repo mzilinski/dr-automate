@@ -23,8 +23,6 @@ from flask import (
     send_file,
     url_for,
 )
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
 from flask_mail import Mail, Message
 from flask_wtf import CSRFProtect
 from flask_wtf.csrf import CSRFError
@@ -32,11 +30,14 @@ from sqlalchemy import select
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 import ai_extract
+import api_keys
+import api_v1
 import auth
 import generator
 import generator_abrechnung
 import nrkvo_rates
 import pdf_text
+from extensions import limiter
 from models import (
     apply_profile_authoritative,
     bahncards_to_konfig_flags,
@@ -156,8 +157,11 @@ def _csrf_error(e):
     return jsonify({"error": msg}), 400
 
 
-# Rate Limiting
-limiter = Limiter(key_func=get_remote_address, app=app, default_limits=[], storage_uri="memory://")
+# Rate Limiting (Instanz in extensions.py, damit api_v1 sie ohne Zyklus nutzt)
+limiter.init_app(app)
+
+# REST-API v1 (Bearer-Keys, ohne CSRF/Session) — plan-api-v1.md
+api_v1.init_app(app, csrf)
 
 # Prüfe ob Template existiert
 if not os.path.exists(PDF_TEMPLATE_PATH):
@@ -831,9 +835,14 @@ def _profile_to_dict(profile) -> dict:
     return base
 
 
-@app.route("/profil", methods=["GET"])
-@auth.login_required
-def profil_view():
+def _api_berechtigt() -> bool:
+    """Darf der eingeloggte User API-Keys verwalten (Gruppe aus der Authelia-Session)?"""
+    return bool(auth.request_groups() & api_keys.api_groups())
+
+
+def _render_profil(**extra):
+    from datetime import datetime as _dt
+
     from db import SessionLocal
     from models_db import UserProfile
 
@@ -845,7 +854,61 @@ def profil_view():
             s.commit()
             s.refresh(profile)
         s.expunge_all()
-    return render_template("profil.html", profile=profile, **_common_template_ctx())
+    berechtigt = _api_berechtigt()
+    return render_template(
+        "profil.html",
+        profile=profile,
+        api_berechtigt=berechtigt,
+        api_keys_liste=api_keys.list_keys(g.current_user.id) if berechtigt else [],
+        api_scopes=api_keys.SCOPES,
+        api_default_scopes=api_keys.DEFAULT_SCOPES,
+        api_laufzeiten=api_keys.LAUFZEITEN_TAGE,
+        jetzt=_dt.utcnow(),
+        **extra,
+        **_common_template_ctx(),
+    )
+
+
+@app.route("/profil", methods=["GET"])
+@auth.login_required
+def profil_view():
+    return _render_profil()
+
+
+@app.route("/profil/api-keys", methods=["POST"])
+@auth.login_required
+def profil_api_key_create():
+    """Neuen API-Key anlegen. Der Token wird genau einmal angezeigt — direkt
+    in dieser Antwort, nicht per Redirect/Flash (der Flash läge im Cookie)."""
+    if not _api_berechtigt():
+        abort(403)
+    try:
+        laufzeit = int(request.form.get("laufzeit_tage", "365"))
+    except ValueError:
+        laufzeit = 0
+    try:
+        key, token = api_keys.create_key(
+            g.current_user.id, request.form.get("name", ""), request.form.getlist("scopes"), laufzeit
+        )
+    except api_keys.ApiKeyError as e:
+        flash(str(e), "error")
+        return redirect(url_for("profil_view") + "#api")
+    logger.info("API-Key angelegt: user=%s key=%s scopes=%s", g.current_user.id, key.id, key.scopes)
+    resp = _render_profil(neuer_api_token=token, neuer_api_key=key)
+    resp = app.make_response(resp)
+    resp.headers["Cache-Control"] = "no-store"
+    return resp
+
+
+@app.route("/profil/api-keys/<int:key_id>/widerrufen", methods=["POST"])
+@auth.login_required
+def profil_api_key_revoke(key_id: int):
+    if not _api_berechtigt():
+        abort(403)
+    if api_keys.revoke_key(g.current_user.id, key_id):
+        logger.info("API-Key widerrufen: user=%s key=%s", g.current_user.id, key_id)
+        flash("API-Key widerrufen.", "success")
+    return redirect(url_for("profil_view") + "#api")
 
 
 @app.route("/profil", methods=["POST"])

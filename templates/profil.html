@@ -29,6 +29,17 @@
   .note{background:var(--info-subtle);border:1px solid var(--border);
     padding:.7rem 1rem;border-radius:.5rem;font-size:.88rem;margin-bottom:1rem;}
   .note strong{color:var(--accent);}
+  .api-card{margin-top:1.4rem;}
+  .api-token{font-family:'JetBrains Mono',monospace;font-size:.85rem;word-break:break-all;
+    background:var(--surface);border:1px solid var(--ok);border-radius:.4rem;padding:.6rem .7rem;margin:.5rem 0;}
+  table.keys{width:100%;border-collapse:collapse;font-size:.85rem;margin-top:.6rem;}
+  table.keys th,table.keys td{text-align:left;padding:.45rem .3rem;border-bottom:1px solid var(--border);vertical-align:top;}
+  table.keys th{color:var(--muted);font-weight:600;font-size:.75rem;text-transform:uppercase;letter-spacing:.4px;}
+  .muted{color:var(--muted);}
+  .btn-small{padding:.3rem .6rem;font-size:.8rem;border-radius:.35rem;border:1px solid var(--err);
+    background:transparent;color:var(--err);cursor:pointer;}
+  @media(max-width:560px){table.keys thead{display:none;} table.keys td{display:block;border:0;padding:.15rem 0;}
+    table.keys tr{display:block;border-bottom:1px solid var(--border);padding:.4rem 0;}}
 </style>
 {% endblock %}
 {% block content %}
@@ -181,4 +192,80 @@
     <button type="submit" class="btn btn-primary">Speichern</button>
   </div>
 </form>
+
+{% if api_berechtigt %}
+<section class="form-card api-card" id="api">
+  <h3 style="margin-top:0;">API-Zugänge</h3>
+  <p class="help" style="font-size:.85rem;">
+    Persönliche Keys für die <a href="{{ url_for('docs_view', slug='api') }}">REST-API</a> (Skripte,
+    MCP-Server). Ein Key handelt in deinem Namen — wie ein Passwort behandeln.
+    Er gilt nur, solange du dich mindestens alle 90 Tage hier anmeldest.
+  </p>
+
+  {% if neuer_api_token %}
+  <div class="note" style="border-color:var(--ok);">
+    <strong>Neuer Key „{{ neuer_api_key.name }}"</strong> — jetzt kopieren, er wird nicht noch einmal angezeigt:
+    <div class="api-token" id="neuerToken">{{ neuer_api_token }}</div>
+    <button type="button" class="btn btn-ghost" id="tokenCopy">Kopieren</button>
+  </div>
+  {% endif %}
+
+  {% if api_keys_liste %}
+  <table class="keys">
+    <thead><tr><th>Name</th><th>Berechtigungen</th><th>Gültig bis</th><th>Zuletzt benutzt</th><th></th></tr></thead>
+    <tbody>
+    {% for k in api_keys_liste %}
+      {% set aktiv = not k.revoked_at and k.expires_at > jetzt %}
+      <tr {% if not aktiv %}class="muted"{% endif %}>
+        <td><strong>{{ k.name }}</strong><br><code class="muted">dra_{{ k.prefix }}_…</code></td>
+        <td>{{ k.scopes | join(', ') }}</td>
+        <td>{% if k.revoked_at %}widerrufen {{ k.revoked_at.strftime('%d.%m.%Y') }}{% else %}{{ k.expires_at.strftime('%d.%m.%Y') }}{% if not aktiv %} (abgelaufen){% endif %}{% endif %}</td>
+        <td>{{ k.last_used_at.strftime('%d.%m.%Y %H:%M') ~ ' UTC' if k.last_used_at else '—' }}</td>
+        <td>
+          {% if aktiv %}
+          <form method="post" action="{{ url_for('profil_api_key_revoke', key_id=k.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn-small">Widerrufen</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="help">Noch keine Keys angelegt.</p>
+  {% endif %}
+
+  <form method="post" action="{{ url_for('profil_api_key_create') }}" style="margin-top:1.2rem;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="grid">
+      <label>Name<input type="text" name="name" maxlength="100" required placeholder="z.B. MCP Laptop"></label>
+      <label>Laufzeit
+        <select name="laufzeit_tage">
+          {% for t in api_laufzeiten %}<option value="{{ t }}" {% if t == api_laufzeiten[-1] %}selected{% endif %}>{{ t }} Tage</option>{% endfor %}
+        </select>
+      </label>
+    </div>
+    <div class="check-row">
+      {% for sc in api_scopes %}
+      <label><input type="checkbox" name="scopes" value="{{ sc }}" {% if sc in api_default_scopes %}checked{% endif %}>{{ sc }}</label>
+      {% endfor %}
+    </div>
+    <p class="help"><code>extract</code> schickt Text an DeepSeek (China) — nur aktivieren, wenn du die
+      KI-Extraktion per API brauchst.</p>
+    <div class="actions" style="margin-top:.8rem;"><span></span>
+      <button type="submit" class="btn btn-primary">Key anlegen</button>
+    </div>
+  </form>
+</section>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+<script>
+  document.getElementById('tokenCopy')?.addEventListener('click', e => {
+    navigator.clipboard.writeText(document.getElementById('neuerToken').textContent.trim());
+    e.target.textContent = 'Kopiert ✓';
+  });
+</script>
 {% endblock %}

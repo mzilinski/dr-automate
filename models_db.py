@@ -18,6 +18,7 @@ import enum
 from datetime import date, datetime
 
 from sqlalchemy import (
+    JSON,
     Boolean,
     Date,
     DateTime,
@@ -70,6 +71,11 @@ class User(Base):
     tour_dismissed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Bis wann API-Keys dieses Users gelten: bei jedem Web-Request mit einer
+    # API-Gruppe (DR_AUTOMATE_API_GROUPS) auf jetzt + 90 Tage gesetzt. Fällt der
+    # User aus der Gruppe oder wird in Authelia deaktiviert, laufen seine Keys
+    # spätestens dann ab (die API selbst sieht keine Authelia-Header).
+    api_berechtigt_bis: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     profile: Mapped[UserProfile | None] = relationship(
         "UserProfile", back_populates="user", uselist=False, cascade="all, delete-orphan"
@@ -77,6 +83,7 @@ class User(Base):
     dienstreisen: Mapped[list[Dienstreise]] = relationship(
         "Dienstreise", back_populates="user", cascade="all, delete-orphan"
     )
+    api_keys: Mapped[list[ApiKey]] = relationship("ApiKey", back_populates="user", cascade="all, delete-orphan")
 
 
 class UserProfile(Base):
@@ -208,3 +215,30 @@ class AccountRequest(Base):
 
 Index("idx_dienstreisen_user_status", Dienstreise.user_id, Dienstreise.status)
 UniqueConstraint("user_id", name="uq_user_profiles_user")
+
+
+class ApiKey(Base):
+    """Persönlicher API-Key für /api/v1 (siehe plan-api-v1.md, Abschnitt 3).
+
+    Token-Format ``dra_<prefix>_<secret>``; gespeichert wird nur das Präfix
+    (zum Nachschlagen) und der SHA-256 des vollständigen Tokens.
+    """
+
+    __tablename__ = "api_keys"
+    __table_args__ = (
+        UniqueConstraint("prefix", name="uq_api_keys_prefix"),
+        Index("ix_api_keys_user_id", "user_id"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    prefix: Mapped[str] = mapped_column(String(16), nullable=False)
+    secret_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    scopes: Mapped[list] = mapped_column(JSON, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    user: Mapped[User] = relationship("User", back_populates="api_keys")
