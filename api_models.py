@@ -308,3 +308,42 @@ def abrechnung_from_internal(d: dict) -> dict:
         "abzuege": d.get("abzuege") or {},
         "urlaub_ueber_5_tage": bool((d.get("flags") or {}).get("urlaub_ueber_5_tage")),
     }
+
+
+# ---------- Lebenszyklus ----------
+
+
+class GenehmigungV1(V1):
+    datum: str = Field(..., description="Tag der Genehmigung, DD.MM.YYYY oder YYYY-MM-DD")
+    aktenzeichen: str = Field("", max_length=100)
+
+
+class BezahltV1(V1):
+    datum: str = Field("", description="Tag des Geldeingangs, DD.MM.YYYY oder YYYY-MM-DD; leer = heute")
+
+
+def reise_v1(r, mit_daten: bool = False) -> dict:
+    """Dienstreise (DB-Objekt) als API-Darstellung."""
+    abr = r.abrechnung
+    d = {
+        "id": r.id,
+        "titel": r.titel,
+        "zielort": r.zielort,
+        "start_datum": r.start_datum.isoformat() if r.start_datum else None,
+        "ende_datum": r.ende_datum.isoformat() if r.ende_datum else None,
+        "status": r.status.value,
+        "genehmigung": {
+            "datum": r.genehmigung_datum.isoformat() if r.genehmigung_datum else None,
+            "aktenzeichen": r.genehmigung_aktenzeichen,
+        },
+        "bezahlt_datum": r.bezahlt_datum.isoformat() if r.bezahlt_datum else None,
+        "pdfs": {
+            "antrag": f"/api/v1/reisen/{r.id}/antrag.pdf" if r.antrag_pdf_path else None,
+            "abrechnung": f"/api/v1/reisen/{r.id}/abrechnung.pdf" if abr and abr.abrechnung_pdf_path else None,
+        },
+    }
+    if mit_daten:
+        d["antrag"] = antrag_from_internal(r.antrag_json) if r.antrag_json else None
+        d["abrechnung"] = abrechnung_from_internal(abr.abrechnung_json) if abr and abr.abrechnung_json else None
+        d["berechnung"] = (abr.abrechnung_json or {}).get("berechnet") if abr and abr.abrechnung_json else None
+    return d

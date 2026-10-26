@@ -342,3 +342,92 @@ def test_entfernung(auth_client, token):
             "/api/v1/entfernung", json={"von": "49808 Lingen", "nach": "30159 Hannover"}, headers=_bearer(token)
         )
     assert r.get_json() == {"km": 101.5, "minuten": 75, "quelle": "OpenStreetMap / OSRM"}
+
+
+# ---------- Phase 3: Reisen ----------
+
+
+def test_reise_lebenszyklus(auth_client, mit_profil):
+    h = _bearer(mit_profil)
+    r = auth_client.post("/api/v1/reisen", json=antrag_v1(), headers=h)
+    assert r.status_code == 201, r.get_json()
+    reise = r.get_json()
+    rid = reise["id"]
+    assert r.headers["Location"] == f"/api/v1/reisen/{rid}"
+    assert reise["status"] == "entwurf" and reise["pdfs"]["antrag"]
+
+    # Roundtrip: GET-Antrag unverändert zurückschreiben
+    antrag = auth_client.get(f"/api/v1/reisen/{rid}", headers=h).get_json()["antrag"]
+    antrag["bemerkungen"] = "geändert"
+    r = auth_client.put(f"/api/v1/reisen/{rid}/antrag", json=antrag, headers=h)
+    assert r.status_code == 200, r.get_json()
+    assert r.get_json()["antrag"]["bemerkungen"] == "geändert"
+
+    assert [x["id"] for x in auth_client.get("/api/v1/reisen?status=entwurf", headers=h).get_json()["reisen"]].count(
+        rid
+    ) == 1
+
+    # bezahlt vor Abrechnung → 409
+    assert auth_client.post(f"/api/v1/reisen/{rid}/bezahlt", headers=h).status_code == 409
+
+    r = auth_client.post(
+        f"/api/v1/reisen/{rid}/genehmigung", json={"datum": "01.05.2026", "aktenzeichen": "AZ-1"}, headers=h
+    )
+    assert r.get_json()["status"] == "genehmigt" and r.get_json()["genehmigung"]["datum"] == "2026-05-01"
+
+    # Antrag nach Genehmigung → 409 (Entscheidung 3)
+    assert auth_client.put(f"/api/v1/reisen/{rid}/antrag", json=antrag, headers=h).status_code == 409
+
+    r = auth_client.put(f"/api/v1/reisen/{rid}/abrechnung", json=abrechnung_v1(), headers=h)
+    assert r.status_code == 200, r.get_json()
+    j = r.get_json()
+    assert j["status"] == "abgerechnet" and j["berechnung"]["tagegeld_brutto_eur"] == 56.0
+
+    # Roundtrip Abrechnung
+    r = auth_client.put(f"/api/v1/reisen/{rid}/abrechnung", json=j["abrechnung"], headers=h)
+    assert r.status_code == 200, r.get_json()
+
+    for art in ("antrag", "abrechnung"):
+        pdf = auth_client.get(f"/api/v1/reisen/{rid}/{art}.pdf", headers=h)
+        assert pdf.status_code == 200 and pdf.data.startswith(b"%PDF")
+
+    r = auth_client.post(f"/api/v1/reisen/{rid}/bezahlt", json={"datum": "2026-06-01"}, headers=h)
+    assert r.get_json()["status"] == "bezahlt" and r.get_json()["bezahlt_datum"] == "2026-06-01"
+
+    assert auth_client.delete(f"/api/v1/reisen/{rid}", headers=h).status_code == 204
+    assert auth_client.get(f"/api/v1/reisen/{rid}", headers=h).status_code == 404
+
+
+def test_fremde_reise_404(auth_client, mit_profil):
+    rid = auth_client.post("/api/v1/reisen", json=antrag_v1(), headers=_bearer(mit_profil)).get_json()["id"]
+    fremd = {"Remote-User": f"fremd_{uuid.uuid4().hex[:6]}", "Remote-Groups": "admins"}
+    auth_client.post("/profil", data=PROFIL, headers=fremd)
+    t = _bearer(_key_anlegen(auth_client, fremd))
+    assert auth_client.get(f"/api/v1/reisen/{rid}", headers=t).status_code == 404
+    assert auth_client.get(f"/api/v1/reisen/{rid}/antrag.pdf", headers=t).status_code == 404
+    assert auth_client.put(f"/api/v1/reisen/{rid}/antrag", json=antrag_v1(), headers=t).status_code == 404
+    assert (
+        auth_client.post(f"/api/v1/reisen/{rid}/genehmigung", json={"datum": "01.05.2026"}, headers=t).status_code
+        == 404
+    )
+    assert auth_client.delete(f"/api/v1/reisen/{rid}", headers=t).status_code == 404
+    assert rid not in [x["id"] for x in auth_client.get("/api/v1/reisen", headers=t).get_json()["reisen"]]
+
+
+def test_nur_lesen_darf_nicht_schreiben(auth_client, admin, mit_profil):
+    ro = _bearer(_key_anlegen(auth_client, admin, scopes=("reisen:read",), name="ro"))
+    assert auth_client.get("/api/v1/reisen", headers=ro).status_code == 200
+    assert auth_client.post("/api/v1/reisen", json=antrag_v1(), headers=ro).status_code == 403
+
+
+def test_ungueltiger_status_filter_und_datum(auth_client, mit_profil):
+    h = _bearer(mit_profil)
+    assert auth_client.get("/api/v1/reisen?status=quatsch", headers=h).status_code == 422
+    rid = auth_client.post("/api/v1/reisen", json=antrag_v1(), headers=h).get_json()["id"]
+    r = auth_client.post(f"/api/v1/reisen/{rid}/genehmigung", json={"datum": "gestern"}, headers=h)
+    assert r.status_code == 422
+
+
+def test_api_reise_erscheint_im_dashboard(auth_client, admin, mit_profil):
+    auth_client.post("/api/v1/reisen", json=antrag_v1(), headers=_bearer(mit_profil))
+    assert b"Digitale Transformation" in auth_client.get("/dashboard", headers=admin).data

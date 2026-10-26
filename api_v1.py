@@ -234,6 +234,148 @@ def entfernung():
     return jsonify({"km": r["km"], "minuten": r["duration_min"], "quelle": "OpenStreetMap / OSRM"})
 
 
+# ---------- Reisen ----------
+
+_STATUS = ("entwurf", "eingereicht", "genehmigt", "abgerechnet", "bezahlt", "verworfen")
+
+
+def _reise(reise_id: int):
+    try:
+        return services.reise_laden(g.api_user.id, reise_id)
+    except services.PersistError:
+        raise ApiProblem(404, "Reise nicht gefunden", typ="nicht-gefunden") from None
+
+
+def _konflikt(e: Exception):
+    return ApiProblem(409, "Statuskonflikt", str(e), typ="status")
+
+
+def _datum(raw: str, feld: str):
+    d = services.parse_iso_date(raw.strip())
+    if d is None:
+        raise ApiProblem(
+            422,
+            "Ungültige Eingabe",
+            typ="validation",
+            errors=[{"loc": [feld], "msg": "Datum DD.MM.YYYY oder YYYY-MM-DD"}],
+        )
+    return d
+
+
+@bp.get("/reisen")
+@api_view("reisen:read")
+def reisen_liste():
+    status = request.args.get("status") or None
+    if status and status not in _STATUS:
+        raise ApiProblem(422, "Unbekannter Status", f"Erlaubt: {', '.join(_STATUS)}", typ="validation")
+    return jsonify({"reisen": [am.reise_v1(r) for r in services.reisen_liste(g.api_user.id, status)]})
+
+
+@bp.post("/reisen")
+@api_view("reisen:write", LIMIT_PDF)
+def reise_anlegen():
+    antrag = body(am.AntragV1)
+    profil = services.profil_daten(g.api_user)
+    services.pruefe_profil(profil, "antrag")
+    model = services.antrag_validieren(am.antrag_to_internal(antrag, profil))
+    _, pdf = services.antrag_pdf(model)
+    reise_id, _ = services.antrag_speichern(g.api_user.id, None, model, pdf)
+    resp = jsonify(am.reise_v1(services.reise_laden(g.api_user.id, reise_id), mit_daten=True))
+    resp.status_code = 201
+    resp.headers["Location"] = f"{PREFIX}/reisen/{reise_id}"
+    return resp
+
+
+@bp.get("/reisen/<int:reise_id>")
+@api_view("reisen:read")
+def reise_lesen(reise_id: int):
+    return jsonify(am.reise_v1(_reise(reise_id), mit_daten=True))
+
+
+@bp.put("/reisen/<int:reise_id>/antrag")
+@api_view("reisen:write", LIMIT_PDF)
+def reise_antrag_ersetzen(reise_id: int):
+    _reise(reise_id)
+    antrag = body(am.AntragV1)
+    profil = services.profil_daten(g.api_user)
+    services.pruefe_profil(profil, "antrag")
+    model = services.antrag_validieren(am.antrag_to_internal(antrag, profil))
+    _, pdf = services.antrag_pdf(model)
+    try:
+        services.antrag_speichern(g.api_user.id, reise_id, model, pdf, bei_sperre="ablehnen")
+    except services.StatusKonflikt as e:
+        raise _konflikt(e) from None
+    return jsonify(am.reise_v1(services.reise_laden(g.api_user.id, reise_id), mit_daten=True))
+
+
+def _pdf_datei(pfad: str | None, name: str):
+    import os
+
+    if not pfad or not os.path.isfile(pfad):
+        raise ApiProblem(404, "PDF nicht vorhanden", typ="nicht-gefunden")
+    with open(pfad, "rb") as f:
+        return pdf_antwort(name, f.read())
+
+
+@bp.get("/reisen/<int:reise_id>/antrag.pdf")
+@api_view("reisen:read", LIMIT_PDF)
+def reise_antrag_pdf(reise_id: int):
+    r = _reise(reise_id)
+    return _pdf_datei(r.antrag_pdf_path, f"DR-Antrag-{r.id}.pdf")
+
+
+@bp.get("/reisen/<int:reise_id>/abrechnung.pdf")
+@api_view("reisen:read", LIMIT_PDF)
+def reise_abrechnung_pdf(reise_id: int):
+    r = _reise(reise_id)
+    return _pdf_datei(r.abrechnung.abrechnung_pdf_path if r.abrechnung else None, f"DR-Abrechnung-{r.id}.pdf")
+
+
+@bp.post("/reisen/<int:reise_id>/genehmigung")
+@api_view("reisen:write", LIMIT_SCHREIBEN)
+def reise_genehmigung(reise_id: int):
+    _reise(reise_id)
+    gen = body(am.GenehmigungV1)
+    services.genehmigung_vermerken(g.api_user.id, reise_id, _datum(gen.datum, "datum"), gen.aktenzeichen)
+    return jsonify(am.reise_v1(services.reise_laden(g.api_user.id, reise_id)))
+
+
+@bp.put("/reisen/<int:reise_id>/abrechnung")
+@api_view("reisen:write", LIMIT_PDF)
+def reise_abrechnung(reise_id: int):
+    _reise(reise_id)
+    abr = body(am.AbrechnungV1)
+    profil = services.profil_daten(g.api_user)
+    services.pruefe_profil(profil, "abrechnung_pdf")
+    model = services.abrechnung_validieren(am.abrechnung_to_internal(abr, profil))
+    _, pdf = services.abrechnung_pdf(model)
+    services.abrechnung_speichern(g.api_user.id, reise_id, model, pdf)
+    return jsonify(am.reise_v1(services.reise_laden(g.api_user.id, reise_id), mit_daten=True))
+
+
+@bp.post("/reisen/<int:reise_id>/bezahlt")
+@api_view("reisen:write", LIMIT_SCHREIBEN)
+def reise_bezahlt(reise_id: int):
+    from datetime import date
+
+    _reise(reise_id)
+    bez = body(am.BezahltV1) if request.content_length else am.BezahltV1()
+    datum = _datum(bez.datum, "datum") if bez.datum else date.today()
+    try:
+        services.bezahlt_vermerken(g.api_user.id, reise_id, datum)
+    except services.StatusKonflikt as e:
+        raise _konflikt(e) from None
+    return jsonify(am.reise_v1(services.reise_laden(g.api_user.id, reise_id)))
+
+
+@bp.delete("/reisen/<int:reise_id>")
+@api_view("reisen:write", LIMIT_SCHREIBEN)
+def reise_loeschen(reise_id: int):
+    _reise(reise_id)
+    services.reise_loeschen(g.api_user.id, reise_id)
+    return "", 204
+
+
 def init_app(app: Flask, csrf) -> None:
     app.register_blueprint(bp)
     csrf.exempt(bp)

@@ -37,6 +37,7 @@ import generator
 import generator_abrechnung
 import nrkvo_rates
 import pdf_text
+import services
 from extensions import limiter
 from ki_kontext import _format_reise_kontext, _ki_kontext, _load_system_prompt, _wohnort  # noqa: F401
 from models import (
@@ -381,162 +382,9 @@ def _get_dienstreise_or_404(reise_id: int):
     return s, reise
 
 
-def _parse_iso_date(value: str):
-    """Akzeptiert ISO 'YYYY-MM-DD' oder deutsches 'DD.MM.YYYY'.
-
-    Beide Formate werden gleichberechtigt versucht — strptime liefert
-    None zurueck wenn nichts passt.
-    """
-    from datetime import datetime as _dt
-
-    if not value:
-        return None
-    for fmt in ("%Y-%m-%d", "%d.%m.%Y"):
-        try:
-            return _dt.strptime(value, fmt).date()
-        except ValueError:
-            continue
-    return None
-
-
-class PersistError(Exception):
-    """Reise gehoert nicht dem User oder existiert nicht — PDF wird trotzdem ausgeliefert."""
-
-
-# Ab diesen Status ist der Antrag eingereicht/genehmigt: ein erneutes Erzeugen
-# ueberschreibt ihn nicht still, sondern legt eine neue Reise an.
-_ANTRAG_GESPERRT = ("genehmigt", "abgerechnet", "bezahlt")
-
-
-def _persist_antrag(reise_id_str: str, data: dict, result, pdf_path: str | None) -> tuple[int, int | None]:
-    """Erstellt oder aktualisiert eine Dienstreise.
-
-    Gibt ``(reise_id, kopie_von)`` zurueck: ``kopie_von`` ist gesetzt, wenn
-    die angefragte Reise schon genehmigt war und deshalb eine neue angelegt
-    wurde. ``data`` ist das validierte Modell als dict (``result.model_dump()``),
-    ``result`` das Pydantic-Modell (fuer Plain-Felder wie Zielort/Datum).
-    """
-    from datetime import datetime as _dt
-
-    from db import SessionLocal
-    from models_db import Dienstreise, DienstreiseStatus
-
-    user = g.current_user
-    reise_id = int(reise_id_str) if reise_id_str and reise_id_str.isdigit() else None
-
-    zielort = result.reise_details.zielort if hasattr(result, "reise_details") else None
-    zweck = result.reise_details.zweck if hasattr(result, "reise_details") else None
-    titel = (zweck or zielort or "Dienstreise")[:200]
-
-    start_d = _parse_iso_date(result.reise_details.start_datum) if hasattr(result, "reise_details") else None
-    if not start_d and hasattr(result, "reise_details"):
-        try:
-            start_d = _dt.strptime(result.reise_details.start_datum, "%d.%m.%Y").date()
-        except (ValueError, AttributeError):
-            start_d = None
-    end_d = None
-    if hasattr(result, "reise_details"):
-        try:
-            end_d = _dt.strptime(result.reise_details.ende_datum, "%d.%m.%Y").date()
-        except (ValueError, AttributeError):
-            end_d = None
-
-    persistent_pdf_path = None
-    if pdf_path:
-        target_dir = DATA_DIR / "pdfs" / str(user.id)
-        target_dir.mkdir(parents=True, exist_ok=True)
-
-    kopie_von = None
-    with SessionLocal() as s:
-        reise = None
-        if reise_id is not None:
-            reise = s.query(Dienstreise).filter(Dienstreise.id == reise_id, Dienstreise.user_id == user.id).first()
-            if reise is None:
-                raise PersistError(f"Dienstreise {reise_id} nicht gefunden")
-            if reise.status.value in _ANTRAG_GESPERRT:
-                logger.info("Reise %s ist %s — Antrag wird als neue Reise gespeichert", reise.id, reise.status.value)
-                kopie_von, reise = reise.id, None
-        if reise is not None:
-            reise.titel = titel
-            reise.zielort = zielort
-            reise.start_datum = start_d
-            reise.ende_datum = end_d
-            reise.antrag_json = data
-        else:
-            reise = Dienstreise(
-                user_id=user.id,
-                titel=titel,
-                zielort=zielort,
-                start_datum=start_d,
-                ende_datum=end_d,
-                antrag_json=data,
-                status=DienstreiseStatus.entwurf,
-            )
-            s.add(reise)
-            s.flush()  # damit reise.id verfuegbar ist
-
-        if pdf_path:
-            persistent_pdf_path = _persist_pdf(pdf_path, user.id, reise.id, "antrag.pdf")
-            reise.antrag_pdf_path = str(persistent_pdf_path)
-
-        s.commit()
-        return reise.id, kopie_von
-
-
-def _persist_pdf(src_pdf: str, user_id: int, reise_id: int, filename: str) -> Path:
-    """Kopiert PDF in das User-/Reise-Verzeichnis mit restriktiven Perms (0700/0600)."""
-    target_dir = DATA_DIR / "pdfs" / str(user_id) / str(reise_id)
-    target_dir.mkdir(parents=True, exist_ok=True)
-    # Permissions explizit setzen — umask 022 wuerde sonst 0755 daraus machen.
-    try:
-        os.chmod(target_dir.parent, 0o700)  # /pdfs/<user_id>
-        os.chmod(target_dir, 0o700)  # /pdfs/<user_id>/<reise_id>
-    except OSError:
-        pass
-    target = target_dir / filename
-    shutil.copy2(src_pdf, target)
-    try:
-        os.chmod(target, 0o600)
-    except OSError:
-        pass
-    return target
-
-
-def _persist_abrechnung(reise_id_str: str, data: dict, pdf_path: str | None) -> int | None:
-    """Persistiert die Abrechnung zu einer bestehenden Dienstreise."""
-    from datetime import datetime as _dt
-
-    from db import SessionLocal
-    from models_db import Abrechnung, AbrechnungStatus, Dienstreise, DienstreiseStatus
-
-    if not reise_id_str or not reise_id_str.isdigit():
-        return None
-    reise_id = int(reise_id_str)
-    user = g.current_user
-
-    with SessionLocal() as s:
-        reise = s.query(Dienstreise).filter(Dienstreise.id == reise_id, Dienstreise.user_id == user.id).first()
-        if reise is None:
-            raise PersistError(f"Dienstreise {reise_id} nicht gefunden")
-        abr = s.query(Abrechnung).filter(Abrechnung.dienstreise_id == reise.id).first()
-        if abr is None:
-            abr = Abrechnung(dienstreise_id=reise.id, status=AbrechnungStatus.abgeschlossen)
-            s.add(abr)
-            s.flush()
-        abr.abrechnung_json = data
-        abr.status = AbrechnungStatus.abgeschlossen
-        abr.generated_at = _dt.utcnow()
-
-        if pdf_path:
-            persistent = _persist_pdf(pdf_path, user.id, reise.id, "abrechnung.pdf")
-            abr.abrechnung_pdf_path = str(persistent)
-
-        # bezahlt-Reisen NICHT auf abgerechnet zurueckdrehen (User-Bestaetigung
-        # wiegt schwerer als ein erneuter PDF-Export).
-        if reise.status != DienstreiseStatus.bezahlt:
-            reise.status = DienstreiseStatus.abgerechnet
-        s.commit()
-        return abr.id
+def _reise_id(raw: str | None) -> int | None:
+    raw = (raw or "").strip()
+    return int(raw) if raw.isdigit() else None
 
 
 @app.route("/dienstreisen/<int:reise_id>/antrag-json", methods=["GET"])
@@ -590,24 +438,15 @@ def dienstreise_genehmigung_form(reise_id: int):
 @app.route("/dienstreisen/<int:reise_id>/genehmigung", methods=["POST"])
 @auth.login_required
 def dienstreise_genehmigung_save(reise_id: int):
-    from models_db import DienstreiseStatus
-
-    s, reise = _get_dienstreise_or_404(reise_id)
+    d = services.parse_iso_date((request.form.get("genehmigung_datum") or "").strip())
+    if d is None:
+        flash("Bitte ein gültiges Genehmigungs-Datum angeben.", "error")
+        return redirect(url_for("dienstreise_genehmigung_form", reise_id=reise_id))
     try:
-        datum_raw = (request.form.get("genehmigung_datum") or "").strip()
-        aktenzeichen = (request.form.get("genehmigung_aktenzeichen") or "").strip()[:100] or None
-        d = _parse_iso_date(datum_raw)
-        if d is None:
-            flash("Bitte ein gültiges Genehmigungs-Datum angeben.", "error")
-            return redirect(url_for("dienstreise_genehmigung_form", reise_id=reise_id))
-        reise.genehmigung_datum = d
-        reise.genehmigung_aktenzeichen = aktenzeichen
-        if reise.status == DienstreiseStatus.entwurf or reise.status == DienstreiseStatus.eingereicht:
-            reise.status = DienstreiseStatus.genehmigt
-        s.commit()
-        flash("Genehmigung vermerkt.", "success")
-    finally:
-        s.close()
+        services.genehmigung_vermerken(g.current_user.id, reise_id, d, request.form.get("genehmigung_aktenzeichen"))
+    except services.PersistError:
+        abort(404)
+    flash("Genehmigung vermerkt.", "success")
     if request.form.get("next") == "abrechnung":
         return redirect(url_for("abrechnung_index", dienstreise=reise_id))
     return redirect(url_for("dashboard"))
@@ -652,30 +491,22 @@ def dienstreise_bezahlt(reise_id: int):
     """
     from datetime import date as _date
 
-    from models_db import DienstreiseStatus
-
-    s, reise = _get_dienstreise_or_404(reise_id)
     try:
         if request.form.get("unmark") == "1":
-            reise.bezahlt_datum = None
-            if reise.status == DienstreiseStatus.bezahlt:
-                reise.status = DienstreiseStatus.abgerechnet
+            services.bezahlt_zuruecknehmen(g.current_user.id, reise_id)
             flash("Geldeingang-Markierung entfernt.", "success")
         else:
-            if reise.status != DienstreiseStatus.abgerechnet:
-                flash("Geldeingang lässt sich erst nach erzeugter Abrechnung vermerken.", "error")
-                return redirect(url_for("dashboard"))
             raw = (request.form.get("bezahlt_datum") or "").strip()
-            d = _parse_iso_date(raw) if raw else _date.today()
+            d = services.parse_iso_date(raw) if raw else _date.today()
             if d is None:
                 flash("Ungültiges Datum.", "error")
                 return redirect(url_for("dashboard"))
-            reise.bezahlt_datum = d
-            reise.status = DienstreiseStatus.bezahlt
+            services.bezahlt_vermerken(g.current_user.id, reise_id, d)
             flash(f"Geldeingang vermerkt ({d.strftime('%d.%m.%Y')}).", "success")
-        s.commit()
-    finally:
-        s.close()
+    except services.PersistError:
+        abort(404)
+    except services.StatusKonflikt as e:
+        flash(str(e), "error")
     return redirect(url_for("dashboard"))
 
 
@@ -888,17 +719,11 @@ def profil_json():
 @app.route("/dienstreisen/<int:reise_id>/delete", methods=["POST"])
 @auth.login_required
 def dienstreise_delete(reise_id: int):
-    s, reise = _get_dienstreise_or_404(reise_id)
     try:
-        # PDFs auf Disk mit aufraeumen
-        target_dir = DATA_DIR / "pdfs" / str(g.current_user.id) / str(reise.id)
-        if target_dir.is_dir():
-            shutil.rmtree(target_dir, ignore_errors=True)
-        s.delete(reise)
-        s.commit()
-        flash("Reise gelöscht.", "success")
-    finally:
-        s.close()
+        services.reise_loeschen(g.current_user.id, reise_id)
+    except services.PersistError:
+        abort(404)
+    flash("Reise gelöscht.", "success")
     return redirect(url_for("dashboard"))
 
 
@@ -1257,14 +1082,17 @@ def generate():
             response_headers = {}
             if auth.is_authenticated() and request.form.get("save_to_account") == "1":
                 try:
-                    reise_id, kopie_von = _persist_antrag(
-                        request.form.get("dienstreise_id", ""), result.model_dump(), result, output_path
+                    reise_id, kopie_von = services.antrag_speichern(
+                        g.current_user.id,
+                        _reise_id(request.form.get("dienstreise_id")),
+                        result,
+                        Path(output_path).read_bytes(),
                     )
                     response_headers["X-Dienstreise-Id"] = str(reise_id)
                     if kopie_von:
                         response_headers["X-Dienstreise-Kopie-Von"] = str(kopie_von)
                     logger.info("Antrag in DB persistiert: reise_id=%s user=%s", reise_id, g.current_user.id)
-                except PersistError as e:
+                except services.PersistError as e:
                     logger.warning("Antrag nicht persistiert: %s", e)
                 except Exception:
                     logger.exception("Persistenz fehlgeschlagen — PDF wird trotzdem ausgeliefert")
@@ -1418,13 +1246,16 @@ def abrechnung_generate():
                 try:
                     # Validiertes Modell inkl. Server-Berechnung speichern, nicht
                     # das rohe Client-JSON (Extras, Client-'berechnet').
-                    abr_id = _persist_abrechnung(
-                        request.form.get("dienstreise_id", ""), result.model_dump(), output_path
+                    ziel = _reise_id(request.form.get("dienstreise_id"))
+                    abr_id = (
+                        services.abrechnung_speichern(g.current_user.id, ziel, result, Path(output_path).read_bytes())
+                        if ziel is not None
+                        else None
                     )
                     if abr_id is not None:
                         response_headers["X-Abrechnung-Id"] = str(abr_id)
                         logger.info("Abrechnung in DB persistiert: abr_id=%s user=%s", abr_id, g.current_user.id)
-                except PersistError as e:
+                except services.PersistError as e:
                     logger.warning("Abrechnung nicht persistiert: %s", e)
                 except Exception:
                     logger.exception("Abrechnung-Persistenz fehlgeschlagen — PDF wird trotzdem ausgeliefert")
