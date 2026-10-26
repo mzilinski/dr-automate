@@ -29,7 +29,7 @@ def _abrechnung_payload():
 
 def _neue_reise(client, headers) -> int:
     r = client.post(
-        "/generate", data={"json_data": json.dumps(_example_input()), "save_to_account": "1"}, headers=headers
+        "/konto/generate", data={"json_data": json.dumps(_example_input()), "save_to_account": "1"}, headers=headers
     )
     assert r.status_code == 200
     return int(r.headers["X-Dienstreise-Id"])
@@ -50,7 +50,7 @@ def test_fremde_authelia_gruppe_ist_gast(auth_client, groups_enforced):
     r = auth_client.get("/dashboard", headers=headers)
     assert r.status_code in (302, 401)
     r = auth_client.post(
-        "/generate", data={"json_data": json.dumps(_example_input()), "save_to_account": "1"}, headers=headers
+        "/konto/generate", data={"json_data": json.dumps(_example_input()), "save_to_account": "1"}, headers=headers
     )
     assert r.status_code == 200
     assert "X-Dienstreise-Id" not in r.headers
@@ -111,7 +111,7 @@ def test_bezahlt_erst_nach_abrechnung(auth_client):
     assert _status(reise_id) == "entwurf"
 
     r = auth_client.post(
-        "/abrechnung/generate",
+        "/konto/abrechnung/generate",
         data={"json_data": json.dumps(_abrechnung_payload()), "save_to_account": "1", "dienstreise_id": reise_id},
         headers=headers,
     )
@@ -127,7 +127,7 @@ def test_genehmigter_antrag_wird_nicht_ueberschrieben(auth_client):
     payload = _example_input()
     payload["reise_details"]["zweck"] = "Geänderter Zweck"
     r = auth_client.post(
-        "/generate",
+        "/konto/generate",
         data={"json_data": json.dumps(payload), "save_to_account": "1", "dienstreise_id": reise_id},
         headers=headers,
     )
@@ -147,7 +147,7 @@ def test_abrechnung_speichert_server_berechnung(auth_client):
     payload["berechnet"] = {"auszahlbetrag_eur": 99999}
     payload["unbekanntes_feld"] = "x" * 100
     auth_client.post(
-        "/abrechnung/generate",
+        "/konto/abrechnung/generate",
         data={"json_data": json.dumps(payload), "save_to_account": "1", "dienstreise_id": reise_id},
         headers=headers,
     )
@@ -162,7 +162,7 @@ def test_abrechnung_fremde_reise_wird_nicht_beschrieben(auth_client):
     bob = {"Remote-User": "bob_abr"}
     reise_id = _neue_reise(auth_client, alice)
     r = auth_client.post(
-        "/abrechnung/generate",
+        "/konto/abrechnung/generate",
         data={"json_data": json.dumps(_abrechnung_payload()), "save_to_account": "1", "dienstreise_id": reise_id},
         headers=bob,
     )
@@ -185,7 +185,7 @@ def test_api_route_fuer_gaeste(client):
 # ---------- KI-Kontext (C1/C2) ----------
 
 
-def _capture_extract(client, data, headers=None):
+def _capture_extract(client, data, headers=None, path="/extract"):
     captured = {}
 
     def fake(freitext, api_key, system_prompt, sonderwuensche=""):
@@ -193,7 +193,7 @@ def _capture_extract(client, data, headers=None):
         return {"reise_details": {}}
 
     with patch("app.ai_extract.call_deepseek", side_effect=fake):
-        r = client.post("/extract", data=data, headers=headers or {"X-DeepSeek-Key": "sk-gast"})
+        r = client.post(path, data=data, headers=headers or {"X-DeepSeek-Key": "sk-gast"})
     assert r.status_code == 200, r.data
     return captured
 
@@ -212,7 +212,9 @@ def test_extract_eingeloggt_nutzt_profil_key_und_adresse(auth_client):
         data={"deepseek_api_key": "sk-eigener", "adresse_privat": "Hauptstr. 1, 26123 Oldenburg"},
         headers=headers,
     )
-    c = _capture_extract(auth_client, {"freitext": "Tagung", "wohnort": "49808 Lingen"}, headers=headers)
+    c = _capture_extract(
+        auth_client, {"freitext": "Tagung", "wohnort": "49808 Lingen"}, headers=headers, path="/konto/extract"
+    )
     assert c["api_key"] == "sk-eigener"
     assert "26123 Oldenburg" in c["freitext"]
 
@@ -262,7 +264,7 @@ def test_anmerkungen_checkbox_folgt_bemerkungen():
 
 
 def test_seed_traegt_owner(auth_client):
-    r = auth_client.get("/", headers={"Remote-User": "seed_owner"})
+    r = auth_client.get("/konto/", headers={"Remote-User": "seed_owner"})
     assert b'"_owner": "seed_owner"' in r.data
 
 

@@ -196,8 +196,8 @@ dr-automate/
 
 | Endpunkt | Methode | Beschreibung |
 |----------|---------|-------------|
-| `/` | GET | Antrag-Wizard (Gast + Auth, mit Save-Banner bei Auth) |
-| `/abrechnung` | GET | Abrechnungs-Wizard |
+| `/` | GET | Antrag-Wizard (Gast; mit Login → Weiterleitung nach `/konto/`) |
+| `/abrechnung` | GET | Abrechnungs-Wizard (Gast; mit Login → `/konto/abrechnung`) |
 | `/abrechnung/generate` | POST | Abrechnungs-PDF generieren (Rate Limited). Mit `save_to_account=1` + Auth: persistiert in DB. |
 | `/abrechnung/calc` | POST | Server-autoritative NRKVO-Berechnung (Quelle der Wizard-Vorschau, 60/min) |
 | `/api/route` | POST | Entfernung schätzen über OpenStreetMap/OSRM (30/h) |
@@ -217,6 +217,8 @@ Berechnung, PDFs, Extraktion — Beschreibung in [docs/api.md](docs/api.md), Ope
 
 | Endpunkt | Methode | Beschreibung |
 |----------|---------|-------------|
+| `/konto/`, `/konto/abrechnung` | GET | Wizards im Account-Modus (Profil, Speichern) |
+| `/konto/generate`, `/konto/extract`, `/konto/abrechnung/generate` | POST | Account-Varianten (speichern, Profil-Key) |
 | `/dashboard` | GET | Reise-Übersicht des eingeloggten Users |
 | `/dienstreisen/<id>/antrag-json` | GET | Antrag-JSON für Wizard-Pre-Fill (Owner-Check) |
 | `/dienstreisen/<id>/abrechnung-json` | GET | Abrechnungs-JSON für Wizard-Pre-Fill |

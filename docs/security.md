@@ -46,7 +46,14 @@ dr-automate selbst macht **kein Password-Handling** – die App liest nur den `R
 
 In Produktion (hinter Traefik) ist `TRUST_REMOTE_USER_HEADER=true` gesetzt. In jeder anderen Umgebung (lokale Entwicklung, Tests) ist das Flag `false`, und die Header werden **ignoriert**. Damit ist ein Header-Spoofing durch einen externen Angreifer nicht möglich – Traefik überschreibt die Header bei jedem eingehenden Request.
 
-Die Gast-Pfade (`/`, `/generate`, `/extract`, …) sind in Authelia per `bypass` offen; ein dort angemeldeter Nutzer bringt seine `Remote-*`-Header trotzdem mit. `DR_AUTOMATE_ALLOWED_GROUPS` (Produktion: `admins,dr-automate-users`) begrenzt den Account-Modus auf diese Gruppen — Nutzer anderer Authelia-Rollen gelten in dr-automate als Gast.
+Die Gast-Pfade (`/`, `/generate`, `/extract`, …) sind in Authelia per `bypass` offen. Dort schickt
+Authelia die `Remote-*`-Header auch für Sessions, die erst das **Passwort** (ersten Faktor) haben.
+Die App vertraut der Identität deshalb **nur auf geschützten Pfaden** (`/konto/…`, `/dashboard`,
+`/dienstreisen/…`, `/profil`, `/admin/…`), auf denen Authelia den zweiten Faktor verlangt
+(Allowlist in `auth.GESCHUETZTE_PFADE`). Eingeloggte Nutzer werden von `/` und `/abrechnung`
+nach `/konto/…` umgeleitet; Speichern, Extraktion mit dem Profil-Key und der Profil-Seed laufen
+nur dort. Zusätzlich begrenzt `DR_AUTOMATE_ALLOWED_GROUPS` (Produktion: `admins,dr-automate-users`)
+den Account-Modus auf diese Gruppen.
 
 ## REST-API
 
