@@ -107,7 +107,10 @@ def status_je_reise(reise_ids: list[int]) -> dict[int, dict[str, PaperlessUpload
 
 
 def _headers(token: str) -> dict:
-    return {"Authorization": f"Token {token}", "Accept": "application/json; version=7"}
+    # Keine feste API-Version: Paperless 3.x lehnt alte Versionen (z. B. 7) mit
+    # 406 ab; ohne Angabe gilt der Standard der Instanz. Genutzt werden nur
+    # stabile Felder (results/id, Task-UUID, status/related_document).
+    return {"Authorization": f"Token {token}", "Accept": "application/json"}
 
 
 def _id_fuer(http, token: str, endpoint: str, name: str) -> int | None:
