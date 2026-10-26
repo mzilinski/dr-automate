@@ -186,6 +186,7 @@ def _konto_routen() -> None:
     ):
         app.add_url_rule(rule, endpoint=endpoint, view_func=view, methods=methods)
 
+
 # PDFs nach Paperless (nur mit PAPERLESS_URL; Thread im gunicorn-Worker)
 paperless_sync.worker_starten()
 
@@ -305,6 +306,9 @@ def _common_template_ctx():
         # Ziele der Wizard-Links/-Requests: eingeloggt die /konto/-Varianten
         # (Identität nur dort), sonst die Gast-Pfade.
         "urls": _wizard_urls(user is not None),
+        # Gast-Pfad mit Authelia-Session (Level unbekannt): nur ein Link ins
+        # Konto, keine Identitätsdaten.
+        "session_auf_gastpfad": user is None and auth.session_auf_gastpfad(),
         "wizard_profile_seed": _build_wizard_profile_seed(user),
     }
 
@@ -1440,7 +1444,6 @@ def ratelimit_handler(e):
 def too_large_handler(e):
     """Handler fuer Upload-Limit-Ueberschreitung (PDF-Upload)."""
     return jsonify({"error": f"Datei zu gross (max {MAX_UPLOAD_BYTES // (1024 * 1024)} MB)."}), 413
-
 
 
 _konto_routen()

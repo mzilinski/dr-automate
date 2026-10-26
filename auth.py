@@ -58,6 +58,7 @@ GESCHUETZTE_PFADE = ("/konto", "/dashboard", "/dienstreisen", "/profil", "/admin
 def pfad_geschuetzt(path: str) -> bool:
     return any(path == p or path.startswith(p + "/") for p in GESCHUETZTE_PFADE)
 
+
 # last_login_at hoechstens so oft schreiben — sonst committet jeder Request.
 LAST_LOGIN_GRANULARITY = timedelta(minutes=15)
 
