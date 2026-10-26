@@ -188,3 +188,19 @@ def test_token_nur_fuer_admins_und_verschluesselt(auth_client):
     conn.close()
     assert all("tok" not in r[0] for r in rows)  # nur Fernet-Token, nie Klartext
     assert "fremd" not in json.dumps(rows)
+
+
+@pytest.mark.parametrize(
+    "task",
+    [
+        {"related_document": "55"},  # Paperless 2.x
+        {"related_document_ids": [55], "result_data": {"document_id": 55}},  # Paperless 3.x
+        {"result_data": {"document_id": 55}},
+    ],
+)
+def test_dokument_id_beide_formate(task):
+    assert paperless_sync._dokument_id(task) == 55
+
+
+def test_dokument_id_fehlt():
+    assert paperless_sync._dokument_id({"related_document_ids": []}) is None
