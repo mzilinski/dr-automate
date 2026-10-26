@@ -161,6 +161,17 @@ def _hochladen(http, row: PaperlessUpload, reise: Dienstreise, token: str) -> No
     row.naechster_versuch = datetime.utcnow() + timedelta(seconds=30)
 
 
+def _dokument_id(task: dict) -> int | None:
+    """Dokument-ID aus einem Paperless-Task — Paperless 2.x: ``related_document``,
+    Paperless 3.x: ``related_document_ids`` bzw. ``result_data.document_id``."""
+    kandidaten = [task.get("related_document"), *(task.get("related_document_ids") or [])]
+    kandidaten.append((task.get("result_data") or {}).get("document_id"))
+    for doc in kandidaten:
+        if doc is not None and str(doc).isdigit():
+            return int(doc)
+    return None
+
+
 def _task_pruefen(http, row: PaperlessUpload, token: str) -> None:
     r = http.get(f"{basis_url()}/api/tasks/", params={"task_id": row.task_id}, headers=_headers(token), timeout=TIMEOUT)
     r.raise_for_status()
@@ -173,10 +184,9 @@ def _task_pruefen(http, row: PaperlessUpload, token: str) -> None:
     status = (t.get("status") or "").upper()
     if status == "SUCCESS":
         row.status = "fertig"
-        doc = t.get("related_document")
-        row.dokument_id = int(doc) if doc and str(doc).isdigit() else None
+        row.dokument_id = _dokument_id(t)
     elif status == "FAILURE":
-        ergebnis = str(t.get("result") or "")
+        ergebnis = str(t.get("result") or t.get("result_message") or t.get("result_data") or "")
         if "duplicate" in ergebnis.lower():
             row.status = "fertig"
             row.meldung = "War bereits in Paperless vorhanden"
