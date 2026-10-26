@@ -132,3 +132,10 @@ def test_api_berechtigung_nur_auf_geschuetzten_pfaden(auth_client, user):
 )
 def test_pfad_geschuetzt(pfad, geschuetzt):
     assert auth.pfad_geschuetzt(pfad) is geschuetzt
+
+
+def test_hilfeseite_mit_session_zeigt_nur_kontolink(auth_client, user):
+    html = auth_client.get("/docs/faq", headers=user).get_data(as_text=True)
+    assert "Zum Konto" in html and 'class="pill guest"' not in html
+    assert user["Remote-User"] not in html  # keine Identität auf Gast-Pfaden
+    assert 'class="pill guest"' in auth_client.get("/docs/faq").get_data(as_text=True)

@@ -67,9 +67,13 @@
         <a href="{{ urls.antrag }}">Neuer Antrag</a>
         <a href="{{ urls.abrechnung }}">Abrechnung</a>
         <a href="{{ url_for('docs_view', slug='getting-started') }}">Hilfe</a>
+        {% if session_auf_gastpfad %}
+        <a href="{{ url_for('dashboard') }}">Zum Konto</a>
+        {% else %}
         <a href="{{ url_for('account_request_get') }}">Account anfragen</a>
         <a href="{{ url_for('dashboard') }}">Anmelden</a>
         <span class="pill guest">Gast-Modus</span>
+        {% endif %}
       {% endif %}
     </nav>
   </header>
