@@ -101,6 +101,7 @@ def test_genehmigung_legt_antrag_ab(auth_client, admin, key):
     post = http.posts[-1]
     assert post["url"] == "https://paperless.example.org/api/documents/post_document/"
     assert post["headers"]["Authorization"] == "Token tok-123"
+    assert post["headers"]["Accept"] == "application/json"  # keine feste Version (406 bei Paperless 3.x)
     assert post["data"]["tags"] == [7] and "document_type" not in post["data"]
     assert post["data"]["created"] == "2026-05-15"
     assert post["data"]["title"].startswith("Dienstreiseantrag Fortbildung")
