@@ -186,11 +186,14 @@ class KonfigurationCheckboxen(BaseModel):
     dienstgeschaeft_2km_umkreis: bool = False
     anspruch_trennungsgeld: bool = False
     # Obj55-Checkbox im Vordruck: "Die Reisekosten werden von einer anderen
-    # Person oder Stelle uebernommen" — typischer Fall: Tagungsgebuehr enthaelt
-    # bereits Uebernachtung und/oder Verpflegung. (Obj53/Obj54 daneben sind
-    # unentgeltliche Unterkunft/Verpflegung des Amtes wegen.)
+    # Person oder Stelle uebernommen" — nur bei echter Kostenuebernahme durch
+    # Dritte (Veranstalter, andere Dienststelle), NICHT bei einer selbst
+    # gezahlten Tagungsgebuehr inkl. Uebernachtung/Verpflegung (system_prompt.md
+    # Abschnitt 4). Obj53/Obj54 daneben sind unentgeltliche Unterkunft/
+    # Verpflegung des Amtes wegen.
     kosten_durch_andere_stelle: bool = False
 
+    # Wird in ReiseantragData aus zusatz_infos.bemerkungen_feld abgeleitet.
     weitere_anmerkungen_checkbox_aktivieren: bool = False
 
 
@@ -200,12 +203,6 @@ class VerzichtErklaerung(BaseModel):
     verzicht_tagegeld: bool = False
     verzicht_uebernachtungsgeld: bool = False
     verzicht_fahrtkosten: bool = False
-
-
-class Unterschrift(BaseModel):
-    """Unterschriftsdaten."""
-
-    datum_seite_2: str | None = ""
 
 
 class ReiseantragData(BaseModel):
@@ -218,12 +215,21 @@ class ReiseantragData(BaseModel):
     befoerderung: Befoerderung
     konfiguration_checkboxen: KonfigurationCheckboxen
     verzicht_erklaerung: VerzichtErklaerung | None = VerzichtErklaerung()
-    unterschrift: Unterschrift | None = Unterschrift()
+    # Das Unterschriftsdatum setzt der Generator (Erzeugungstag); ein
+    # ``unterschrift``-Block aus älteren JSONs wird ignoriert.
 
     model_config = {
         "extra": "ignore",  # Ignoriere zusätzliche Felder
         "str_strip_whitespace": True,
     }
+
+    @model_validator(mode="after")
+    def anmerkungen_checkbox_aus_bemerkungen(self) -> "ReiseantragData":
+        """„Weitere Anmerkungen" ist angekreuzt genau dann, wenn Bemerkungen
+        im Formular stehen — deterministisch, keine KI-/Client-Aufgabe."""
+        bemerkungen = (self.zusatz_infos.bemerkungen_feld if self.zusatz_infos else "") or ""
+        self.konfiguration_checkboxen.weitere_anmerkungen_checkbox_aktivieren = bool(bemerkungen.strip())
+        return self
 
 
 # ============================================================
@@ -271,12 +277,44 @@ class Anordnung(BaseModel):
     datum: str = Field(default="", max_length=10)
 
 
+class VerpflegungTag(BaseModel):
+    """Unentgeltliche Mahlzeiten an einem Kalendertag (§ 7 Abs. 3 NRKVO)."""
+
+    datum: str = Field(..., description="Format: DD.MM.YYYY")
+    fruehstueck: bool = False
+    mittag: bool = False
+    abend: bool = False
+
+    @field_validator("datum")
+    @classmethod
+    def validate_datum(cls, v: str) -> str:
+        try:
+            datetime.strptime(v, DATE_FMT)
+        except ValueError as e:
+            raise ValueError(f"Ungültiges Datum: '{v}'. Erwartet: DD.MM.YYYY") from e
+        return v
+
+
 class Verpflegung(BaseModel):
-    """Anzahl unentgeltlich bereitgestellter Mahlzeiten — treibt Tagegeld-Kürzung."""
+    """Unentgeltlich bereitgestellte Mahlzeiten — treibt die Tagegeld-Kürzung.
+
+    Mit ``tage`` (Zuordnung je Kalendertag) wird die Kürzung pro Tag auf das
+    Tagegeld dieses Tages gedeckelt; die Anzahl-Felder werden dann daraus
+    abgeleitet. Ohne ``tage`` gelten die Anzahlen (nur Gesamt-Deckel).
+    """
 
     fruehstueck_anzahl: int = Field(default=0, ge=0, le=99)
     mittag_anzahl: int = Field(default=0, ge=0, le=99)
     abend_anzahl: int = Field(default=0, ge=0, le=99)
+    tage: list[VerpflegungTag] = Field(default_factory=list, max_length=400)
+
+    @model_validator(mode="after")
+    def counts_from_tage(self) -> "Verpflegung":
+        if self.tage:
+            self.fruehstueck_anzahl = sum(t.fruehstueck for t in self.tage)
+            self.mittag_anzahl = sum(t.mittag for t in self.tage)
+            self.abend_anzahl = sum(t.abend for t in self.tage)
+        return self
 
 
 class Uebernachtungen(BaseModel):
@@ -286,6 +324,7 @@ class Uebernachtungen(BaseModel):
     anzahl_unentgeltlich: int = Field(
         default=0, ge=0, le=99, description="Vom Amt gestellte Nächte (kein Übernachtungsgeld)"
     )
+    anzahl_beleg: int = Field(default=0, ge=0, le=99, description="Nächte mit Hotelbeleg (Basis für €/Nacht)")
     kosten_eur: float = Field(default=0.0, ge=0)
     begruendung_ueber_100: str = Field(default="", max_length=500)
 
@@ -331,6 +370,22 @@ class BerechneteWerte(BaseModel):
     zwischensumme_eur: float = 0.0
     auszahlbetrag_eur: float = 0.0
 
+    # Aufschlüsselung für Wizard-Vorschau und PDF-Zeilen (Tage × Satz)
+    tagegeld_volle_tage: int = 0
+    tagegeld_teiltage: int = 0
+    tagegeld_reduzierte_tage: int = 0
+    uebernachtung_pauschal_naechte: int = 0
+    uebernachtung_beleg_eur: float = 0.0
+    uebernachtung_beleg_pro_nacht_eur: float = 0.0
+    begruendung_ueber_100_noetig: bool = False
+    wegstrecke_hin_eur: float = 0.0
+    wegstrecke_rueck_eur: float = 0.0
+    fahrkarte_eur: float = 0.0
+    sonstige_fahrt_eur: float = 0.0
+    sonstige_kosten_eur: float = 0.0
+    abzuege_eur: float = 0.0
+    hinweise: list[str] = Field(default_factory=list)
+
 
 class AbrechnungData(BaseModel):
     """Hauptmodell für die Reisekostenabrechnung (Formular 035_002)."""
@@ -343,7 +398,7 @@ class AbrechnungData(BaseModel):
     reise_details: ReiseDetails
     befoerderung: Befoerderung
     konfiguration_checkboxen: KonfigurationCheckboxen
-    verzicht_erklaerung: VerzichtErklaerung | None = VerzichtErklaerung()
+    verzicht_erklaerung: VerzichtErklaerung = VerzichtErklaerung()
 
     # Abrechnungs-spezifisch
     rkr: Literal["DR", "VR", "AFR", "RPR", "RRS", "GNE", "SONSTIGE"] = "DR"
@@ -359,6 +414,12 @@ class AbrechnungData(BaseModel):
 
     # Wird vom Server gesetzt
     berechnet: BerechneteWerte = BerechneteWerte()
+
+    @field_validator("verzicht_erklaerung", mode="before")
+    @classmethod
+    def verzicht_none_to_default(cls, v):
+        """Ältere Exporte enthalten ``null`` — gleichbedeutend mit „kein Verzicht"."""
+        return v if v is not None else {}
 
     model_config = {
         "extra": "ignore",

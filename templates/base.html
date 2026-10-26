@@ -16,7 +16,11 @@
       text-decoration:none;}
     .topnav .brand small{display:block;color:var(--muted);font-family:'Figtree',sans-serif;
       font-weight:400;font-size:.72rem;letter-spacing:.5px;text-transform:uppercase;margin-top:-2px;}
-    .topnav nav{display:flex;gap:1rem;align-items:center;}
+    .topnav nav{display:flex;gap:.4rem 1rem;align-items:center;flex-wrap:wrap;justify-content:flex-end;}
+    @media (max-width: 640px) {
+      .topnav{flex-direction:column;align-items:flex-start;gap:.4rem;position:static;}
+      .topnav nav{justify-content:flex-start;gap:.3rem .5rem;}
+    }
     .topnav nav a{color:var(--text);text-decoration:none;font-size:.95rem;
       padding:.35rem .6rem;border-radius:.4rem;}
     .topnav nav a:hover{background:var(--step-ghost);}
@@ -41,6 +45,7 @@
     .app-footer .sep{margin:0 .55rem;}
     .app-footer a{color:var(--muted);}
   </style>
+  {% include '_profile_seed.html' %}
   {% block head %}{% endblock %}
 </head>
 <body>
@@ -57,7 +62,7 @@
         <a href="{{ url_for('profil_view') }}">Profil</a>
         <a href="{{ url_for('docs_view', slug='getting-started') }}">Hilfe</a>
         <span class="pill auth">{{ current_user.display_name or current_user.remote_user }}</span>
-        <a href="{{ authelia_logout_url }}">Abmelden</a>
+        <a href="{{ authelia_logout_url }}" data-logout>Abmelden</a>
       {% else %}
         <a href="{{ url_for('index') }}">Neuer Antrag</a>
         <a href="{{ url_for('abrechnung_index') }}">Abrechnung</a>
@@ -92,7 +97,7 @@
 
   <footer class="app-footer">
     <small>
-      v0.2.0
+      v{{ app_version }}
       <span class="sep">·</span>
       <a href="{{ url_for('docs_view', slug='getting-started') }}">Hilfe</a>
       <span class="sep">·</span>

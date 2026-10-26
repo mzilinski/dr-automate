@@ -88,6 +88,10 @@
     .global-nav .pill{font-size:.7rem;font-weight:600;padding:.16rem .5rem;border-radius:999px;
       border:1px solid var(--border);color:var(--muted);background:var(--surface-hi);}
     .global-nav .pill.auth{color:var(--ok);border-color:var(--ok);background:var(--ok-subtle);}
+    @media (max-width: 640px) {
+      .global-nav{flex-direction:column;align-items:flex-start;gap:.35rem;position:static;}
+      .global-nav nav{gap:.25rem .5rem;}
+    }
     .guest-strip{background:var(--warn-subtle);border-bottom:1px solid var(--border);
       padding:.5rem 1.2rem;font-size:.88rem;}
     .guest-strip a{color:var(--accent);}
@@ -100,29 +104,7 @@
     .file-drop:hover, .file-drop.dragover { border-color: var(--accent); background: var(--accent-subtle); }
     .file-drop p { font-size: .85rem; color: var(--muted); margin: 0; }
   </style>
-  {% if wizard_profile_seed %}
-  <script>
-    // Server-Profil ins localStorage seeden, bevor der Wizard-Code laeuft
-    // (Server ist fuer eingeloggte User die autoritative Quelle).
-    (function() {
-      var seed = {{ wizard_profile_seed | tojson }};
-      try {
-        var existing = JSON.parse(localStorage.getItem('dr_profile') || '{}');
-        Object.keys(seed).forEach(function(k) { if (seed[k]) existing[k] = seed[k]; });
-        if (seed.adresse && existing.adresse !== seed.adresse) {
-          var parts = seed.adresse.split(',');
-          if (parts.length > 1) {
-            existing.strasse = parts[0].trim();
-            existing.plz_ort = parts.slice(1).join(',').trim();
-          } else { existing.strasse = seed.adresse.trim(); existing.plz_ort = ''; }
-          existing.adresse = seed.adresse;
-        }
-        if (seed.has_deepseek_api_key) existing.has_server_deepseek_key = true;
-        localStorage.setItem('dr_profile', JSON.stringify(existing));
-      } catch (e) { console.error('Profile seed failed:', e); }
-    })();
-  </script>
-  {% endif %}
+  {% include '_profile_seed.html' %}
 </head>
 <body>
 
@@ -136,7 +118,7 @@
         <a href="{{ url_for('profil_view') }}">Profil</a>
         <a href="{{ url_for('docs_view', slug='getting-started') }}">Hilfe</a>
         <span class="pill auth">{{ current_user.display_name or current_user.remote_user }}</span>
-        <a href="{{ authelia_logout_url }}">Abmelden</a>
+        <a href="{{ authelia_logout_url }}" data-logout>Abmelden</a>
       {% else %}
         <a href="{{ url_for('index') }}" class="active">Neuer Antrag</a>
         <a href="{{ url_for('abrechnung_index') }}">Abrechnung</a>
@@ -155,7 +137,7 @@
   </div>
   {% endif %}
 
-  <div class="alert-stack" id="alertStack"></div>
+  <div class="alert-stack" id="alertStack" role="status" aria-live="polite"></div>
 
   <div class="spinner-overlay" id="loadingSpinner">
     <div class="spinner-box">
@@ -183,8 +165,9 @@
         </p>
         {% else %}
         <p class="modal-note">
-          Diese Daten bleiben im <strong>lokalen Browser-Speicher</strong> – nie an den Server übermittelt.
-          Der Antragsteller-Block wird daraus befüllt; die KI sieht ihn nicht.
+          Diese Daten liegen im <strong>lokalen Browser-Speicher</strong>. Beim Erzeugen des PDFs
+          gehen sie einmalig an den Server (nur zum Ausfüllen, ohne Speicherung). Die KI bekommt
+          davon nur Postleitzahl und Ort als Start-/Endpunkt der Reise.
         </p>
         {% endif %}
 
@@ -367,6 +350,7 @@
                 <option value="BUS">Bus</option>
                 <option value="DIENSTWAGEN">Dienstwagen</option>
                 <option value="MITFAHRT">Mitfahrt</option>
+                <option value="FLUG">Flug</option>
               </select>
             </div>
             <div>
@@ -377,6 +361,7 @@
                 <option value="BUS">Bus</option>
                 <option value="DIENSTWAGEN">Dienstwagen</option>
                 <option value="MITFAHRT">Mitfahrt</option>
+                <option value="FLUG">Flug</option>
               </select>
             </div>
 
@@ -405,7 +390,7 @@
             </div>
 
             <div id="sonderfall_wrap" class="full" style="display:none;">
-              <label class="field-label" for="sonderfall">Begründung § 5 III (Pflicht)</label>
+              <label class="field-label" for="sonderfall" id="sonderfall_label">Begründung (Pflicht)</label>
               <input type="text" id="sonderfall" placeholder="z.B. Materialtransport, kein Dienstwagen verfügbar">
             </div>
           </div>
@@ -422,6 +407,11 @@
 
           <div id="aiExtractBlock" style="display:none;">
             <p class="step-lead">DeepSeek extrahiert die Reisedaten direkt aus deiner Eingabe.</p>
+            <p class="wiz-hint" style="margin-top:-.4rem;">
+              Der Text geht an DeepSeek (China, kein EU-Datenschutzniveau) — dazu Datum, PLZ/Ort und Verkehrsmittel,
+              aber kein Name, keine Straße, keine IBAN. Keine unnötigen Daten Dritter einfügen.
+              <a href="{{ datenschutz_url }}">Details</a>
+            </p>
             <div class="btn-row" style="align-items:center;">
               <button type="button" class="btn btn-primary" id="aiExtractBtn" onclick="extractWithAI()">
                 Mit KI extrahieren
@@ -441,7 +431,7 @@
             <textarea id="promptText" rows="9" readonly>{{ prompt_content }}</textarea>
             <div style="margin-top:.7rem;">
               <button type="button" class="btn btn-primary btn-copy" id="copyBtn" onclick="copyPrompt()">Prompt kopieren</button>
-              <span class="copy-warning">Ausschreibung nicht vergessen mitzukopieren!</span>
+              <span class="copy-warning">Ausschreibung aus Schritt 1 ist enthalten — ein hochgeladenes PDF bitte im Chat anhängen.</span>
             </div>
             <label class="field-label" for="pasteJson" style="margin-top:1rem;">KI-Antwort (JSON) einfügen</label>
             <textarea id="pasteJson" rows="7" placeholder="Komplette Antwort der KI hier einfügen …"></textarea>
@@ -533,7 +523,7 @@
           </div>
 
           <h3 style="font-size:.92rem; margin:1.2rem 0 .3rem; color:var(--muted);">Angaben</h3>
-          <div class="check-row"><input type="checkbox" id="k_kosten_andere"><label for="k_kosten_andere">Reisekosten ganz/teilweise von anderer Stelle (z.B. Tagungsgebühr inkl. Übernachtung/Verpflegung)</label></div>
+          <div class="check-row"><input type="checkbox" id="k_kosten_andere"><label for="k_kosten_andere">Reisekosten werden ganz/teilweise von einer anderen Stelle übernommen (z.B. Veranstalter erstattet die Fahrtkosten)</label></div>
           <div class="check-row"><input type="checkbox" id="k_2km"><label for="k_2km">Dienstort &lt; 2 km von Dienststätte/Wohnung</label></div>
           <div class="check-row"><input type="checkbox" id="k_trennungsgeld"><label for="k_trennungsgeld">Anspruch auf Trennungsgeld</label></div>
 
@@ -566,6 +556,7 @@
             <input type="hidden" name="json_data" id="json_data">
             <div class="btn-row">
               <button type="submit" class="btn btn-primary btn-primary-lg" id="submitBtn">Antrag generieren (PDF)</button>
+              <button type="button" class="btn btn-outline btn-sm" onclick="exportAntragJson()" title="Für die spätere Abrechnung (Abrechnungs-Wizard, Schritt 1)">JSON exportieren</button>
               <button type="button" class="btn btn-ghost btn-sm" onclick="neuerAntrag()" style="margin-left:auto;">↩ Neuer Antrag</button>
             </div>
           </form>
@@ -585,7 +576,7 @@
 
     <footer class="app-footer">
       <small>
-        v0.3.0
+        v{{ app_version }}
         <span class="sep">·</span><a href="{{ url_for('dashboard') }}">Dashboard</a>
         <span class="sep">·</span><a href="{{ url_for('abrechnung_index') }}">Zur Abrechnung</a>
         <span class="sep">·</span><a href="{{ url_for('docs_view', slug='getting-started') }}">Hilfe</a>
@@ -593,7 +584,7 @@
         <span class="sep">·</span><a href="{{ datenschutz_url }}">Datenschutz</a>
         <span class="sep">·</span><a href="{{ url_for('docs_view', slug='haftung') }}">Haftung</a>
         <span class="sep">·</span><a href="{{ url_for('health_check') }}" target="_blank">Status</a>
-        {% if is_authenticated %}<span class="sep">·</span><a href="{{ authelia_logout_url }}">Abmelden</a>{% endif %}
+        {% if is_authenticated %}<span class="sep">·</span><a href="{{ authelia_logout_url }}" data-logout>Abmelden</a>{% endif %}
       </small>
     </footer>
 
@@ -601,6 +592,8 @@
 
   <script>
     const PROFILE_KEY = 'dr_profile';
+    const NRKVO = {{ nrkvo | tojson }};  // Sätze aus nrkvo_rates.py
+    const eur = v => v.toFixed(2).replace('.', ',') + ' €';
     const IS_AUTHENTICATED = {{ 'true' if is_authenticated else 'false' }};
     const promptTemplate = document.getElementById('promptText').value;
     let aiData = null;  // Teil-JSON aus der KI (ohne antragsteller/befoerderung)
@@ -614,8 +607,27 @@
     }
 
     // ── Modal ────────────────────────────────────────────────────────
-    function openModal(id){ document.getElementById(id).classList.add('is-open'); document.body.style.overflow='hidden'; }
-    function closeModal(id){ document.getElementById(id).classList.remove('is-open'); document.body.style.overflow=''; }
+    let modalReturnFocus = null;
+    function openModal(id){
+      const el = document.getElementById(id);
+      modalReturnFocus = document.activeElement;
+      el.classList.add('is-open'); document.body.style.overflow='hidden';
+      setTimeout(() => el.querySelector('input, select, button')?.focus(), 50);
+    }
+    function closeModal(id){
+      document.getElementById(id).classList.remove('is-open'); document.body.style.overflow='';
+      modalReturnFocus?.focus?.(); modalReturnFocus = null;
+    }
+    // Fokus im offenen Dialog halten (Tab/Shift+Tab)
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'Tab') return;
+      const box = document.querySelector('.modal-overlay.is-open .modal-box');
+      if (!box) return;
+      const f = [...box.querySelectorAll('a[href], button, input, select, textarea')].filter(x => !x.disabled && x.offsetParent);
+      if (!f.length) return;
+      if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f[f.length-1].focus(); }
+      else if (!e.shiftKey && document.activeElement === f[f.length-1]) { e.preventDefault(); f[0].focus(); }
+    });
     document.querySelectorAll('.modal-overlay').forEach(el =>
       el.addEventListener('click', e => { if (e.target === el) closeModal(el.id); }));
     document.addEventListener('keydown', e => {
@@ -646,7 +658,7 @@
         status.textContent = 'Kein Profil konfiguriert.'; status.classList.add('missing');
         return;
       }
-      status.textContent = `${p.name || ''} · ${p.abteilung || ''}`;
+      status.textContent = [p.name, p.abteilung].filter(Boolean).join(' · ');
       status.classList.remove('missing');
       const parts = (p.name || '').trim().split(/\s+/);
       avatar.textContent = ((parts[0]?.[0] || '') + (parts[parts.length-1]?.[0] || '')).toUpperCase() || '?';
@@ -728,11 +740,23 @@
       b.addEventListener('click', () => goStep(parseInt(b.dataset.go))));
 
     // ── Beförderung (Step 2) ─────────────────────────────────────────
-    function prefillBefoerderung() {
+    // Step 2 mit dem Profil-Standard vorbelegen; reset=true (Neuer Antrag)
+    // leert zusätzlich Paragraph, Mitfahrer und Begründung der letzten Reise.
+    function prefillBefoerderung(reset = false) {
       const p = getProfile();
       const def = (p && p.standard_verkehrsmittel) || '';
-      if (def) { hin_typ.value = def; rueck_typ.value = def; }
+      if (def || reset) { hin_typ.value = def || 'PKW'; rueck_typ.value = def || 'PKW'; }
+      if (reset) {
+        hin_para.value = 'II'; rueck_para.value = 'II';
+        hin_mitfahrer.value = ''; rueck_mitfahrer.value = ''; sonderfall.value = '';
+      }
       updateBefoerderungUI();
+    }
+    // Begründungspflicht im Vordruck: privater PKW nach § 5 III und
+    // „sonstiges Beförderungsmittel" (Flug).
+    function needsSonderfall() {
+      const need = (typ, para) => (typ === 'PKW' && para === 'III') || typ === 'FLUG';
+      return need(hin_typ.value, hin_para.value) || need(rueck_typ.value, rueck_para.value);
     }
     function updateBefoerderungUI() {
       const hp = hin_typ.value === 'PKW', rp = rueck_typ.value === 'PKW';
@@ -740,8 +764,9 @@
       rueck_para_wrap.style.display = rp ? '' : 'none';
       hin_mitfahrer_wrap.style.display = hin_typ.value === 'MITFAHRT' ? '' : 'none';
       rueck_mitfahrer_wrap.style.display = rueck_typ.value === 'MITFAHRT' ? '' : 'none';
-      const needSonderfall = (hp && hin_para.value === 'III') || (rp && rueck_para.value === 'III');
-      sonderfall_wrap.style.display = needSonderfall ? '' : 'none';
+      sonderfall_wrap.style.display = needsSonderfall() ? '' : 'none';
+      const flug = hin_typ.value === 'FLUG' || rueck_typ.value === 'FLUG';
+      sonderfall_label.firstChild.textContent = flug ? 'Begründung Flug / § 5 III (Pflicht)' : 'Begründung § 5 III (Pflicht)';
     }
     function getReiseAnswers() {
       const mk = (typSel, paraSel, mfId) => {
@@ -753,7 +778,9 @@
       return {
         hinreise: mk(hin_typ, hin_para, 'hin_mitfahrer'),
         rueckreise: mk(rueck_typ, rueck_para, 'rueck_mitfahrer'),
-        sonderfall_begruendung_textfeld: sonderfall.value.trim(),
+        // Nur senden, wenn das Feld sichtbar/pflichtig ist — sonst landete eine
+        // alte Begründung als Begruendung2 im nächsten PDF.
+        sonderfall_begruendung_textfeld: needsSonderfall() ? sonderfall.value.trim() : '',
       };
     }
 
@@ -813,14 +840,33 @@
       return [line('Hinreise', ra.hinreise), line('Rückreise', ra.rueckreise)].filter(Boolean).join('\n');
     }
 
+    // Nur „PLZ Ort" aus dem Profil — Straße/Hausnummer gehen nicht an die KI.
+    function wohnort() {
+      const p = getProfile() || {};
+      const quelle = p.plz_ort || p.adresse || '';
+      const m = quelle.match(/\b\d{5}\s+[^,;\n]+/);
+      return m ? m[0].trim() : (p.plz_ort || '').trim();
+    }
+    // Kontextblock wie serverseitig in /extract (app._ki_kontext).
+    function kiKontext() {
+      const d = new Date();
+      const heute = [d.getDate(), d.getMonth() + 1].map(n => String(n).padStart(2, '0')).join('.') + '.' + d.getFullYear();
+      const zeilen = [`Heutiges Datum: ${heute}`];
+      const wo = wohnort();
+      if (wo) zeilen.push(`Wohnort (Start und Ende der Reise): ${wo}`);
+      const bef = formatReiseKontext(getReiseAnswers());
+      if (bef) zeilen.push('Vom Nutzer gewählte Beförderung:', bef);
+      return '--- Kontext (nur für Datumsbezug und Zeitschätzung, NICHT ausgeben) ---\n' + zeilen.join('\n');
+    }
+
     // ── Prompt kopieren (Copy-Paste-Pfad) ────────────────────────────
     function copyPrompt() {
       const btn = document.getElementById('copyBtn');
       let text = promptTemplate;
-      const kontext = formatReiseKontext(getReiseAnswers());
-      if (kontext) text += '\n\n## Vom Nutzer gewählte Beförderung (nur für Zeitschätzung, NICHT ausgeben)\n' + kontext;
       const sw = document.getElementById('sonderwuensche').value.trim();
       if (sw) text += '\n\n## Hinweise & Sonderwünsche\n' + sw;
+      const freitext = document.getElementById('aiFreitext').value.trim();
+      text += '\n\n## Eingabetext\n' + (freitext || '(Ausschreibung hier einfügen oder als Datei anhängen)') + '\n\n' + kiKontext();
       navigator.clipboard.writeText(text).catch(() => {
         const t = document.getElementById('promptText'); const orig = t.value;
         t.value = text; t.select(); document.execCommand('copy'); t.value = orig;
@@ -841,7 +887,8 @@
     // ── KI-Extraktion (DeepSeek) ─────────────────────────────────────
     async function extractWithAI() {
       const profile = getProfile();
-      const guestKey = profile?.deepseek_api_key?.trim();
+      // Eingeloggt gilt nur der Key aus dem Server-Profil (/extract holt ihn dort).
+      const guestKey = IS_AUTHENTICATED ? '' : profile?.deepseek_api_key?.trim();
       const hasServerKey = !!profile?.has_server_deepseek_key;
       if (!IS_AUTHENTICATED && !guestKey) { showAlert('Kein DeepSeek-API-Key im Profil.', 'warning'); openWizard(); return; }
       if (IS_AUTHENTICATED && !guestKey && !hasServerKey) {
@@ -860,6 +907,7 @@
         fd.append('freitext', freitext);
         fd.append('sonderwuensche', document.getElementById('sonderwuensche').value.trim());
         fd.append('reise_antworten', JSON.stringify(getReiseAnswers()));
+        fd.append('wohnort', wohnort());
         fd.append('csrf_token', document.querySelector('input[name="csrf_token"]').value);
         if (pdfFile) fd.append('pdf', pdfFile);
         const headers = guestKey ? { 'X-DeepSeek-Key': guestKey } : {};
@@ -980,7 +1028,6 @@
       const ra = getReiseAnswers();
       const bemerk = r_bemerkungen.value.trim();
       const final = {
-        _meta: { description: 'Reisekostenantrag NRKVO', version: 'WIZARD' },
         antragsteller: {
           name: p.name || '', abteilung: p.abteilung || '', telefon: p.telefon || '',
           adresse_privat: p.adresse || '', mitreisender_name: p.mitreisender || '',
@@ -1014,22 +1061,40 @@
           dienstgeschaeft_2km_umkreis: k_2km.checked,
           anspruch_trennungsgeld: k_trennungsgeld.checked,
           kosten_durch_andere_stelle: k_kosten_andere.checked,
-          weitere_anmerkungen_checkbox_aktivieren: !!bemerk,
+          // „Weitere Anmerkungen" leitet der Server aus bemerkungen_feld ab.
         },
         verzicht_erklaerung: {
           verzicht_tagegeld: v_tagegeld.checked,
           verzicht_uebernachtungsgeld: v_uebernachtung.checked,
           verzicht_fahrtkosten: v_fahrtkosten.checked,
         },
-        unterschrift: { datum_seite_2: new Date().toLocaleDateString('de-DE') },
+        // Unterschriftsdatum setzt der Generator (Tag der Erzeugung).
       };
       document.getElementById('json_data').value = JSON.stringify(final);
       return final;
     }
 
+    // Antrags-JSON sichern — Gäste brauchen es für den Abrechnungs-Wizard.
+    function exportAntragJson() {
+      const final = syncFinalJson();
+      const rd = final.reise_details;
+      const m = (rd.start_datum || '').match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+      const datum = m ? `${m[3]}${m[2]}${m[1]}` : new Date().toISOString().slice(0, 10).replace(/-/g, '');
+      const ort = ((rd.zielort || '').match(/\d{5}\s+([A-Za-zäöüÄÖÜß\s-]+)/)?.[1] || 'Reise').trim();
+      const name = `${datum}_DR-Antrag_${ort}`.replace(/[^A-Za-z0-9äöüÄÖÜß_-]/g, '_') + '.json';
+      const blob = new Blob([JSON.stringify(final, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = Object.assign(document.createElement('a'), { href: url, download: name });
+      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+      showAlert('Antrags-JSON gespeichert — in der Abrechnung (Schritt 1) wieder einlesen.', 'success');
+    }
+
     function neuerAntrag() {
       aiData = null;
       clearDienstreiseId();
+      prefillBefoerderung(true);
+      ['k_kosten_andere','k_2km','k_trennungsgeld','v_tagegeld','v_uebernachtung','v_fahrtkosten']
+        .forEach(id => { document.getElementById(id).checked = false; });
       ['aiFreitext','sonderwuensche','pasteJson','r_zielort','r_reiseweg','r_zweck',
        'r_start_datum','r_start_zeit','r_ende_datum','r_ende_zeit','r_dg_beginn_datum',
        'r_dg_beginn_zeit','r_dg_ende_datum','r_dg_ende_zeit','r_bemerkungen',
@@ -1074,11 +1139,16 @@
           document.body.appendChild(a); a.click(); URL.revokeObjectURL(url); a.remove();
           document.getElementById('successBanner').style.display = 'block';
           const reiseId = res.headers.get('X-Dienstreise-Id');
+          const kopieVon = res.headers.get('X-Dienstreise-Kopie-Von');
           if (reiseId) {
             let h = document.getElementById('dienstreiseId');
             if (!h) { h = document.createElement('input'); h.type='hidden'; h.id='dienstreiseId'; h.name='dienstreise_id'; this.appendChild(h); }
             h.value = reiseId;
-            showAlert(`PDF „${name}" erstellt und gespeichert (Reise #${reiseId}).`, 'success');
+            if (kopieVon) {
+              showAlert(`Reise #${kopieVon} ist bereits genehmigt und bleibt unverändert — der geänderte Antrag wurde als neue Reise #${reiseId} gespeichert.`, 'warning');
+            } else {
+              showAlert(`PDF „${name}" erstellt und gespeichert (Reise #${reiseId}).`, 'success');
+            }
           } else {
             showAlert(`PDF „${name}" wurde erstellt!`, 'success');
           }
@@ -1124,13 +1194,13 @@
       'aiFreitext': 'Originaltext der Ausschreibung / E-Mail / Notiz. Die KI extrahiert daraus die Reisedaten. Optional, wenn oben ein PDF hochgeladen wurde.',
       'sonderwuensche': 'Freitext-Hinweise an die KI, z.B. „Rückreise erst am Folgetag" oder „Hotel bereits gebucht". Wird nicht 1:1 ins Formular übernommen.',
       // Step 2 — Beförderung
-      'hin_typ': 'Hauptverkehrsmittel der Hinreise. PKW = selbst gefahren. MITFAHRT = im PKW eines anderen mitgefahren. Steht nicht in der Ausschreibung — deine Wahl.',
+      'hin_typ': 'Hauptverkehrsmittel der Hinreise. PKW = selbst gefahren. MITFAHRT = im PKW eines anderen mitgefahren. FLUG = sonstiges Beförderungsmittel (Begründungspflicht). Steht nicht in der Ausschreibung — deine Wahl.',
       'rueck_typ': 'Hauptverkehrsmittel der Rückreise — kann von der Hinreise abweichen.',
-      'hin_para': 'II = kleine Wegstrecke (0,25 €/km, max 125 €). III = große Wegstrecke (0,38 €/km), nur bei triftigem Grund (Materialtransport, schlechte ÖPNV-Anbindung, Mitnahme Kollege).',
+      'hin_para': `II = kleine Wegstrecke (${eur(NRKVO.WEGSTRECKE_KLEIN)}/km, max ${eur(NRKVO.WEGSTRECKE_KLEIN_MAX)}). III = große Wegstrecke (${eur(NRKVO.WEGSTRECKE_GROSS)}/km), nur bei erheblichem dienstlichem Interesse (Materialtransport, schlechte ÖPNV-Anbindung, Mitnahme Kollege).`,
       'rueck_para': 'Wie Hinreise — II = kleine, III = große Wegstrecke.',
       'hin_mitfahrer': 'Name der Person, in deren PKW du auf der Hinreise mitgefahren bist.',
       'rueck_mitfahrer': 'Name der Person, in deren PKW du auf der Rückreise mitgefahren bist.',
-      'sonderfall': 'Pflicht bei § 5 III. Bsp.: „Schlechte ÖPNV-Anbindung Fähranleger Harlesiel, Materialtransport (Präsentationstechnik)"',
+      'sonderfall': 'Pflicht bei § 5 III und bei Flug. Bsp.: „Schlechte ÖPNV-Anbindung Fähranleger Harlesiel, Materialtransport (Präsentationstechnik)" oder „Flug günstiger und zeitsparender als Bahn"',
       // Step 4 — Reisedaten (KI, editierbar)
       'r_zielort': 'Vollständige Anschrift des Dienstgeschäfts mit PLZ. Bsp.: 30159 Hannover, Akademie für Lehrerfortbildung, Richthofenstr. 29',
       'r_reiseweg': 'Verlauf der Reise mit Pfeilen. Bsp.: Lingen -> Hannover Hbf -> Lingen',
@@ -1146,8 +1216,8 @@
       'r_bemerkungen': 'Erscheint unverändert im amtlichen Formular. Konkrete Verbindungs-/Fähr-/Hotelinfos — keine KI- oder Schätzhinweise.',
       't_name_1': 'Vordruck „ggf. Angabe weiterer teilnehmender Personen": Kolleginnen/Kollegen, die mitreisen (die KI übernimmt sie aus dem Text). Profil-Standard-Mitreisende werden automatisch ergänzt.',
       // Step 4 — Angaben & Verzicht
-      'k_kosten_andere': 'Veranstalter trägt Reisekosten ganz/teilweise — typisch: Tagungsgebühr inkl. Übernachtung/Verpflegung.',
-      'k_2km': 'Dienstgeschäft im Umkreis von 2 km zur Dienststätte oder Wohnung — kein Tagegeld nach § 6 NRKVO.',
+      'k_kosten_andere': 'Ein Dritter (Veranstalter, andere Dienststelle) übernimmt oder erstattet Reisekosten. Nicht ankreuzen, wenn du eine Tagungsgebühr inkl. Übernachtung/Verpflegung selbst zahlst.',
+      'k_2km': 'Dienstgeschäft im Umkreis von 2 km zur Dienststätte oder Wohnung — dann kein Tagegeld (§ 7 Abs. 1 NRKVO), außer für Teilnehmende einer Fortbildung.',
       'k_trennungsgeld': 'Anspruch auf Trennungsgeld bei mehrtägigen Reisen mit auswärtigem Verbleiben.',
       'v_tagegeld': 'Verzicht auf Tagegeld (z.B. weil komplette Verpflegung gestellt wurde).',
       'v_uebernachtung': 'Verzicht auf Übernachtungsgeld.',

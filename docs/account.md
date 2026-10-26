@@ -5,9 +5,9 @@ dr-automate kann **mit Account** oder **als Gast** genutzt werden. Beide Wege fu
 ## Gast-Modus (ohne Account)
 
 - Keine Anmeldung, kein Server-State.
-- Profildaten (Name, Adresse, IBAN, …) liegen im **Browser-localStorage** – sie verlassen dein Gerät nicht.
+- Profildaten (Name, Adresse, IBAN, …) liegen im **Browser-localStorage**. Beim Erzeugen eines PDFs gehen sie einmalig an den Server (nur zum Ausfüllen, ohne Speicherung).
 - Reisen werden **nicht** serverseitig gespeichert. Du musst PDFs selbst archivieren.
-- Beim Wechsel zwischen Antrag und Abrechnung kannst du den JSON-Export aus dem Antrag-Wizard manuell in den Abrechnungs-Wizard importieren.
+- Für die Abrechnung exportierst du im Antrag-Wizard (Schritt 5) das JSON und importierst es im Abrechnungs-Wizard (Schritt 1).
 - Der eigene DeepSeek-API-Key (BYOK) wird ebenfalls nur lokal gehalten und nur **on-demand per Request-Header** an den Server übermittelt – nie geloggt, nie persistiert.
 
 > Gut für: Probefahrten, einmalige Reisen, höchstmögliche Datensparsamkeit.
@@ -49,5 +49,5 @@ Per E-Mail an malte@zilinski.eu. Datenlöschung erfolgt manuell:
 
 ## Wechsel zwischen Gast und Account
 
-- **Gast → Account:** localStorage-Reisen sind nicht automatisch in den Account übertragbar. Tipp: im Gast-Modus die JSON-Datei exportieren, dann nach Login im neuen Wizard als JSON importieren (Save-Flag in der Request setzen → in DB persistiert).
-- **Account → Gast:** Daten im Account bleiben erhalten, im Gast-Modus ist es eine eigene, leere Welt.
+- **Gast → Account:** Gast-Reisen werden nicht automatisch übernommen. Tipp: im Gast-Modus das Antrags-JSON exportieren, nach dem Login im Antrag-Wizard (Schritt 3, „KI-Antwort einfügen") einfügen und neu erzeugen — dann wird die Reise im Konto gespeichert. Dein Profil legst du nach dem Login einmal unter **Profil** an; das Gast-Profil im Browser wird dabei durch das Server-Profil ersetzt.
+- **Account → Gast:** Daten im Account bleiben erhalten. Beim Abmelden wird die Profil-Kopie aus dem Browser entfernt; im Gast-Modus ist es eine eigene, leere Welt.

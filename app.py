@@ -27,6 +27,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_mail import Mail, Message
 from flask_wtf import CSRFProtect
+from flask_wtf.csrf import CSRFError
 from sqlalchemy import select
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -35,8 +36,10 @@ import auth
 import generator
 import generator_abrechnung
 import nrkvo_rates
+import pdf_text
 from models import (
     apply_profile_authoritative,
+    bahncards_to_konfig_flags,
     find_placeholder,
     validate_abrechnung,
     validate_reiseantrag,
@@ -58,8 +61,8 @@ DATA_DIR = Path(os.environ.get("DR_AUTOMATE_DATA_DIR", "data"))
 DOCS_DIR = Path(os.environ.get("DR_AUTOMATE_DOCS_DIR", "docs"))
 ADMIN_EMAIL = os.environ.get("DR_AUTOMATE_ADMIN_EMAIL", "")
 # Admin-Routen (/admin/...) sind nur fuer die hier gelisteten Remote-User
-# erreichbar — Authelia kennt aktuell nur eine Gruppe ("adults"), daher
-# enforcement per-User. Leer = niemand hat Admin-Zugang (sicheres default).
+# erreichbar — enger als die Authelia-Gruppen (admins / dr-automate-users),
+# die nur den Zugang zur App regeln. Leer = niemand hat Admin-Zugang.
 ADMIN_REMOTE_USERS: set[str] = {u.strip() for u in os.environ.get("ADMIN_REMOTE_USERS", "").split(",") if u.strip()}
 # Telegram-Notifications fuer Admin-Events (z.B. neue Account-Anfrage).
 # Beide leer = Telegram-Versand deaktiviert. SMTP/Mail bleibt unabhaengig.
@@ -68,6 +71,20 @@ TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
 # Upload-Limits fuer /extract-Endpunkt (PDF-Aufnahme).
 MAX_UPLOAD_BYTES = int(os.environ.get("DR_AUTOMATE_MAX_UPLOAD_BYTES", str(10 * 1024 * 1024)))  # 10 MiB
 MAX_PDF_PAGES = int(os.environ.get("DR_AUTOMATE_MAX_PDF_PAGES", "50"))
+
+
+def _app_version() -> str:
+    """Version aus den Paket-Metadaten (pyproject.toml) — eine Quelle fuer
+    /health und die Footer der Templates."""
+    from importlib.metadata import PackageNotFoundError, version
+
+    try:
+        return version("dr-automate")
+    except PackageNotFoundError:
+        return "dev"
+
+
+APP_VERSION = _app_version()
 
 # --- LOGGING ---
 logging.basicConfig(
@@ -107,6 +124,9 @@ app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE="Lax",
     SESSION_COOKIE_SECURE=not DEBUG_MODE,
+    # Der Abrechnungs-Wizard bleibt oft lange offen — 12 h statt 1 h, damit
+    # das PDF-Erzeugen nicht an einem abgelaufenen CSRF-Token scheitert.
+    WTF_CSRF_TIME_LIMIT=12 * 3600,
 )
 
 # Flask-Mail fuer Account-Anfragen. Wenn kein MAIL_SERVER gesetzt ist, bleibt
@@ -123,6 +143,18 @@ mail = Mail(app)
 
 # CSRF-Schutz
 csrf = CSRFProtect(app)
+
+
+@app.errorhandler(CSRFError)
+def _csrf_error(e):
+    """Wizard-Requests laufen per fetch und erwarten JSON — ohne diesen
+    Handler kam eine HTML-400-Seite zurueck und ``res.json()`` scheiterte."""
+    msg = "Sitzung abgelaufen — bitte Seite neu laden (vorher ggf. JSON exportieren)."
+    if request.accept_mimetypes.accept_html and not request.accept_mimetypes.accept_json:
+        flash(msg, "error")
+        return redirect(request.referrer or url_for("index"))
+    return jsonify({"error": msg}), 400
+
 
 # Rate Limiting
 limiter = Limiter(key_func=get_remote_address, app=app, default_limits=[], storage_uri="memory://")
@@ -179,12 +211,16 @@ def _build_wizard_profile_seed(user) -> dict | None:
         profile = s.query(UserProfile).filter(UserProfile.user_id == user.id).first()
         if profile is None:
             return {
+                "_owner": user.remote_user,
                 "name": user.display_name or "",
                 "email": user.email or "",
                 "auto_save_dienstreisen": True,
             }
         full_name = " ".join(p for p in (profile.vorname, profile.nachname) if p).strip() or (user.display_name or "")
         return {
+            # Eigentuemer-Marker: der Seed ersetzt dr_profile komplett, und
+            # Gast-Seiten verwerfen ein Profil mit _owner (Logout/Nutzerwechsel).
+            "_owner": user.remote_user,
             "name": full_name,
             "abteilung": profile.abteilung or "",
             "amtsbezeichnung": profile.amtsbezeichnung or "",
@@ -206,7 +242,26 @@ def _build_wizard_profile_seed(user) -> dict | None:
             # bekommt nur den has_-Flag.
             "has_deepseek_api_key": bool(profile.deepseek_api_key),
             "auto_save_dienstreisen": bool(profile.auto_save_dienstreisen),
+            # BahnCard-Daten fuer den Abrechnungs-Wizard (Antrag merged
+            # serverseitig profil-autoritativ).
+            **bahncards_to_konfig_flags(profile.bahncards),
         }
+
+
+# NRKVO-Saetze fuer Templates/JS — einzige Quelle ist nrkvo_rates.py.
+NRKVO_RATES_JS = {
+    "WEGSTRECKE_KLEIN": nrkvo_rates.WEGSTRECKE_KLEIN_EUR_PRO_KM,
+    "WEGSTRECKE_KLEIN_MAX": nrkvo_rates.WEGSTRECKE_KLEIN_MAX_EUR,
+    "WEGSTRECKE_GROSS": nrkvo_rates.WEGSTRECKE_GROSS_EUR_PRO_KM,
+    "TAGEGELD_VOLL": nrkvo_rates.TAGEGELD_VOLLER_TAG_EUR,
+    "TAGEGELD_TEIL": nrkvo_rates.TAGEGELD_TEILTAG_EUR,
+    "KUERZUNG_FRUEH": nrkvo_rates.kuerzung_fruehstueck_eur(),
+    "KUERZUNG_MITTAG": nrkvo_rates.kuerzung_mittagessen_eur(),
+    "KUERZUNG_ABEND": nrkvo_rates.kuerzung_abendessen_eur(),
+    "UEBERNACHTUNG_PAUSCHAL": nrkvo_rates.UEBERNACHTUNG_PAUSCHAL_EUR,
+    "UEBERNACHTUNG_MAX_NAECHTE": nrkvo_rates.UEBERNACHTUNG_PAUSCHAL_MAX_NAECHTE,
+    "UEBERNACHTUNG_BELEG_OHNE_BEGR": nrkvo_rates.UEBERNACHTUNG_BELEG_OHNE_BEGRUENDUNG_MAX_EUR,
+}
 
 
 def _common_template_ctx():
@@ -214,6 +269,8 @@ def _common_template_ctx():
     return {
         **_legal_urls(),
         "nrkvo_stand": nrkvo_rates.RATES_STAND,
+        "nrkvo": NRKVO_RATES_JS,
+        "app_version": APP_VERSION,
         "current_user": user,
         "is_authenticated": user is not None,
         "authelia_logout_url": os.environ.get("AUTHELIA_LOGOUT_URL", "/"),
@@ -221,36 +278,20 @@ def _common_template_ctx():
     }
 
 
-# Profil-/Beförderungs-eigene Abschnitte stehen in system_prompt.md zwischen
-# diesen Markern (als Doku für Maintainer), werden zur Laufzeit aber entfernt:
-# Antragsteller, BahnCard/Großkundenrabatt und Beförderung kommen autoritativ
-# aus Profil bzw. Reise-Abfrage, nicht aus der KI-Ausgabe.
-_PROFIL_SECTION_RE = re.compile(
-    r"^\[\[PROFIL:START\]\].*?^\[\[PROFIL:END\]\]\n?",
-    re.DOTALL | re.MULTILINE,
-)
-
-
-def _strip_profile_sections(text: str) -> str:
-    """Entfernt die [[PROFIL:START]]…[[PROFIL:END]]-Blöcke und kollabiert
-    dabei entstehende Dreifach-Leerzeilen."""
-    stripped = _PROFIL_SECTION_RE.sub("", text)
-    return re.sub(r"\n{3,}", "\n\n", stripped)
+SYSTEM_PROMPT_PATH = Path(__file__).with_name("system_prompt.md")
 
 
 def _load_system_prompt() -> str:
-    """Lädt den Antrag-System-Prompt (lokal personalisierte Version bevorzugt).
+    """Lädt den Antrag-System-Prompt.
 
-    Die profil-/beförderungs-eigenen Abschnitte werden immer entfernt — diese
-    Felder ergänzt das System autoritativ (Auth: serverseitig aus dem Profil,
-    Gast: clientseitig aus localStorage). Eine markerlose ``.local.md`` aus
-    Altbeständen bleibt unverändert (Strip ist dort ein No-op)."""
-    prompt_file = "system_prompt.local.md" if os.path.exists("system_prompt.local.md") else "system_prompt.md"
-    try:
-        with open(prompt_file, encoding="utf-8") as f:
-            return _strip_profile_sections(f.read())
-    except Exception as e:
-        return f"Error loading prompt file: {e}"
+    Antragsteller-, BahnCard- und Beförderungsdaten stehen bewusst nicht im
+    Prompt — das System ergänzt sie aus Profil bzw. Reise-Abfrage. Die frühere
+    personalisierte ``system_prompt.local.md`` mit Platzhaltern wie
+    ``[DEIN NAME]`` gibt es nicht mehr (``/generate`` weist Platzhalter ab).
+    Fehlt die Datei, ist das ein Deploy-Fehler: lieber 500 als ein
+    Fehlertext, der als System-Prompt an die KI geht.
+    """
+    return SYSTEM_PROMPT_PATH.read_text(encoding="utf-8")
 
 
 def _profile_antrag_overrides(user) -> tuple[dict | None, dict | None]:
@@ -320,6 +361,35 @@ def _format_reise_kontext(raw: str) -> str:
 
     zeilen = [z for z in (_line("Hinreise", "hinreise"), _line("Rückreise", "rueckreise")) if z]
     return "\n".join(zeilen)
+
+
+_PLZ_ORT_RE = re.compile(r"\b\d{5}\s+[^,;\n]+")
+
+
+def _wohnort(adresse: str) -> str:
+    """Nur „PLZ Ort" aus einer Anschrift — Straße und Hausnummer gehen nicht
+    an den KI-Anbieter (Datensparsamkeit)."""
+    adresse = (adresse or "").strip()
+    m = _PLZ_ORT_RE.search(adresse)
+    if m:
+        return m.group(0).strip()[:100]
+    return adresse.split(",")[-1].strip()[:100] if "," in adresse else ""
+
+
+def _ki_kontext(reise_antworten_raw: str, wohnort: str) -> str:
+    """Kontextblock am Ende der KI-Eingabe (system_prompt.md, Abschnitt 2):
+    heutiges Datum, Wohnort (Start/Ende der Reise) und Verkehrsmittel."""
+    from zoneinfo import ZoneInfo
+
+    heute = datetime.now(ZoneInfo("Europe/Berlin")).strftime("%d.%m.%Y")
+    zeilen = [f"Heutiges Datum: {heute}"]
+    if wohnort:
+        zeilen.append(f"Wohnort (Start und Ende der Reise): {wohnort}")
+    befoerderung = _format_reise_kontext(reise_antworten_raw)
+    if befoerderung:
+        zeilen.append("Vom Nutzer gewählte Beförderung:")
+        zeilen.append(befoerderung)
+    return "--- Kontext (nur für Datumsbezug und Zeitschätzung, NICHT ausgeben) ---\n" + "\n".join(zeilen)
 
 
 # --- AUTH ---
@@ -410,10 +480,21 @@ def _parse_iso_date(value: str):
     return None
 
 
-def _persist_antrag(reise_id_str: str, data: dict, result, pdf_path: str | None) -> int:
-    """Erstellt oder aktualisiert eine Dienstreise. Gibt die ID zurueck.
+class PersistError(Exception):
+    """Reise gehoert nicht dem User oder existiert nicht — PDF wird trotzdem ausgeliefert."""
 
-    ``data`` ist das schon validierte und citation-bereinigte Antrag-JSON,
+
+# Ab diesen Status ist der Antrag eingereicht/genehmigt: ein erneutes Erzeugen
+# ueberschreibt ihn nicht still, sondern legt eine neue Reise an.
+_ANTRAG_GESPERRT = ("genehmigt", "abgerechnet", "bezahlt")
+
+
+def _persist_antrag(reise_id_str: str, data: dict, result, pdf_path: str | None) -> tuple[int, int | None]:
+    """Erstellt oder aktualisiert eine Dienstreise.
+
+    Gibt ``(reise_id, kopie_von)`` zurueck: ``kopie_von`` ist gesetzt, wenn
+    die angefragte Reise schon genehmigt war und deshalb eine neue angelegt
+    wurde. ``data`` ist das validierte Modell als dict (``result.model_dump()``),
     ``result`` das Pydantic-Modell (fuer Plain-Felder wie Zielort/Datum).
     """
     from datetime import datetime as _dt
@@ -446,11 +527,17 @@ def _persist_antrag(reise_id_str: str, data: dict, result, pdf_path: str | None)
         target_dir = DATA_DIR / "pdfs" / str(user.id)
         target_dir.mkdir(parents=True, exist_ok=True)
 
+    kopie_von = None
     with SessionLocal() as s:
+        reise = None
         if reise_id is not None:
             reise = s.query(Dienstreise).filter(Dienstreise.id == reise_id, Dienstreise.user_id == user.id).first()
             if reise is None:
-                abort(404)
+                raise PersistError(f"Dienstreise {reise_id} nicht gefunden")
+            if reise.status.value in _ANTRAG_GESPERRT:
+                logger.info("Reise %s ist %s — Antrag wird als neue Reise gespeichert", reise.id, reise.status.value)
+                kopie_von, reise = reise.id, None
+        if reise is not None:
             reise.titel = titel
             reise.zielort = zielort
             reise.start_datum = start_d
@@ -474,7 +561,7 @@ def _persist_antrag(reise_id_str: str, data: dict, result, pdf_path: str | None)
             reise.antrag_pdf_path = str(persistent_pdf_path)
 
         s.commit()
-        return reise.id
+        return reise.id, kopie_von
 
 
 def _persist_pdf(src_pdf: str, user_id: int, reise_id: int, filename: str) -> Path:
@@ -511,7 +598,7 @@ def _persist_abrechnung(reise_id_str: str, data: dict, pdf_path: str | None) -> 
     with SessionLocal() as s:
         reise = s.query(Dienstreise).filter(Dienstreise.id == reise_id, Dienstreise.user_id == user.id).first()
         if reise is None:
-            abort(404)
+            raise PersistError(f"Dienstreise {reise_id} nicht gefunden")
         abr = s.query(Abrechnung).filter(Abrechnung.dienstreise_id == reise.id).first()
         if abr is None:
             abr = Abrechnung(dienstreise_id=reise.id, status=AbrechnungStatus.abgeschlossen)
@@ -656,6 +743,9 @@ def dienstreise_bezahlt(reise_id: int):
                 reise.status = DienstreiseStatus.abgerechnet
             flash("Geldeingang-Markierung entfernt.", "success")
         else:
+            if reise.status != DienstreiseStatus.abgerechnet:
+                flash("Geldeingang lässt sich erst nach erzeugter Abrechnung vermerken.", "error")
+                return redirect(url_for("dashboard"))
             raw = (request.form.get("bezahlt_datum") or "").strip()
             d = _parse_iso_date(raw) if raw else _date.today()
             if d is None:
@@ -731,18 +821,13 @@ _PROFIL_FIELDS_TEXT = {
 }
 
 
-def _profile_to_dict(profile, include_secrets: bool = False) -> dict:
-    """Default: Secrets (Keys) werden NICHT mitgeliefert, nur als bool ``has_deepseek_api_key``.
-
-    Auf ``include_secrets=True`` liefert die Funktion auch den Klar-Key zurueck —
-    fuer Anwendungsfaelle wie der Wizard, der den Key per Header weiterleiten will.
-    """
+def _profile_to_dict(profile) -> dict:
+    """Secrets (Keys) verlassen den Server nie — nur ``has_deepseek_api_key``.
+    /extract holt den Key serverseitig aus dem Profil."""
     base = {f: getattr(profile, f, None) or "" for f in _PROFIL_FIELDS_TEXT}
     base["bahncards"] = profile.bahncards if profile and profile.bahncards else {}
     base["has_deepseek_api_key"] = bool(getattr(profile, "deepseek_api_key", None))
     base["auto_save_dienstreisen"] = bool(getattr(profile, "auto_save_dienstreisen", True))
-    if include_secrets:
-        base["deepseek_api_key"] = getattr(profile, "deepseek_api_key", None) or ""
     return base
 
 
@@ -811,23 +896,15 @@ def profil_save():
 @app.route("/profil/json", methods=["GET"])
 @auth.login_required
 def profil_json():
-    """Liefert das Profil als JSON fuer Wizard-Pre-Fill.
-
-    Der DeepSeek-Key wird NICHT als Klartext ausgeliefert — nur als
-    ``has_deepseek_api_key: bool``. Wer den Key explizit braucht, ruft
-    ``/profil/json?include_secrets=1`` auf; das ist der einzige Pfad,
-    auf dem der Klar-Key den Server verlaesst — und auch nur in eine
-    authenticated Session des Owners.
-    """
+    """Liefert das Profil als JSON fuer Wizard-Pre-Fill (ohne Klartext-Key)."""
     from db import SessionLocal
     from models_db import UserProfile
 
-    include_secrets = request.args.get("include_secrets") == "1"
     with SessionLocal() as s:
         profile = s.query(UserProfile).filter(UserProfile.user_id == g.current_user.id).first()
         if profile is None:
             return jsonify({})
-        return jsonify(_profile_to_dict(profile, include_secrets=include_secrets))
+        return jsonify(_profile_to_dict(profile))
 
 
 @app.route("/dienstreisen/<int:reise_id>/delete", methods=["POST"])
@@ -946,17 +1023,13 @@ def account_request_post():
         except Exception:  # pragma: no cover
             logger.exception("Account-Anfrage-Mail an Admin fehlgeschlagen")
 
-    # Telegram parallel zur Mail (eigener Helper, fail-silent).
-    from html import escape as _e
-
+    # Telegram parallel zur Mail (eigener Helper, fail-silent). Bewusst ohne
+    # personenbezogene Daten (Name, E-Mail, IP, Begründung): Telegram sitzt
+    # außerhalb der EU — die Details stehen in der Mail und auf der Admin-Seite.
     admin_url = url_for("admin_account_requests", _external=True)
     _send_telegram(
         "🔔 <b>dr-automate</b>: neue Account-Anfrage\n\n"
-        f"<b>Name:</b> {_e(display_name)}\n"
-        f"<b>E-Mail:</b> {_e(email)}\n"
-        f"<b>Quell-IP:</b> {_e(request.remote_addr or '?')}\n"
         f"<b>Anfrage-ID:</b> {req_id}\n\n"
-        f"<b>Begründung:</b>\n{_e(begruendung) or '<i>(keine)</i>'}\n\n"
         f'➡️ <a href="{admin_url}">Anfragen verwalten</a>'
     )
 
@@ -1206,9 +1279,15 @@ def generate():
             response_headers = {}
             if auth.is_authenticated() and request.form.get("save_to_account") == "1":
                 try:
-                    reise_id = _persist_antrag(request.form.get("dienstreise_id", ""), data, result, output_path)
+                    reise_id, kopie_von = _persist_antrag(
+                        request.form.get("dienstreise_id", ""), result.model_dump(), result, output_path
+                    )
                     response_headers["X-Dienstreise-Id"] = str(reise_id)
+                    if kopie_von:
+                        response_headers["X-Dienstreise-Kopie-Von"] = str(kopie_von)
                     logger.info("Antrag in DB persistiert: reise_id=%s user=%s", reise_id, g.current_user.id)
+                except PersistError as e:
+                    logger.warning("Antrag nicht persistiert: %s", e)
                 except Exception:
                     logger.exception("Persistenz fehlgeschlagen — PDF wird trotzdem ausgeliefert")
 
@@ -1251,9 +1330,11 @@ def extract():
       Form 'sonderwuensche':   optional, wird an die User-Message angehängt.
     """
     api_key = request.headers.get("X-DeepSeek-Key", "")
-    # Fallback: wenn der Header leer ist UND der User authentifiziert ist,
-    # holen wir den Key aus dem verschluesselten Server-Profil.
-    if not api_key and auth.is_authenticated():
+    wohnort = _wohnort(request.form.get("wohnort", ""))
+    # Eingeloggt: Server-Profil ist autoritativ — der dort hinterlegte Key
+    # gewinnt vor einem Header (z. B. Gast-Key eines frueheren Nutzers im
+    # localStorage), der Wohnort kommt aus der Profil-Adresse.
+    if auth.is_authenticated():
         from db import SessionLocal
         from models_db import UserProfile
 
@@ -1261,6 +1342,8 @@ def extract():
             profile = s.query(UserProfile).filter(UserProfile.user_id == g.current_user.id).first()
             if profile and profile.deepseek_api_key:
                 api_key = profile.deepseek_api_key
+            if profile and profile.adresse_privat:
+                wohnort = _wohnort(profile.adresse_privat)
     freitext = request.form.get("freitext", "")
     sonderwuensche = request.form.get("sonderwuensche", "")
 
@@ -1271,39 +1354,31 @@ def extract():
     if pdf_file and pdf_file.filename:
         if (pdf_file.mimetype or "").lower() not in ("application/pdf", "application/x-pdf"):
             return jsonify({"error": "Nur PDF-Dateien werden unterstützt."}), 400
-        head = pdf_file.stream.read(5)
-        pdf_file.stream.seek(0)
-        if not head.startswith(b"%PDF-"):
+        raw_pdf = pdf_file.stream.read()
+        if not raw_pdf.startswith(b"%PDF-"):
             return jsonify({"error": "Datei ist kein gültiges PDF."}), 400
+        # Parsing im Kindprozess mit Zeit- und Speicherlimit: /extract ist fuer
+        # Gaeste offen, ein praepariertes PDF darf weder die Threads blockieren
+        # noch den Container (256 MB) in den OOM treiben.
         try:
-            import pypdf
-
-            reader = pypdf.PdfReader(pdf_file.stream)
-            if len(reader.pages) > MAX_PDF_PAGES:
-                return jsonify({"error": f"PDF zu lang (max {MAX_PDF_PAGES} Seiten)."}), 400
-            pdf_text = "\n\n".join((page.extract_text() or "").strip() for page in reader.pages).strip()
-            if not pdf_text:
-                return jsonify({"error": "Aus dem PDF konnte kein Text extrahiert werden (Scan ohne OCR?)."}), 400
-            # PDF-Text VOR den manuell eingegebenen Freitext setzen (Ausschreibung
-            # ist der Haupt-Input, ggf. Anmerkungen aus dem Textfeld danach).
-            freitext = pdf_text if not freitext else f"{pdf_text}\n\n--- Zusatz-Notizen ---\n{freitext}"
-            logger.info("PDF-Extraktion: %d Seiten, %d Zeichen Text", len(reader.pages), len(pdf_text))
-        except Exception as e:
+            extrakt = pdf_text.extract(raw_pdf, max_pages=MAX_PDF_PAGES)
+        except pdf_text.PdfTextError as e:
             logger.warning("PDF-Parsing fehlgeschlagen: %s", e)
-            return jsonify({"error": "PDF konnte nicht gelesen werden."}), 400
+            return jsonify({"error": str(e)}), e.status_code
+        if not extrakt:
+            return jsonify({"error": "Aus dem PDF konnte kein Text extrahiert werden (Scan ohne OCR?)."}), 400
+        # PDF-Text VOR den manuell eingegebenen Freitext setzen (Ausschreibung
+        # ist der Haupt-Input, ggf. Anmerkungen aus dem Textfeld danach).
+        freitext = extrakt if not freitext else f"{extrakt}\n\n--- Zusatz-Notizen ---\n{freitext}"
+        logger.info("PDF-Extraktion: %d Zeichen Text", len(extrakt))
 
     if not freitext.strip():
         return jsonify({"error": "Bitte Freitext oder PDF angeben."}), 400
 
-    # Reise-Abfrage (Verkehrsmittel Hin/Rück) als Kontext anhängen — die KI
-    # nutzt es nur, um realistische Reisezeiten zu schätzen, und gibt die
-    # Beförderung selbst nicht aus (system_prompt.md, Abschnitt 3).
-    reise_kontext = _format_reise_kontext(request.form.get("reise_antworten", ""))
-    if reise_kontext:
-        freitext = (
-            f"{freitext}\n\n--- Vom Nutzer gewählte Beförderung "
-            f"(nur für Zeitschätzung, NICHT ausgeben) ---\n{reise_kontext}"
-        )
+    # Kontext (Datum, Wohnort, Verkehrsmittel) anhängen — die KI nutzt ihn für
+    # Jahreszahlen, Reisezeiten und Reiseweg und gibt ihn nicht aus
+    # (system_prompt.md, Abschnitt 2).
+    freitext = f"{freitext}\n\n{_ki_kontext(request.form.get('reise_antworten', ''), wohnort)}"
 
     try:
         result = ai_extract.call_deepseek(
@@ -1363,10 +1438,16 @@ def abrechnung_generate():
             response_headers = {}
             if auth.is_authenticated() and request.form.get("save_to_account") == "1":
                 try:
-                    abr_id = _persist_abrechnung(request.form.get("dienstreise_id", ""), data, output_path)
+                    # Validiertes Modell inkl. Server-Berechnung speichern, nicht
+                    # das rohe Client-JSON (Extras, Client-'berechnet').
+                    abr_id = _persist_abrechnung(
+                        request.form.get("dienstreise_id", ""), result.model_dump(), output_path
+                    )
                     if abr_id is not None:
                         response_headers["X-Abrechnung-Id"] = str(abr_id)
                         logger.info("Abrechnung in DB persistiert: abr_id=%s user=%s", abr_id, g.current_user.id)
+                except PersistError as e:
+                    logger.warning("Abrechnung nicht persistiert: %s", e)
                 except Exception:
                     logger.exception("Abrechnung-Persistenz fehlgeschlagen — PDF wird trotzdem ausgeliefert")
 
@@ -1396,12 +1477,12 @@ def abrechnung_generate():
 
 
 @app.route("/abrechnung/calc", methods=["POST"])
-@limiter.limit(f"{RATE_LIMIT} per minute")
+@limiter.limit("60 per minute")
 def abrechnung_calc():
-    """Liefert die autoritative Berechnung für den Wizard.
+    """Liefert die autoritative Berechnung für die Wizard-Vorschau.
 
-    Das Frontend rechnet live in JS, dieser Endpoint dient als Server-Check
-    und für komplexere Fälle, in denen das Frontend zu konservativ rechnet.
+    Der Wizard rechnet nicht selbst — so zeigen Vorschau und PDF immer
+    dieselben Werte (abrechnung_calc.py ist die einzige Rechenlogik).
     """
     from abrechnung_calc import berechnung
 
@@ -1424,7 +1505,9 @@ def abrechnung_calc():
 @csrf.exempt
 def health_check():
     """Health-Check Endpoint für Container/Monitoring."""
-    return jsonify({"status": "healthy", "template_exists": os.path.exists(PDF_TEMPLATE_PATH), "version": "0.1.0"}), 200
+    return jsonify(
+        {"status": "healthy", "template_exists": os.path.exists(PDF_TEMPLATE_PATH), "version": APP_VERSION}
+    ), 200
 
 
 @app.after_request

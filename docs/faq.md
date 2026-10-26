@@ -12,7 +12,10 @@ Nutze stattdessen das [Account-Anfrage-Formular](/account/request).
 
 ## Was passiert mit meinem DeepSeek-API-Key?
 
-Er wird **ausschließlich pro Request** an den dr-automate-Server übermittelt (im HTTP-Header `X-DeepSeek-Key`), zur DeepSeek-API weitergereicht, und nach dem Response sofort verworfen. Kein Logging, keine Persistenz, keine Übertragung an Dritte außer DeepSeek selbst.
+- **Gast-Modus:** Der Key liegt nur im localStorage deines Browsers. Er geht pro Anfrage im HTTP-Header `X-DeepSeek-Key` an den dr-automate-Server, wird zur DeepSeek-API weitergereicht und danach verworfen — kein Logging, keine Speicherung.
+- **Account-Modus:** Hinterlegst du den Key im Profil, speichert der Server ihn **verschlüsselt** (Fernet) und nutzt ihn für deine Extraktionen. Er wird nie an den Browser zurückgegeben; löschen kannst du ihn im Profil.
+
+In beiden Fällen geht er an niemanden außer DeepSeek.
 
 Vorzugsweise generierst du einen Key, der nur für dr-automate verwendet wird und der ein Budget-Limit hat – falls er doch mal kompromittiert würde.
 
@@ -26,7 +29,7 @@ Nein, nicht für den Account-Modus. Wer ohne Login arbeiten will: **Gast-Modus**
 
 ## Funktioniert die Datums-Bearbeitung mobil?
 
-Ja. Der Wizard nutzt das native `<input type="date">`-Element. Auf mobilen Geräten erscheint der OS-Datepicker (iOS/Android). Auf Desktops kommt der Browser-Picker.
+Ja. Der **Abrechnungs-Wizard** nutzt native `<input type="date">`/`type="time"`-Felder mit dem Datepicker des Geräts. Im **Antrag-Wizard** (Schritt 4) sind Datum und Uhrzeit Textfelder im Format `TT.MM.JJJJ` bzw. `HH:MM`, weil sie direkt aus der KI-Antwort kommen.
 
 ## Welche NRKVO-Sätze gelten?
 
@@ -46,7 +49,7 @@ Pro Reise: PDF-Downloads (Antrag + Abrechnung) im Dashboard. Für komplette JSON
 
 ## Wird der NRKVO-Berechner getestet?
 
-Ja. `tests/test_abrechnung.py` enthält Berechnungs-Tests gegen die offiziellen NRKVO-Sätze. Wenn du eine Berechnungs-Diskrepanz findest – bitte als Bug-Report einreichen mit dem zugrunde liegenden JSON.
+Ja. `tests/test_abrechnung.py` und `tests/test_abrechnung_nrkvo.py` enthalten Berechnungs-Tests gegen die NRKVO-Sätze und -Regeln (Tagegeld je Kalendertag, Kürzung, Daueraufenthalt, Wegstrecken-Deckel). Wenn du eine Berechnungs-Diskrepanz findest – bitte als Bug-Report einreichen mit dem zugrunde liegenden JSON.
 
 ## Wie melde ich Bugs?
 
@@ -54,4 +57,4 @@ Per E-Mail an malte@zilinski.eu oder direkt im Repository (falls Zugriff vorhand
 
 ## Ist dr-automate Open Source?
 
-Ja, MIT-Lizenz. Das Repository liegt auf der internen GitLab-Instanz. Die NRKVO-Berechnungslogik wurde gegen die offizielle Verordnung verifiziert, ist aber keine offiziell anerkannte Stelle – Verantwortung für die korrekte Abrechnung bleibt bei dir.
+Ja, MIT-Lizenz. Das Repository liegt auf GitHub (`mzilinski/dr-automate`). Die NRKVO-Berechnungslogik wurde gegen die offizielle Verordnung verifiziert, ist aber keine offiziell anerkannte Stelle – Verantwortung für die korrekte Abrechnung bleibt bei dir.

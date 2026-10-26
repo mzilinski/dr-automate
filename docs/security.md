@@ -46,12 +46,14 @@ dr-automate selbst macht **kein Password-Handling** – die App liest nur den `R
 
 In Produktion (hinter Traefik) ist `TRUST_REMOTE_USER_HEADER=true` gesetzt. In jeder anderen Umgebung (lokale Entwicklung, Tests) ist das Flag `false`, und die Header werden **ignoriert**. Damit ist ein Header-Spoofing durch einen externen Angreifer nicht möglich – Traefik überschreibt die Header bei jedem eingehenden Request.
 
+Die Gast-Pfade (`/`, `/generate`, `/extract`, …) sind in Authelia per `bypass` offen; ein dort angemeldeter Nutzer bringt seine `Remote-*`-Header trotzdem mit. `DR_AUTOMATE_ALLOWED_GROUPS` (Produktion: `admins,dr-automate-users`) begrenzt den Account-Modus auf diese Gruppen — Nutzer anderer Authelia-Rollen gelten in dr-automate als Gast.
+
 ## Rate-Limiting (zwei Schichten)
 
 | Schicht | Wo | Konfiguration | Eigenschaften |
 |---|---|---|---|
 | **Edge** | Traefik `rate-limit-strict` (`traefik/dynamic/backend-services.yml`) | Ø 5 req/s, Burst 10, **per Client-IP** | Persistent über App-Restarts, wirkt vor der App, blockt Volumen-Flood am frühesten Punkt |
-| **Endpoint** | Flask-limiter in `app.py` | Pro Endpoint individuell — z.B. `/generate` 10/min, `/account/request` 3/h, `/api/route` 30/h | In-Memory (`memory://`) — pro App-Prozess, resettet bei Container-Restart |
+| **Endpoint** | Flask-limiter in `app.py` | Pro Endpoint individuell — `RATE_LIMIT`/min (Standard 10) für `/generate`, `/extract`, `/abrechnung/generate`; `/abrechnung/calc` 60/min, `/account/request` 3/h, `/api/route` 30/h | In-Memory (`memory://`) — pro App-Prozess, resettet bei Container-Restart |
 
 Die Endpoint-Schicht nutzt **bewusst** kein externes Storage-Backend:
 
@@ -74,16 +76,17 @@ Migrationspfad: `limits[redis]` als Dependency, neuer `dr-automate-redis`-Contai
 
 ## Backups
 
-Tägliches Backup des SQLite-Volumes (verschlüsselte Felder bleiben verschlüsselt, das ist gewollt). Aufbewahrung: 30 Tage. Backups liegen ausschließlich auf eigenen, in DE betriebenen Servern.
+Tägliches Backup des Daten-Volumes (verschlüsselte Felder bleiben verschlüsselt, das ist gewollt). Aufbewahrung: 7 tägliche, 4 wöchentliche, 12 monatliche Stände auf dem eigenen Server; zusätzlich eine clientseitig verschlüsselte Offsite-Kopie (restic) in Microsoft OneDrive.
 
 ## Logs
 
 - Access-Logs: HTTP-Methode, Pfad, Status, IP, User-Agent. Keine Form-Daten, keine Header außer Standard.
 - Application-Logs: User-Aktionen (Reise angelegt/aktualisiert/gelöscht, Profil gespeichert), nie sensible Felder.
-- Aufbewahrung: 14 Tage rolling.
+- Aufbewahrung: rotierende Container-Logs, max. 5 × 20 MB je Dienst.
 
 ## Bekannte Limitationen
 
 - Verschlüsselte Felder können **nicht durchsucht** werden (Fernet-Token nicht deterministisch). Wenn du z.B. „alle Reisen mit IBAN DE …" suchen willst – das geht bewusst nicht.
-- Beim **Key-Rotation** (alter Key in `DR_AUTOMATE_ENCRYPTION_KEY_OLD`, neuer in `DR_AUTOMATE_ENCRYPTION_KEY`) liest die App weiterhin alte Tokens, schreibt aber neue mit dem neuen Key.
+- Bei der **Key-Rotation** (alter Key in `DR_AUTOMATE_ENCRYPTION_KEY_OLD`, neuer in `DR_AUTOMATE_ENCRYPTION_KEY`) liest die App weiterhin alte Tokens, schreibt aber neue mit dem neuen Key. `python rotate_keys.py` schreibt alle Bestandsdaten einmal um; erst danach darf der alte Key weg (siehe [Admin](/docs/admin)).
+- **PDF-Upload** in `/extract` wird in einem Kindprozess mit Zeit- (20 s), CPU- und Speicherlimit gelesen, höchstens zwei gleichzeitig — ein präpariertes PDF kann die App nicht blockieren.
 - BCs/Grosskundenrabatte landen im Reise-JSON, also verschlüsselt – die zentralen Profilflags in `user_profiles.bahncards` sind ebenfalls verschlüsselt.

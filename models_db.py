@@ -53,12 +53,18 @@ class AbrechnungStatus(enum.StrEnum):
 
 class User(Base):
     __tablename__ = "users"
+    __table_args__ = (
+        UniqueConstraint("remote_user", name="uq_users_remote_user"),
+        Index("ix_users_remote_user", "remote_user"),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     # remote_user kommt aus Authelias `Remote-User`-Header und ist die eindeutige
     # Identitaet ueber Sessions hinweg. Nicht verschluesselt, weil es als
     # Login-Key fuer Upsert/Lookup gebraucht wird.
-    remote_user: Mapped[str] = mapped_column(String(128), nullable=False, unique=True, index=True)
+    # Eindeutigkeit als benannter Constraint + normaler Index — genau wie in
+    # alembic/versions/001_init.py, damit `alembic check` sauber bleibt.
+    remote_user: Mapped[str] = mapped_column(String(128), nullable=False)
     email: Mapped[str | None] = mapped_column(String(254))
     display_name: Mapped[str | None] = mapped_column(String(200))
     tour_dismissed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
@@ -164,10 +170,11 @@ class Dienstreise(Base):
 
 class Abrechnung(Base):
     __tablename__ = "abrechnungen"
+    __table_args__ = (Index("ix_abrechnungen_dienstreise_id", "dienstreise_id"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     dienstreise_id: Mapped[int] = mapped_column(
-        ForeignKey("dienstreisen.id", ondelete="CASCADE"), nullable=False, index=True, unique=True
+        ForeignKey("dienstreisen.id", ondelete="CASCADE"), nullable=False, unique=True
     )
     status: Mapped[AbrechnungStatus] = mapped_column(
         Enum(AbrechnungStatus, name="abrechnung_status"), default=AbrechnungStatus.entwurf, nullable=False

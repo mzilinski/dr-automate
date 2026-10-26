@@ -1,0 +1,42 @@
+{#
+  Profil im localStorage (dr_profile) mit dem Login-Zustand abgleichen,
+  bevor der Wizard-Code läuft.
+
+  Eingeloggt: Das Server-Profil ist die einzige Quelle — dr_profile wird
+  komplett ersetzt (auch leere Werte und false), nie gemischt. So landen
+  keine IBAN/Adresse eines anderen Nutzers am selben Browser im PDF und
+  „Speicherung aus" im Profil wirkt. Der DeepSeek-Key bleibt serverseitig.
+
+  Gast: Ein Profil mit _owner stammt aus einer Account-Sitzung (Logout,
+  Nutzerwechsel) und wird verworfen; ein reines Gast-Profil bleibt.
+#}
+<script>
+  (function() {
+    var KEY = 'dr_profile';
+    try {
+      {% if wizard_profile_seed %}
+      var seed = {{ wizard_profile_seed | tojson }};
+      var p = {};
+      Object.keys(seed).forEach(function(k) { if (k !== 'has_deepseek_api_key') p[k] = seed[k]; });
+      p.has_server_deepseek_key = !!seed.has_deepseek_api_key;
+      if (seed.adresse) {
+        var parts = seed.adresse.split(',');
+        p.strasse = parts.length > 1 ? parts[0].trim() : seed.adresse.trim();
+        p.plz_ort = parts.length > 1 ? parts.slice(1).join(',').trim() : '';
+      }
+      localStorage.setItem(KEY, JSON.stringify(p));
+      {% elif is_authenticated is defined and not is_authenticated %}
+      var cur = JSON.parse(localStorage.getItem(KEY) || 'null');
+      if (cur && cur._owner) localStorage.removeItem(KEY);
+      {% endif %}
+      // Früher gemerkte Abrechnungs-Zuordnung: nie mehr verwenden (sie
+      // überschrieb fremde Reisen). Die Zuordnung kommt nur aus ?dienstreise=N.
+      localStorage.removeItem('dr_abrechnung_reise_id');
+    } catch (e) { console.error('Profil-Abgleich fehlgeschlagen:', e); }
+  })();
+  // Abmelden räumt das Account-Profil aus dem Browser.
+  document.addEventListener('click', function(e) {
+    var a = e.target.closest && e.target.closest('a[data-logout]');
+    if (a) { try { localStorage.removeItem('dr_profile'); } catch (err) {} }
+  });
+</script>

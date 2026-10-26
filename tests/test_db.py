@@ -51,9 +51,9 @@ def test_deepseek_key_server_storage(auth_client, auth_headers):
     assert j["has_deepseek_api_key"] is True
     assert "deepseek_api_key" not in j
 
-    # JSON mit include_secrets: Klar-Key
+    # Auch mit dem frueheren include_secrets-Parameter kein Klar-Key mehr
     j = auth_client.get("/profil/json?include_secrets=1", headers=headers).get_json()
-    assert j["deepseek_api_key"] == "sk-test-1234567890"
+    assert "deepseek_api_key" not in j
 
     # On-Disk: verschluesselt
     db_path = os.environ["DR_AUTOMATE_DATABASE_URL"].removeprefix("sqlite:///")
@@ -64,8 +64,12 @@ def test_deepseek_key_server_storage(auth_client, auth_headers):
 
     # Leerer Submit ueberschreibt nicht
     auth_client.post("/profil", data={"deepseek_api_key": ""}, headers=headers)
-    j = auth_client.get("/profil/json?include_secrets=1", headers=headers).get_json()
-    assert j["deepseek_api_key"] == "sk-test-1234567890"
+    from db import SessionLocal
+    from models_db import User, UserProfile
+
+    with SessionLocal() as s:
+        uid = s.query(User).filter(User.remote_user == "deepseek_test").one().id
+        assert s.query(UserProfile).filter(UserProfile.user_id == uid).one().deepseek_api_key == "sk-test-1234567890"
 
     # Loeschen via Checkbox
     auth_client.post("/profil", data={"clear_deepseek_api_key": "1"}, headers=headers)

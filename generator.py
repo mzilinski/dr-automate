@@ -72,16 +72,14 @@ _TEILNEHMER_SLOTS = (
 )
 
 
-def teilnehmer_fields(data: dict) -> dict:
-    """Weitere teilnehmende Personen auf Person.Name2–4 / Orga2–4 / Telefon2–4 mappen.
+def teilnehmer_liste(data: dict) -> list[tuple[str, str, str]]:
+    """Alle weiteren teilnehmenden Personen als (Name, Dienststelle, Telefon).
 
     Quellen (in dieser Reihenfolge, nach Name dedupliziert):
     1. ``reise_details.weitere_teilnehmer`` — reise-spezifisch aus KI/Wizard,
        mit Dienststelle/Telefon.
     2. ``antragsteller.mitreisender_name`` — Profil-Default („Mitreisende",
        mehrere mit Komma), nur Name.
-    Mehr als drei Personen passen nicht in den Vordruck — Überzählige gehören
-    in die Bemerkungen.
     """
     personen: list[tuple[str, str, str]] = []
     seen: set[str] = set()
@@ -99,13 +97,24 @@ def teilnehmer_fields(data: dict) -> dict:
             _add(t.get("name", ""), t.get("dienststelle", ""), t.get("telefon", ""))
     for name in re.split(r"[,;]", (data.get("antragsteller") or {}).get("mitreisender_name") or ""):
         _add(name)
+    return personen
 
+
+def teilnehmer_fields(data: dict) -> dict:
+    """Weitere teilnehmende Personen auf Person.Name2–4 / Orga2–4 / Telefon2–4
+    mappen. Mehr als drei passen nicht in den Vordruck — die übrigen schreibt
+    ``fill_pdf`` in die Bemerkungen (``teilnehmer_ueberzaehlig``)."""
     fields: dict[str, str] = {}
-    for (f_name, f_orga, f_tel), (name, orga, tel) in zip(_TEILNEHMER_SLOTS, personen, strict=False):
+    for (f_name, f_orga, f_tel), (name, orga, tel) in zip(_TEILNEHMER_SLOTS, teilnehmer_liste(data), strict=False):
         fields[f_name] = name
         fields[f_orga] = orga
         fields[f_tel] = tel
     return fields
+
+
+def teilnehmer_ueberzaehlig(data: dict) -> list[str]:
+    """Namen, die nicht mehr in die drei Vordruck-Zeilen passen."""
+    return [name for name, _, _ in teilnehmer_liste(data)[len(_TEILNEHMER_SLOTS) :]]
 
 
 def load_json_data(filepath):
@@ -137,8 +146,10 @@ def _checkbox_befoerderung(trans: dict) -> dict:
     """Hin-/Rückreise-Typ auf PDF-Field-IDs mappen.
 
     Formular-Spalten (x-Position): 114=Bahn/Bus, 156=Dienstwagen,
-    213=PKW §II, 336=PKW §III, 430=Mitfahrt. Hin und Rück haben jeweils
-    eigene Field-IDs. Flug zählt als Sonderfall und wird wie PKW §III markiert.
+    213=PKW §II, 336=PKW §III, 430=Mitfahrt, 492=sonstiges Beförderungsmittel.
+    Hin und Rück haben jeweils eigene Field-IDs. Flug ist „sonstiges
+    Beförderungsmittel" (OBJ45/OBJ51, Begründungspflicht über Begruendung2) —
+    bis 2026-10 wurde fälschlich „privater PKW § 5 III" angekreuzt.
     """
     cb = {}
 
@@ -151,7 +162,7 @@ def _checkbox_befoerderung(trans: dict) -> dict:
     elif hin_typ == "PKW":
         cb["OBJ43" if hin_para == "III" else "OBJ42"] = "/Yes"
     elif hin_typ == "FLUG":
-        cb["OBJ43"] = "/Yes"
+        cb["OBJ45"] = "/Yes"
     elif hin_typ == "MITFAHRT":
         cb["OBJ44"] = "/Yes"  # eigene Mitfahrt-Box im Antrag
 
@@ -164,7 +175,7 @@ def _checkbox_befoerderung(trans: dict) -> dict:
     elif rueck_typ == "PKW":
         cb["OBJ14" if rueck_para == "III" else "OBJ48"] = "/Yes"
     elif rueck_typ == "FLUG":
-        cb["OBJ14"] = "/Yes"
+        cb["OBJ51"] = "/Yes"
     elif rueck_typ == "MITFAHRT":
         cb["OBJ50"] = "/Yes"  # eigene Mitfahrt-Box im Antrag
 
@@ -183,7 +194,7 @@ _VERKEHRSMITTEL_TEXT = {
 }
 
 
-def _hat_bahn(befoerderung: dict | None) -> bool:
+def hat_bahn(befoerderung: dict | None) -> bool:
     """True, wenn Hin- oder Rückreise per Bahn/Bus erfolgt."""
     if not befoerderung:
         return False
@@ -206,7 +217,7 @@ def grosskundenrabatt_begruendung(data: dict) -> str:
     config = data.get("konfiguration_checkboxen") or {}
     eigen = (config.get("grosskundenrabatt_begruendung_wenn_nein") or "").strip()
     befoerderung = data.get("befoerderung") or {}
-    if eigen or _hat_bahn(befoerderung):
+    if eigen or hat_bahn(befoerderung):
         # Bahnreise: „Ja" braucht keine Begründung, „Nein" ist Nutzersache.
         return eigen
     hin = (befoerderung.get("hinreise") or {}).get("typ", "").upper()
@@ -249,7 +260,7 @@ def _checkbox_konfiguration(config: dict, befoerderung: dict | None = None) -> d
     # diese Reise …") — ohne Bahn-/Busfahrt wird kein Ticket gekauft, also
     # „Nein", egal was das Profil sagt; grosskundenrabatt_begruendung()
     # liefert dann die Pflicht-Begründung für Begruendung3.
-    genutzt = bool(config["grosskundenrabatt_genutzt"]) and _hat_bahn(befoerderung)
+    genutzt = bool(config["grosskundenrabatt_genutzt"]) and hat_bahn(befoerderung)
     cb["Obj6" if genutzt else "Obj7"] = "/Yes"
     # Ermaeßigungskarte (Monats-/Zeitkarte): OBJ57=Ja ("und zwar fuer die
     # Strecke", Textfeld via FIELD_MAPPING), OBJ58=Nein.
@@ -263,8 +274,9 @@ def _checkbox_konfiguration(config: dict, befoerderung: dict | None = None) -> d
     cb["Obj59" if config["anspruch_trennungsgeld"] else "Obj56"] = "/Yes"
 
     # Obj55: "Die Reisekosten werden von einer anderen Person oder Stelle
-    # uebernommen" (typischer Fall: Tagungsgebuehr inkl. Uebernachtung/
-    # Verpflegung). Obj53/Obj54 daneben waeren unentgeltliche Unterkunft/
+    # uebernommen" — nur echte Kostenuebernahme durch Dritte, nicht die selbst
+    # gezahlte Tagungsgebuehr inkl. Uebernachtung/Verpflegung (siehe
+    # system_prompt.md). Obj53/Obj54 daneben waeren unentgeltliche Unterkunft/
     # Verpflegung des Amtes wegen — bis 2026-08 wurde faelschlich Obj53 gesetzt.
     if config.get("kosten_durch_andere_stelle"):
         cb["Obj55"] = "/Yes"
@@ -439,8 +451,15 @@ def fill_pdf(json_input: dict | str, input_pdf_path: str, output_dir: str) -> st
                 else:
                     fields_to_fill[pdf_id] = value
 
-        # 1a. Weitere teilnehmende Personen (Slots 2–4)
+        # 1a. Weitere teilnehmende Personen (Slots 2–4); Überzählige in die
+        # Bemerkungen statt still zu verschwinden.
         fields_to_fill.update(teilnehmer_fields(data))
+        ueberzaehlig = teilnehmer_ueberzaehlig(data)
+        if ueberzaehlig:
+            zeile = "Weitere Teilnehmende: " + ", ".join(ueberzaehlig)
+            for pid in FIELD_MAPPING["zusatz_infos.bemerkungen_feld"]:
+                bisher = fields_to_fill.get(pid) or ""
+                fields_to_fill[pid] = f"{bisher}\r{zeile}" if bisher else zeile
 
         # 1b. Großkundenrabatt-Begründung: Nutzer-Text oder abgeleiteter
         # Grund bei „Nein" ohne Bahnfahrt (Vordruck verlangt eine Begründung).
@@ -448,6 +467,8 @@ def fill_pdf(json_input: dict | str, input_pdf_path: str, output_dir: str) -> st
 
         # 2. Checkboxen
         checkbox_fields = apply_checkbox_logic(data)
+        if ueberzaehlig:
+            checkbox_fields["Obj39"] = "/Yes"  # „Weitere Anmerkungen"
 
         # 3. Anwenden
         all_fields = {**fields_to_fill, **checkbox_fields}

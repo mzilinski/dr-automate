@@ -475,12 +475,18 @@ def test_abrechnung_generate_rechnet_kuerzung_serverseitig(client, base_data, tm
     out_pdf.write_bytes(r.data)
     fields = PdfReader(str(out_pdf)).get_form_text_fields() or {}
 
-    # Brutto: 2× voller Tag à 28 € + 2× Teiltag à 14 € = 84 €
-    assert fields.get("EUR") == "56,00"
-    assert fields.get("EUR6") == "28,00"
-    # Kürzung 84 € (3×5,60 + 3×11,20 + 3×11,20) → Netto 0,00 €
-    # Der Server muss EUR7 jetzt füllen, weil kuerzung_eur > 0
-    assert fields.get("EUR7") == "0,00", f"Server hat berechnet nicht überschrieben — EUR7={fields.get('EUR7')!r}"
+    # Vordruck „Tage × EUR": 2 volle Tage à 28 € + 2 Teiltage à 14 € = 84 €.
+    # EUR enthält den Tagessatz, nicht die Summe (Fix 2026-10).
+    assert fields.get("Tage") == "2"
+    assert fields.get("EUR") == "28,00"
+    assert fields.get("Tage6") == "2"
+    assert fields.get("EUR6") == "14,00"
+    # Zeile 3 ist für verminderte Tage ab Tag 15 reserviert — hier leer.
+    assert not fields.get("Tage7")
+    assert not fields.get("EUR7")
+    # Kürzung 84 € (3×5,60 + 3×11,20 + 3×11,20) → Netto 0,00 €, steht in den
+    # Erläuterungen (Server hat 'berechnet' neu gerechnet).
+    assert "= 0,00 €" in (fields.get("Erlaeuterungen") or ""), fields.get("Erlaeuterungen")
 
 
 # ---------- NRKVO-Sätze ----------

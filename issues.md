@@ -1,6 +1,7 @@
 # Bekannte Issues
 
-(Stand 2026-05-14 — alle aufgeführten Punkte sind aktuell **erledigt**.)
+(Stand 2026-05-14 — alle aufgeführten Punkte sind aktuell **erledigt**. Das Review vom
+2026-10-26 mit Abhakliste steht in `review-2026-10-26.md`.)
 
 ## Erledigt
 
@@ -9,18 +10,20 @@
 - Schema: `Befoerderungsart.mitfahrer_name: str = ""` ergänzt (`models.py`).
 - Mapping: `befoerderung.hinreise.mitfahrer_name` → `Mitfahrt_bei`,
   Rückreise → `Mitfahrt_bei1` (`generator.py` FIELD_MAPPING).
-- `system_prompt.md`: Hinweis aufgenommen, dass der Fahrername bei MITFAHRT
-  ins dedizierte Feld gehört.
+- (Stand 2026-10: Die Beförderung ist keine KI-Ausgabe mehr — der Name kommt
+  aus der Reise-Abfrage in Schritt 2, der Prompt-Hinweis ist entfallen.)
 - Regressions-Test: `TestCheckboxBefoerderungHin::test_mitfahrer_name_lands_in_dedicated_pdf_field`.
 
 ### 2. Antrag: `Obj53` (Kosten durch andere Stelle) ✓
 
 - Schema: `KonfigurationCheckboxen.kosten_durch_andere_stelle: bool = False`.
-- Mapping in `_checkbox_konfiguration`: bei `True` → `Obj53 = /Yes`.
-- `system_prompt.md`: Trigger-Bedingung dokumentiert (Tagungsgebühr inkl.
-  Übernachtung/Verpflegung).
-- Regressions-Tests: `test_kosten_durch_andere_stelle_sets_Obj53` +
-  `test_kosten_durch_andere_stelle_false_does_not_set_Obj53`.
+- Mapping in `_checkbox_konfiguration`: bei `True` → `Obj55 = /Yes`
+  („Reisekosten werden von einer anderen Person oder Stelle übernommen";
+  Obj53 war falsch, korrigiert 2026-08).
+- `system_prompt.md` (revidiert 2026-10): nur bei echter Kostenübernahme durch
+  Dritte — **nicht** bei einer selbst gezahlten Tagungsgebühr inkl.
+  Übernachtung/Verpflegung.
+- Regressions-Tests in `tests/test_app.py` (`kosten_durch_andere_stelle`).
 
 ### 3. Antrag: Bahn-Sektion immer beantworten (revidiert 2026-09-03) ✓
 

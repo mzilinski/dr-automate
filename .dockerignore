@@ -4,3 +4,16 @@ __pycache__/
 !forms/DR-Antrag_035_001Stand4-2025pdf.pdf
 .git/
 .DS_Store
+.env
+.env.*
+!.env.example
+data/
+out/
+tmp/
+tests/
+.pytest_cache/
+.ruff_cache/
+htmlcov/
+coverage.xml
+*.egg-info/
+system_prompt.local.md
