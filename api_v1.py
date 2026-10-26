@@ -8,15 +8,20 @@ selbst mit). Fehler kommen als ``application/problem+json`` (RFC 9457).
 
 from __future__ import annotations
 
+import io
 import logging
 from functools import wraps
 
-from flask import Blueprint, Flask, g, jsonify, request
+from flask import Blueprint, Flask, g, jsonify, request, send_file
 from flask_limiter.util import get_remote_address
+from pydantic import BaseModel, ValidationError
 from werkzeug.exceptions import HTTPException
 
 import api_keys
+import api_models as am
+import services
 from extensions import limiter
+from ki_kontext import _ki_kontext, _load_system_prompt, _wohnort
 
 logger = logging.getLogger(__name__)
 
@@ -87,6 +92,46 @@ def api_view(scope: str | None, limit: str = LIMIT_LESEN):
     return deco
 
 
+class ApiProblem(Exception):
+    def __init__(self, status: int, title: str, detail: str | None = None, typ: str = "fehler", **extra):
+        super().__init__(title)
+        self.args_ = (status, title, detail)
+        self.typ = typ
+        self.extra = extra
+
+
+@bp.errorhandler(ApiProblem)
+def _api_problem(e: ApiProblem):
+    status, title, detail = e.args_
+    return problem(status, title, detail, typ=e.typ, **e.extra)
+
+
+@bp.errorhandler(ValidationError)
+def _validation_error(e: ValidationError):
+    # Nur Ort + Meldung, nie die Eingabewerte zurückspiegeln.
+    fehler = [{"loc": list(err["loc"]), "msg": err["msg"]} for err in e.errors(include_url=False)]
+    return problem(422, "Ungültige Eingabe", typ="validation", errors=fehler)
+
+
+@bp.errorhandler(services.FachlicherFehler)
+def _fachlicher_fehler(e: services.FachlicherFehler):
+    return problem(422, "Nicht verarbeitbar", str(e), typ="fachlich", errors=e.errors)
+
+
+def body(model: type[BaseModel]):
+    """JSON-Body lesen und gegen ein v1-Modell validieren."""
+    if not request.is_json:
+        raise ApiProblem(415, "Content-Type muss application/json sein", typ="format")
+    data = request.get_json(silent=True)
+    if data is None:
+        raise ApiProblem(400, "Ungültiges JSON", typ="format")
+    return model.model_validate(data)
+
+
+def pdf_antwort(dateiname: str, inhalt: bytes):
+    return send_file(io.BytesIO(inhalt), mimetype="application/pdf", as_attachment=True, download_name=dateiname)
+
+
 @bp.before_request
 def _api_kontext():
     # Nie die Web-Identität übernehmen (auth.load_current_user lässt /api/v1 aus).
@@ -112,6 +157,81 @@ def me():
             "api_berechtigt_bis": u.api_berechtigt_bis.isoformat() + "Z" if u.api_berechtigt_bis else None,
         }
     )
+
+
+# ---------- Schema und Prompt ----------
+
+
+@bp.get("/schema/antrag")
+@api_view(None)
+def schema_antrag():
+    return jsonify(am.AntragV1.model_json_schema())
+
+
+@bp.get("/schema/abrechnung")
+@api_view(None)
+def schema_abrechnung():
+    return jsonify(am.AbrechnungV1.model_json_schema())
+
+
+@bp.get("/prompt")
+@api_view(None)
+def prompt():
+    """System-Prompt für eigene Extraktion (z. B. im MCP-Client) plus der
+    Kontextblock für den Key-Inhaber (heutiges Datum, PLZ/Ort). Die Ausgabe
+    der KI entspricht ``reise_details``/``bemerkungen``/``angaben`` des Antrags v1."""
+    profil = services.profil_daten(g.api_user)
+    return jsonify(
+        {
+            "system_prompt": _load_system_prompt(),
+            "kontext": _ki_kontext("", _wohnort(profil["antragsteller"]["adresse_privat"])),
+            "hinweis": "Kontext an den Eingabetext anhängen; Verkehrsmittel-Zeilen ggf. ergänzen.",
+        }
+    )
+
+
+# ---------- Zustandslos ----------
+
+
+@bp.post("/antrag/pdf")
+@api_view("berechnen", LIMIT_PDF)
+def antrag_pdf():
+    antrag = body(am.AntragV1)
+    profil = services.profil_daten(g.api_user)
+    services.pruefe_profil(profil, "antrag")
+    model = services.antrag_validieren(am.antrag_to_internal(antrag, profil))
+    return pdf_antwort(*services.antrag_pdf(model))
+
+
+@bp.post("/abrechnung/berechnung")
+@api_view("berechnen", LIMIT_SCHREIBEN)
+def abrechnung_berechnung():
+    abr = body(am.AbrechnungV1)
+    model = services.abrechnung_validieren(am.abrechnung_to_internal(abr, services.profil_daten(g.api_user)))
+    return jsonify(am.BerechnungV1.model_validate(model.berechnet.model_dump()).model_dump())
+
+
+@bp.post("/abrechnung/pdf")
+@api_view("berechnen", LIMIT_PDF)
+def abrechnung_pdf():
+    abr = body(am.AbrechnungV1)
+    profil = services.profil_daten(g.api_user)
+    services.pruefe_profil(profil, "abrechnung_pdf")
+    model = services.abrechnung_validieren(am.abrechnung_to_internal(abr, profil))
+    return pdf_antwort(*services.abrechnung_pdf(model))
+
+
+@bp.post("/entfernung")
+@api_view("berechnen", LIMIT_ENTFERNUNG)
+def entfernung():
+    import routing
+
+    e = body(am.EntfernungV1)
+    try:
+        r = routing.route_km(e.von, e.nach)
+    except routing.RoutingError as err:
+        raise ApiProblem(422, "Entfernung nicht ermittelbar", str(err), typ="routing") from None
+    return jsonify({"km": r["km"], "minuten": r["duration_min"], "quelle": "OpenStreetMap / OSRM"})
 
 
 def init_app(app: Flask, csrf) -> None:
