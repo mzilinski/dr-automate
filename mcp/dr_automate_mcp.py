@@ -29,6 +29,7 @@ PDF_DIR = Path(os.environ.get("DR_AUTOMATE_PDF_DIR") or "~/Downloads").expanduse
 
 LESEN = ToolAnnotations(readOnlyHint=True, openWorldHint=False)
 SCHREIBEN = ToolAnnotations(readOnlyHint=False, destructiveHint=False, openWorldHint=False)
+LOESCHEN = ToolAnnotations(readOnlyHint=False, destructiveHint=True, openWorldHint=False)
 
 server = MCPServer(
     "dr-automate",
@@ -37,6 +38,10 @@ server = MCPServer(
         "zuerst antrag_regeln aufrufen, die Reisedaten selbst nach diesen Regeln aus dem Text des "
         "Nutzers extrahieren, Beförderung erfragen, dann reise_anlegen ohne bestaetigt aufrufen, die "
         "Zusammenfassung dem Nutzer zeigen und erst nach seinem Ja mit bestaetigt=true wiederholen. "
+        "Für eine Abrechnung: abrechnung_vorlage holen (Reisedaten und Beförderung aus dem Antrag, "
+        "Anordnung aus der Genehmigung), beim Nutzer erfragen, was tatsächlich war (Verpflegung, "
+        "Übernachtungen, Belege, bei eigenem PKW die Kilometer — per entfernung ermitteln statt "
+        "schätzen), dann abrechnung_speichern erst ohne, nach seinem Ja mit bestaetigt=true. "
         "Name, Adresse und Bankdaten kommen aus dem Profil — nie mitschicken."
     ),
 )
@@ -113,6 +118,33 @@ def reise_anlegen(antrag: dict, bestaetigt: bool = False) -> str:
     return f"Reise #{r['id']} angelegt (Status {r['status']}). PDF mit pdf_holen({r['id']}, 'antrag')."
 
 
+@server.tool(annotations=SCHREIBEN)
+def antrag_aendern(reise_id: int, antrag: dict, bestaetigt: bool = False) -> str:
+    """Ersetzt den Antrag einer noch nicht genehmigten Reise (Antrag v1, Ausgangspunkt
+    ``antrag`` aus reise_anzeigen) und erzeugt das PDF neu. Ohne bestaetigt=true nur Prüfung
+    und Zusammenfassung zur Bestätigung durch den Nutzer."""
+    if not bestaetigt:
+        _api("POST", "/antrag/pdf", json=antrag)
+        return "Bitte dem Nutzer zur Bestätigung zeigen:\n" + _zusammenfassung(antrag)
+    r = _json("PUT", f"/reisen/{reise_id}/antrag", json=antrag)
+    return f"Antrag zu Reise #{reise_id} ersetzt (Status {r['status']}). PDF mit pdf_holen({reise_id}, 'antrag')."
+
+
+@server.tool(annotations=LOESCHEN)
+def reise_loeschen(reise_id: int, bestaetigt: bool = False) -> str:
+    """Löscht eine Reise samt Antrag, Abrechnung und PDFs — endgültig. Ohne bestaetigt=true
+    nur anzeigen, was gelöscht würde."""
+    r = _json("GET", f"/reisen/{reise_id}")
+    if not bestaetigt:
+        return (
+            f"Würde endgültig löschen: #{r['id']} {r['start_datum'] or '—'} {r['titel']} · {r['status']}"
+            + (" (mit Abrechnung)" if r["pdfs"]["abrechnung"] else "")
+            + ". Erst nach ausdrücklichem Ja des Nutzers mit bestaetigt=true wiederholen."
+        )
+    _api("DELETE", f"/reisen/{reise_id}")
+    return f"Reise #{reise_id} gelöscht."
+
+
 @server.tool(annotations=LESEN)
 def reisen_auflisten(status: str | None = None) -> str:
     """Eigene Dienstreisen, optional gefiltert (entwurf, genehmigt, abgerechnet, bezahlt)."""
@@ -149,6 +181,58 @@ def genehmigung_vermerken(reise_id: int, datum: str, aktenzeichen: str = "") -> 
     """Genehmigung eintragen (datum DD.MM.YYYY). Danach ist der Antrag nicht mehr änderbar."""
     r = _json("POST", f"/reisen/{reise_id}/genehmigung", json={"datum": datum, "aktenzeichen": aktenzeichen})
     return f"Reise #{reise_id}: {r['status']} am {r['genehmigung']['datum']}."
+
+
+@server.tool(annotations=LESEN)
+def abrechnung_vorlage(reise_id: int) -> dict:
+    """Ausgangspunkt für die Abrechnung einer Reise: die gespeicherte Abrechnung, sonst ein
+    Entwurf aus dem Antrag (Reisedaten, Beförderung, Angaben, Verzicht, Anordnungsdatum =
+    Genehmigung). ``offen`` nennt, was beim Nutzer noch zu erfragen ist."""
+    r = _json("GET", f"/reisen/{reise_id}")
+    if r.get("abrechnung"):
+        return {"abrechnung": r["abrechnung"], "quelle": "gespeicherte Abrechnung", "berechnung": r.get("berechnung")}
+    antrag = r.get("antrag")
+    if not antrag:
+        raise ApiFehler(f"Reise #{reise_id} hat keinen Antrag.")
+    gen = r["genehmigung"]
+    datum = ".".join(reversed(gen["datum"].split("-"))) if gen["datum"] else ""
+    entwurf = {
+        "reise_details": antrag["reise_details"],
+        "befoerderung": antrag["befoerderung"],
+        "angaben": antrag.get("angaben", {}),
+        "verzicht": antrag.get("verzicht", {}),
+        "anordnung": {"dienststelle": "", "datum": datum},
+        "anlagen": {"genehmigung_035_001": bool(datum), "anlagen_035_003": False},
+    }
+    offen = [
+        "tatsächliche Reisezeiten (falls abweichend vom Antrag)",
+        "unentgeltliche Verpflegung (am besten je Tag)",
+        "Übernachtungen (pauschal, mit Beleg + Betrag, unentgeltlich)",
+        "Belege (Fahrkarten, Zuschläge, Sonstiges)",
+        "Abzüge (Zuwendungen, Abschlag, Eigenanteile)",
+    ]
+    strecken = (antrag["befoerderung"]["hinreise"], antrag["befoerderung"]["rueckreise"])
+    if any(s["typ"] == "PKW" for s in strecken):
+        offen.insert(1, "gefahrene Kilometer (wegstrecke) — mit entfernung ermitteln")
+    if not datum:
+        offen.insert(0, "Genehmigung fehlt noch — vorher genehmigung_vermerken")
+    hinweis = "anordnung.dienststelle leer lassen, sie kommt aus dem Profil."
+    return {"abrechnung": entwurf, "quelle": "Antrag", "offen": offen, "hinweis": hinweis}
+
+
+@server.tool(annotations=LESEN)
+def entfernung(von: str, nach: str) -> str:
+    """Straßenentfernung (OpenStreetMap/OSRM) für die Wegstreckenentschädigung, z. B.
+    von='49808 Lingen, Am Weg 1' nach='30159 Hannover'. Einfache Strecke."""
+    r = _json("POST", "/entfernung", json={"von": von, "nach": nach})
+    return f"{r['km']:.1f} km, etwa {r['minuten']} min ({r['quelle']})."
+
+
+@server.tool(annotations=LESEN)
+def key_status() -> dict:
+    """Eigener Nutzer und API-Key: Scopes, Ablauf, letzte Nutzung, API-Berechtigung bis
+    (verfällt 90 Tage nach dem letzten Web-Login). Bei HTTP 401/403 zuerst hier nachsehen."""
+    return _json("GET", "/me")
 
 
 @server.tool(annotations=LESEN)

@@ -440,11 +440,14 @@ def reise_genehmigung(reise_id: int):
 @bp.put("/reisen/<int:reise_id>/abrechnung")
 @api_view("reisen:write", LIMIT_PDF)
 def reise_abrechnung(reise_id: int):
-    _reise(reise_id)
+    r = _reise(reise_id)
     abr = body(am.AbrechnungV1)
     profil = services.profil_daten(g.api_user)
     services.pruefe_profil(profil, "abrechnung_pdf")
-    model = services.abrechnung_validieren(am.abrechnung_to_internal(abr, profil))
+    daten = am.abrechnung_to_internal(abr, profil)
+    if not daten["anordnung"]["datum"] and r.genehmigung_datum:
+        daten["anordnung"]["datum"] = r.genehmigung_datum.strftime("%d.%m.%Y")
+    model = services.abrechnung_validieren(daten)
     _, pdf = services.abrechnung_pdf(model)
     services.abrechnung_speichern(g.api_user.id, reise_id, model, pdf)
     return jsonify(am.reise_v1(services.reise_laden(g.api_user.id, reise_id), mit_daten=True))

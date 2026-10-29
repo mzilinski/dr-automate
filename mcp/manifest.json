@@ -2,7 +2,7 @@
   "manifest_version": "0.4",
   "name": "dr-automate",
   "display_name": "dr-automate",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Dienstreiseanträge und -abrechnungen nach NRKVO (Niedersachsen) über die dr-automate-API",
   "long_description": "Legt Dienstreisen an, berechnet und speichert Abrechnungen, holt PDFs und schickt sie an Paperless. Der Assistent extrahiert die Reisedaten selbst; Anlegen und Speichern passieren erst nach Bestätigung im Chat.",
   "author": {
@@ -16,7 +16,12 @@
     "entry_point": "dr_automate_mcp.py",
     "mcp_config": {
       "command": "uv",
-      "args": ["run", "--directory", "${__dirname}", "dr_automate_mcp.py"],
+      "args": [
+        "run",
+        "--directory",
+        "${__dirname}",
+        "dr_automate_mcp.py"
+      ],
       "env": {
         "DR_AUTOMATE_API_KEY": "${user_config.api_key}",
         "DR_AUTOMATE_URL": "${user_config.url}",
@@ -25,17 +30,70 @@
     }
   },
   "tools": [
-    {"name": "antrag_regeln", "description": "Regeln, Kontext und Schema für die Extraktion eines Antrags"},
-    {"name": "reise_anlegen", "description": "Reise prüfen bzw. nach Bestätigung anlegen"},
-    {"name": "reisen_auflisten", "description": "Eigene Dienstreisen, optional nach Status"},
-    {"name": "reise_anzeigen", "description": "Reise mit Antrag, Abrechnung und Paperless-Stand"},
-    {"name": "pdf_holen", "description": "Antrag- oder Abrechnungs-PDF in den Download-Ordner"},
-    {"name": "genehmigung_vermerken", "description": "Genehmigung eintragen"},
-    {"name": "abrechnung_schema", "description": "JSON-Schema einer Abrechnung"},
-    {"name": "abrechnung_berechnen", "description": "NRKVO-Berechnung ohne Speichern"},
-    {"name": "abrechnung_speichern", "description": "Abrechnung prüfen bzw. nach Bestätigung speichern"},
-    {"name": "bezahlt_vermerken", "description": "Geldeingang vermerken"},
-    {"name": "an_paperless_senden", "description": "PDF an Paperless schicken"}
+    {
+      "name": "antrag_regeln",
+      "description": "Regeln, Kontext und Schema für die Extraktion eines Antrags"
+    },
+    {
+      "name": "reise_anlegen",
+      "description": "Reise prüfen bzw. nach Bestätigung anlegen"
+    },
+    {
+      "name": "antrag_aendern",
+      "description": "Antrag einer nicht genehmigten Reise prüfen bzw. nach Bestätigung ersetzen"
+    },
+    {
+      "name": "reise_loeschen",
+      "description": "Reise nach Bestätigung endgültig löschen"
+    },
+    {
+      "name": "reisen_auflisten",
+      "description": "Eigene Dienstreisen, optional nach Status"
+    },
+    {
+      "name": "reise_anzeigen",
+      "description": "Reise mit Antrag, Abrechnung und Paperless-Stand"
+    },
+    {
+      "name": "pdf_holen",
+      "description": "Antrag- oder Abrechnungs-PDF in den Download-Ordner"
+    },
+    {
+      "name": "genehmigung_vermerken",
+      "description": "Genehmigung eintragen"
+    },
+    {
+      "name": "abrechnung_schema",
+      "description": "JSON-Schema einer Abrechnung"
+    },
+    {
+      "name": "abrechnung_vorlage",
+      "description": "Abrechnungsentwurf aus Antrag und Genehmigung"
+    },
+    {
+      "name": "abrechnung_berechnen",
+      "description": "NRKVO-Berechnung ohne Speichern"
+    },
+    {
+      "name": "entfernung",
+      "description": "Straßenentfernung für die Wegstreckenentschädigung"
+    },
+    {
+      "name": "abrechnung_speichern",
+      "description": "Abrechnung prüfen bzw. nach Bestätigung speichern"
+    },
+    {
+      "name": "bezahlt_vermerken",
+      "description": "Geldeingang vermerken"
+    },
+    {
+      "name": "an_paperless_senden",
+      "description": "PDF an Paperless schicken"
+    },
+    {
+      "name": "key_status",
+      "description": "Nutzer, Scopes und Ablauf des API-Keys"
+    }
   ],
   "user_config": {
     "api_key": {
@@ -61,9 +119,19 @@
     }
   },
   "compatibility": {
-    "platforms": ["darwin", "linux", "win32"],
-    "runtimes": {"python": ">=3.12"}
+    "platforms": [
+      "darwin",
+      "linux",
+      "win32"
+    ],
+    "runtimes": {
+      "python": ">=3.12"
+    }
   },
-  "keywords": ["dienstreise", "reisekosten", "nrkvo"],
+  "keywords": [
+    "dienstreise",
+    "reisekosten",
+    "nrkvo"
+  ],
   "license": "MIT"
 }

@@ -2,6 +2,6 @@
 # PEP-723-Metadaten in dr_automate_mcp.py — beide gleich halten.
 [project]
 name = "dr-automate-mcp"
-version = "0.5.0"
+version = "0.5.1"
 requires-python = ">=3.12"
 dependencies = ["mcp==2.3.0", "httpx>=0.27"]

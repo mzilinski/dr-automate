@@ -44,13 +44,18 @@ Optional: `DR_AUTOMATE_URL` (Standard `https://dr-automate.zilinski.eu`),
 |---|---|
 | `antrag_regeln` | Regeln, Kontext (Datum, PLZ/Ort) und Schema für die Extraktion |
 | `reise_anlegen(antrag, bestaetigt)` | ohne Bestätigung nur Prüfung + Zusammenfassung, mit `bestaetigt=true` anlegen |
+| `antrag_aendern(id, antrag, bestaetigt)` | Antrag vor der Genehmigung ersetzen, erst Vorschau |
+| `reise_loeschen(id, bestaetigt)` | endgültig löschen, erst Vorschau |
 | `reisen_auflisten(status)` / `reise_anzeigen(id)` | Überblick bzw. Details inkl. Paperless-Stand |
 | `pdf_holen(id, art)` | Antrag- oder Abrechnungs-PDF in den Download-Ordner |
 | `genehmigung_vermerken(id, datum, aktenzeichen)` | Status `genehmigt` |
+| `abrechnung_vorlage(id)` | Entwurf aus Antrag + Genehmigung (wie der Web-Wizard) und was noch offen ist |
 | `abrechnung_schema` / `abrechnung_berechnen(abrechnung)` | Schema bzw. NRKVO-Berechnung ohne Speichern |
+| `entfernung(von, nach)` | Straßen-km für die Wegstreckenentschädigung |
 | `abrechnung_speichern(id, abrechnung, bestaetigt)` | erst Vorschau, dann speichern + PDF |
 | `bezahlt_vermerken(id, datum)` | Status `bezahlt` |
 | `an_paperless_senden(id, art)` | PDF an Paperless (Profil-Token nötig) |
+| `key_status` | Scopes und Ablauf des Keys, API-Berechtigung (bei 401/403) |
 
 Der Assistent extrahiert die Reisedaten selbst — DeepSeek wird dafür nicht gebraucht.
-Anlegen und Speichern passieren erst nach ausdrücklicher Bestätigung im Chat.
+Anlegen, Ändern, Löschen und Speichern passieren erst nach ausdrücklicher Bestätigung im Chat.

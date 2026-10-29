@@ -49,7 +49,8 @@ class FachlicherFehler(ValueError):
 def profil_daten(user: User) -> dict:
     """Profil-Snapshot im Format der internen Modelle: ``antragsteller``,
     ``stammdaten`` und die profil-eigenen ``konfiguration``-Flags (BahnCards,
-    Großkundenrabatt). Fehlt das Profil, sind die Werte leer."""
+    Großkundenrabatt) sowie die ``anordnende_dienststelle`` als Vorgabe für die
+    Abrechnung. Fehlt das Profil, sind die Werte leer."""
     with SessionLocal() as s:
         p = s.query(UserProfile).filter(UserProfile.user_id == user.id).first()
     p = p or UserProfile(user_id=user.id)
@@ -70,6 +71,7 @@ def profil_daten(user: User) -> dict:
             "abrechnende_dienststelle": p.abrechnende_dienststelle or "",
         },
         "konfiguration": bahncards_to_konfig_flags(p.bahncards),
+        "anordnende_dienststelle": p.anordnende_dienststelle or "",
     }
 
 

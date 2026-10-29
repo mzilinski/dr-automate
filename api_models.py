@@ -218,7 +218,11 @@ def abrechnung_to_internal(a: AbrechnungV1, profil: dict) -> dict:
         "verzicht_erklaerung": _verzicht(a.verzicht),
         "rkr": a.rkr,
         "rrs_aktenzeichen": a.rrs_aktenzeichen,
-        "anordnung": a.anordnung.model_dump(),
+        # wie im Web-Wizard: leere Dienststelle aus dem Profil
+        "anordnung": {
+            **a.anordnung.model_dump(),
+            "dienststelle": a.anordnung.dienststelle or profil.get("anordnende_dienststelle", ""),
+        },
         "anlagen_beigefuegt": a.anlagen.model_dump(),
         "verpflegung": {
             "fruehstueck_anzahl": v.fruehstueck,
