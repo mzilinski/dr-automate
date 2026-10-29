@@ -24,8 +24,8 @@ import httpx
 from mcp.server.mcpserver import MCPServer
 from mcp.types import ToolAnnotations
 
-BASE = os.environ.get("DR_AUTOMATE_URL", "https://dr-automate.zilinski.eu").rstrip("/") + "/api/v1"
-PDF_DIR = Path(os.environ.get("DR_AUTOMATE_PDF_DIR", "~/Downloads")).expanduser()
+BASE = (os.environ.get("DR_AUTOMATE_URL") or "https://dr-automate.zilinski.eu").rstrip("/") + "/api/v1"
+PDF_DIR = Path(os.environ.get("DR_AUTOMATE_PDF_DIR") or "~/Downloads").expanduser()
 
 LESEN = ToolAnnotations(readOnlyHint=True, openWorldHint=False)
 SCHREIBEN = ToolAnnotations(readOnlyHint=False, destructiveHint=False, openWorldHint=False)
