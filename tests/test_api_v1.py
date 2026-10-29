@@ -220,6 +220,7 @@ PROFIL = {
     "iban": "DE89370400440532013000",
     "bic": "COBADEFFXXX",
     "abrechnende_dienststelle": "NLBV Aurich",
+    "anordnende_dienststelle": "RLSB Osnabrück",
 }
 
 
@@ -382,6 +383,8 @@ def test_reise_lebenszyklus(auth_client, mit_profil):
     assert r.status_code == 200, r.get_json()
     j = r.get_json()
     assert j["status"] == "abgerechnet" and j["berechnung"]["tagegeld_brutto_eur"] == 56.0
+    # Anordnung wie im Web-Wizard: Dienststelle aus dem Profil, Datum aus der Genehmigung
+    assert j["abrechnung"]["anordnung"] == {"dienststelle": "RLSB Osnabrück", "datum": "01.05.2026"}
 
     # Roundtrip Abrechnung
     r = auth_client.put(f"/api/v1/reisen/{rid}/abrechnung", json=j["abrechnung"], headers=h)
