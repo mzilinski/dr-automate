@@ -42,7 +42,7 @@ def _antrag():
 @pytest.mark.parametrize(
     ("pfad", "ziel"),
     [
-        ("/", "/konto/"),
+        ("/", "/dashboard"),
         ("/abrechnung", "/konto/abrechnung"),
         ("/landing", "/dashboard"),
         ("/?dienstreise=5", "/konto/?dienstreise=5"),

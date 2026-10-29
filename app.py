@@ -354,13 +354,16 @@ def load_user():
 # Gast-Seite → Konto-Seite, wenn eine Authelia-Session mitkommt. Auf Gast-Pfaden
 # ist das Login-Level unbekannt (auch Passwort-only-Sessions bringen Header mit),
 # deshalb wird dort nichts aus dem Konto gezeigt; /konto/… verlangt in Authelia
-# den zweiten Faktor.
-_KONTO_ZIEL = {"/": "konto_index", "/abrechnung": "konto_abrechnung", "/landing": "dashboard"}
+# den zweiten Faktor. Die Startseite führt angemeldet aufs Dashboard; nur mit
+# Parametern (``/?dienstreise=5``) in den Antrag-Wizard.
+_KONTO_ZIEL = {"/": "dashboard", "/abrechnung": "konto_abrechnung", "/landing": "dashboard"}
 
 
 @app.before_request
 def gast_seite_zum_konto():
     ziel = _KONTO_ZIEL.get(request.path)
+    if request.path == "/" and request.args:
+        ziel = "konto_index"
     if ziel and request.method == "GET" and auth.session_auf_gastpfad():
         return redirect(url_for(ziel, **request.args))
     return None
