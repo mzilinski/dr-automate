@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+*.pyc
+*.mcpb
+README.md
+uv.lock

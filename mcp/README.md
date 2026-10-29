@@ -24,6 +24,17 @@ MCP-Clients ein. Ein Skript, Abhängigkeiten per PEP 723 — `uv` installiert si
        "env": { "DR_AUTOMATE_API_KEY": "dra_…" } } } }
    ```
 
+   Oder als Bundle für Claude Desktop (Key, Server und PDF-Ordner fragt der Installationsdialog ab;
+   Abhängigkeiten installiert der Host per `uv`):
+
+   ```bash
+   npx @anthropic-ai/mcpb pack mcp build/dr-automate.mcpb   # aus dem Repo-Root
+   ```
+
+   `build/dr-automate.mcpb` per Doppelklick oder *Einstellungen → Erweiterungen* installieren.
+   Bei neuer Version `version` in `manifest.json` hochzählen; Abhängigkeiten in
+   `pyproject.toml` und im PEP-723-Kopf des Skripts gleich halten.
+
 Optional: `DR_AUTOMATE_URL` (Standard `https://dr-automate.zilinski.eu`),
 `DR_AUTOMATE_PDF_DIR` (Standard `~/Downloads`).
 

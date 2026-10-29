@@ -1,0 +1,69 @@
+{
+  "manifest_version": "0.4",
+  "name": "dr-automate",
+  "display_name": "dr-automate",
+  "version": "0.5.0",
+  "description": "Dienstreiseanträge und -abrechnungen nach NRKVO (Niedersachsen) über die dr-automate-API",
+  "long_description": "Legt Dienstreisen an, berechnet und speichert Abrechnungen, holt PDFs und schickt sie an Paperless. Der Assistent extrahiert die Reisedaten selbst; Anlegen und Speichern passieren erst nach Bestätigung im Chat.",
+  "author": {
+    "name": "Malte Zilinski",
+    "email": "malte@zilinski.eu"
+  },
+  "homepage": "https://dr-automate.zilinski.eu",
+  "documentation": "https://dr-automate.zilinski.eu/docs/api",
+  "server": {
+    "type": "uv",
+    "entry_point": "dr_automate_mcp.py",
+    "mcp_config": {
+      "command": "uv",
+      "args": ["run", "--directory", "${__dirname}", "dr_automate_mcp.py"],
+      "env": {
+        "DR_AUTOMATE_API_KEY": "${user_config.api_key}",
+        "DR_AUTOMATE_URL": "${user_config.url}",
+        "DR_AUTOMATE_PDF_DIR": "${user_config.pdf_dir}"
+      }
+    }
+  },
+  "tools": [
+    {"name": "antrag_regeln", "description": "Regeln, Kontext und Schema für die Extraktion eines Antrags"},
+    {"name": "reise_anlegen", "description": "Reise prüfen bzw. nach Bestätigung anlegen"},
+    {"name": "reisen_auflisten", "description": "Eigene Dienstreisen, optional nach Status"},
+    {"name": "reise_anzeigen", "description": "Reise mit Antrag, Abrechnung und Paperless-Stand"},
+    {"name": "pdf_holen", "description": "Antrag- oder Abrechnungs-PDF in den Download-Ordner"},
+    {"name": "genehmigung_vermerken", "description": "Genehmigung eintragen"},
+    {"name": "abrechnung_schema", "description": "JSON-Schema einer Abrechnung"},
+    {"name": "abrechnung_berechnen", "description": "NRKVO-Berechnung ohne Speichern"},
+    {"name": "abrechnung_speichern", "description": "Abrechnung prüfen bzw. nach Bestätigung speichern"},
+    {"name": "bezahlt_vermerken", "description": "Geldeingang vermerken"},
+    {"name": "an_paperless_senden", "description": "PDF an Paperless schicken"}
+  ],
+  "user_config": {
+    "api_key": {
+      "type": "string",
+      "title": "API-Key",
+      "description": "Persönlicher Key (dra_…) aus dr-automate → Profil → API-Zugänge, Scopes reisen:read, reisen:write, berechnen",
+      "sensitive": true,
+      "required": true
+    },
+    "url": {
+      "type": "string",
+      "title": "Server",
+      "description": "Basis-URL der dr-automate-Instanz",
+      "default": "https://dr-automate.zilinski.eu",
+      "required": false
+    },
+    "pdf_dir": {
+      "type": "directory",
+      "title": "PDF-Ordner",
+      "description": "Wohin pdf_holen die PDFs speichert",
+      "default": "${HOME}/Downloads",
+      "required": false
+    }
+  },
+  "compatibility": {
+    "platforms": ["darwin", "linux", "win32"],
+    "runtimes": {"python": ">=3.12"}
+  },
+  "keywords": ["dienstreise", "reisekosten", "nrkvo"],
+  "license": "MIT"
+}
