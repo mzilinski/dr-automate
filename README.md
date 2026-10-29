@@ -196,7 +196,7 @@ dr-automate/
 
 | Endpunkt | Methode | Beschreibung |
 |----------|---------|-------------|
-| `/` | GET | Antrag-Wizard (Gast; mit Login → Weiterleitung nach `/konto/`) |
+| `/` | GET | Antrag-Wizard (Gast; mit Login → `/dashboard`, mit Parametern → `/konto/`) |
 | `/abrechnung` | GET | Abrechnungs-Wizard (Gast; mit Login → `/konto/abrechnung`) |
 | `/abrechnung/generate` | POST | Abrechnungs-PDF generieren (Rate Limited). Mit `save_to_account=1` + Auth: persistiert in DB. |
 | `/abrechnung/calc` | POST | Server-autoritative NRKVO-Berechnung (Quelle der Wizard-Vorschau, 60/min) |
