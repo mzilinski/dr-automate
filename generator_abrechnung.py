@@ -122,6 +122,8 @@ def _build_text_fields(data: AbrechnungData) -> dict:
         verpf_parts.append(f"{v.mittag_anzahl}× Mittagessen")
     if v.abend_anzahl:
         verpf_parts.append(f"{v.abend_anzahl}× Abendessen")
+    if verpf_parts and v.in_kosten_enthalten:
+        verpf_parts[-1] += " (in erstatteten Kosten enthalten)"
     if data.uebernachtungen.anzahl_unentgeltlich:
         verpf_parts.append(f"{data.uebernachtungen.anzahl_unentgeltlich}× Übernachtung")
     fields["Verpflegung"] = ", ".join(verpf_parts)
@@ -199,8 +201,13 @@ def _build_text_fields(data: AbrechnungData) -> dict:
         )
     if b.kuerzung_eur:
         erl_parts.append(
-            f"Tagegeld {_fmt_eur_text(b.tagegeld_brutto_eur)} − Kürzung Verpflegung "
+            f"Tagegeld {_fmt_eur_text(b.tagegeld_brutto_eur)} − Kürzung Verpflegung (§ 7 Abs. 3 NRKVO) "
             f"{_fmt_eur_text(b.kuerzung_eur)} = {_fmt_eur_text(b.tagegeld_netto_eur)}"
+        )
+    vp = data.verpflegung
+    if vp.in_kosten_enthalten and (vp.fruehstueck_anzahl or vp.mittag_anzahl or vp.abend_anzahl):
+        erl_parts.append(
+            "Mahlzeiten nicht unentgeltlich: Entgelt in erstatteten Kosten enthalten (§ 7 Abs. 3 S. 3 NRKVO)"
         )
     v = data.verzicht_erklaerung
     verzichte = [

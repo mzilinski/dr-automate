@@ -35,6 +35,9 @@ Nach der Reise:
 2. Der Wizard ist mit den Antragsdaten vorbefüllt – Stammdaten, Reisezeitraum, Beförderung.
 3. Eintragen, was tatsächlich war:
    - Unentgeltliche Verpflegung (Frühstück / Mittag / Abend) — am genauesten **pro Tag**, dann wird die Kürzung je Kalendertag gedeckelt
+     - Auch Mahlzeiten, deren Entgelt in einem **erstatteten** Tagungsbeitrag steckt, eintragen (§ 7 Abs. 3 Satz 3 NRKVO) und „Entgelt steckt in erstatteten Kosten" ankreuzen — das steht dann im PDF
+     - Essen, das du selbst bezahlst und **nicht** erstattet bekommst, nicht eintragen — dafür ist das Tagegeld da
+     - Reines Essensgeld ist mit dem Tagegeld abgegolten. Ist unklar, ob ein Beitrag Tagungsbeitrag (§ 9) oder reines Essensgeld ist: in der Erläuterung offen benennen, die Abrechnungsstelle entscheidet
    - Übernachtungen pauschal, mit Beleg (Anzahl Nächte + Betrag) oder unentgeltlich
    - Belege für Fahrkarten / Zuschläge / Sonstige
    - Wegstreckenkilometer (nur selbst gefahrener PKW)

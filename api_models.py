@@ -82,12 +82,18 @@ class VerpflegungTagV1(V1):
 
 class VerpflegungV1(V1):
     """Unentgeltliche Mahlzeiten — entweder je Kalendertag (``tage``, genauer)
-    oder als Anzahlen."""
+    oder als Anzahlen. Auch Mahlzeiten, deren Entgelt in erstatteten Kosten
+    (z. B. Tagungsbeitrag unter belege.sonstige_kosten) enthalten ist (§ 7 Abs. 3
+    Satz 3 NRKVO); selbst bezahlte, nicht erstattete Mahlzeiten nicht."""
 
     fruehstueck: int = Field(0, ge=0, le=99)
     mittag: int = Field(0, ge=0, le=99)
     abend: int = Field(0, ge=0, le=99)
     tage: list[VerpflegungTagV1] = Field(default_factory=list, max_length=400)
+    in_kosten_enthalten: bool = Field(
+        False,
+        description="true = Mahlzeiten nicht unentgeltlich, ihr Entgelt steckt in erstatteten Kosten (Tagungsbeitrag)",
+    )
 
 
 class UebernachtungenV1(V1):
@@ -105,7 +111,11 @@ class BelegeV1(V1):
     sonstige_fahrt_eur: float = Field(0, ge=0)
     sonstige_fahrt_erlaeuterung: str = Field("", max_length=500)
     sonstige_kosten_eur: float = Field(0, ge=0)
-    sonstige_kosten_erlaeuterung: str = Field("", max_length=500)
+    sonstige_kosten_erlaeuterung: str = Field(
+        "",
+        max_length=500,
+        description="bei Betrag > 0 angeben; enthält ein Tagungsbeitrag Verpflegung, das hier offen nennen",
+    )
 
 
 class WegstreckeV1(V1):
@@ -229,6 +239,7 @@ def abrechnung_to_internal(a: AbrechnungV1, profil: dict) -> dict:
             "mittag_anzahl": v.mittag,
             "abend_anzahl": v.abend,
             "tage": [t.model_dump() for t in v.tage],
+            "in_kosten_enthalten": v.in_kosten_enthalten,
         },
         "uebernachtungen": {
             "anzahl_pauschal": u.pauschal_naechte,
@@ -299,6 +310,7 @@ def abrechnung_from_internal(d: dict) -> dict:
             "mittag": v.get("mittag_anzahl", 0),
             "abend": v.get("abend_anzahl", 0),
             "tage": v.get("tage") or [],
+            "in_kosten_enthalten": bool(v.get("in_kosten_enthalten")),
         },
         "uebernachtungen": {
             "pauschal_naechte": u.get("anzahl_pauschal", 0),

@@ -2,7 +2,7 @@
   "manifest_version": "0.4",
   "name": "dr-automate",
   "display_name": "dr-automate",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "Dienstreiseanträge und -abrechnungen nach NRKVO (Niedersachsen) über die dr-automate-API",
   "long_description": "Legt Dienstreisen an, berechnet und speichert Abrechnungen, holt PDFs und schickt sie an Paperless. Der Assistent extrahiert die Reisedaten selbst; Anlegen und Speichern passieren erst nach Bestätigung im Chat.",
   "author": {

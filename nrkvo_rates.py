@@ -11,7 +11,7 @@ from typing import Final
 RATES_STAND: Final = "01.01.2025"
 
 # § 5 NRKVO — Wegstreckenentschädigung
-WEGSTRECKE_KLEIN_EUR_PRO_KM: Final = 0.25  # § 5 II
+WEGSTRECKE_KLEIN_EUR_PRO_KM: Final = 0.25  # § 5 II (Bildungsportal-Leitfaden 05/2025; ältere Fassungen: 0,20/100 €)
 WEGSTRECKE_KLEIN_MAX_EUR: Final = 125.00  # Cap pro Dienstreise
 WEGSTRECKE_GROSS_EUR_PRO_KM: Final = 0.38  # § 5 III, triftiger Grund
 WEGSTRECKE_FAHRRAD_EUR_PRO_KM: Final = 0.10
@@ -20,7 +20,8 @@ WEGSTRECKE_FAHRRAD_EUR_PRO_KM: Final = 0.10
 TAGEGELD_VOLLER_TAG_EUR: Final = 28.00  # 24-h-Tag
 TAGEGELD_TEILTAG_EUR: Final = 14.00  # > 8 h oder An-/Abreisetag
 
-# § 7 Abs. 3 NRKVO — Kürzungen bei unentgeltlicher Verpflegung (Prozent vom vollen Tagegeld 28 €)
+# § 7 Abs. 3 NRKVO — Kürzungen bei unentgeltlicher Verpflegung (Prozent vom vollen Tagegeld 28 €).
+# Satz 3: ebenso, wenn das Entgelt für Verpflegung in erstattungsfähigen Kosten (z. B. Tagungsbeitrag) steckt.
 KUERZUNG_FRUEHSTUECK_PROZENT: Final = 20  # → 5,60 €
 KUERZUNG_MITTAGESSEN_PROZENT: Final = 40  # → 11,20 €
 KUERZUNG_ABENDESSEN_PROZENT: Final = 40  # → 11,20 €
