@@ -566,7 +566,8 @@
         <section class="wiz-step" data-step="4">
           <h2 class="step-title"><span class="step-title-num">04</span>Verpflegung &amp; Übernachtung</h2>
           <p class="step-lead">
-            Zähle nur unentgeltlich vom Amt bereitgestellte Mahlzeiten — diese kürzen das Tagegeld.
+            Zähle Mahlzeiten, die dir unentgeltlich gestellt wurden oder deren Entgelt in erstatteten
+            Kosten steckt (z. B. Tagungsbeitrag) — beides kürzt das Tagegeld.
           </p>
 
           {% set eur = '%.2f' %}
@@ -578,7 +579,12 @@
             Mittag {{ (eur|format(nrkvo.KUERZUNG_MITTAG))|replace('.', ',') }} € ·
             Abend {{ (eur|format(nrkvo.KUERZUNG_ABEND))|replace('.', ',') }} €
             (vom vollen Tagegeld {{ (eur|format(nrkvo.TAGEGELD_VOLL))|replace('.', ',') }} €), pro Tag höchstens bis auf 0.
-            Das gilt auch für Mahlzeiten, die in erstatteten Hotel-, Tagungs- oder Fahrtkosten enthalten sind.
+            Das gilt auch für Mahlzeiten, deren Entgelt in erstatteten Hotel-, Tagungs- oder Fahrtkosten
+            enthalten ist (§ 7 Abs. 3 Satz 3). Selbst bezahltes Essen, das <em>nicht</em> erstattet wird,
+            kürzt nicht — dafür ist das Tagegeld da (VV Nr. 7.1.4). Auch ein Imbiss zählt,
+            wenn er eine Hauptmahlzeit ersetzt; Kaffee und Gebäck zählen nicht (VV Nr. 7.3.2).
+            Reines Essensgeld ist mit dem Tagegeld abgegolten; im Zweifel offen benennen, die
+            Abrechnungsstelle entscheidet.
             Wer komplett darauf verzichten will, nutzt die Checkbox
             <em>„Verzicht auf Tagegeld"</em> in Schritt 8.
           </div>
@@ -618,6 +624,11 @@
               <label class="field-label" for="f_abend">Abendessen (Anzahl)</label>
               <input type="number" id="f_abend" data-bind="verpflegung.abend_anzahl" min="0" max="99" step="1" value="0">
             </div>
+          </div>
+
+          <div class="check-row">
+            <input type="checkbox" id="f_verpf_in_kosten" data-bind="verpflegung.in_kosten_enthalten">
+            <label for="f_verpf_in_kosten">Mahlzeiten selbst bezahlt, Entgelt steckt in erstatteten Kosten (z. B. Tagungsbeitrag)</label>
           </div>
 
           <h3 style="font-family:'Fraunces',serif; font-size:1rem; margin:1.25rem 0 .6rem; color:var(--accent);">Übernachtungen</h3>
@@ -984,7 +995,7 @@
         rrs_aktenzeichen: '',
         anlagen_beigefuegt: { genehmigung_035_001: false, anlagen_035_003: false },
         anordnung: { dienststelle: '', datum: '' },
-        verpflegung: { fruehstueck_anzahl: 0, mittag_anzahl: 0, abend_anzahl: 0, tage: [] },
+        verpflegung: { fruehstueck_anzahl: 0, mittag_anzahl: 0, abend_anzahl: 0, tage: [], in_kosten_enthalten: false },
         uebernachtungen: { anzahl_pauschal: 0, anzahl_unentgeltlich: 0, anzahl_beleg: 0, kosten_eur: 0, begruendung_ueber_100: '' },
         beleg_betraege: {
           fahrkarte_eur: 0, zuschlaege_eur: 0, wagenklasse: '',
@@ -1112,7 +1123,7 @@
     }
 
     // ── Verpflegung-Vorschlag aus Reisezeiten ─────────────────────────
-    // Heuristik fuer "unentgeltlich vom Amt bereitgestellte" Mahlzeiten in
+    // Heuristik fuer gestellte (auch in erstatteten Kosten enthaltene) Mahlzeiten in
     // Fortbildungs-Settings (Tagungshaus, OJE etc.): Default-Annahme = alle
     // Mahlzeiten waehrend des Aufenthalts werden gestellt.
     //   Fruehstueck = # Uebernachtungen
@@ -1792,9 +1803,9 @@
       'f_anlage2': 'Häkchen wenn zusätzliche Anlagen (Formular 035_003, z.B. Detail-Reiseaufstellung bei mehreren Geschäftsorten) beiliegen.',
 
       // Step 4 — Verpflegung
-      'f_fruehstueck': `Anzahl unentgeltlich bereitgestellter Frühstücke (auch: im erstatteten Hotelpreis enthalten). Kürzt das Tagegeld um ${eur(RATES.KUERZUNG_FRUEH)} pro Stück.`,
-      'f_mittag': `Anzahl unentgeltlicher Mittagessen (z.B. Mittags-Buffet auf der Tagung). Kürzt um ${eur(RATES.KUERZUNG_MITTAG)} pro Stück.`,
-      'f_abend': `Anzahl unentgeltlicher Abendessen. Kürzt um ${eur(RATES.KUERZUNG_ABEND)} pro Stück.`,
+      'f_fruehstueck': `Anzahl gestellter Frühstücke (unentgeltlich oder im erstatteten Hotelpreis enthalten). Kürzt das Tagegeld um ${eur(RATES.KUERZUNG_FRUEH)} pro Stück.`,
+      'f_mittag': `Anzahl gestellter Mittagessen (unentgeltlich oder im erstatteten Tagungsbeitrag enthalten). Kürzt um ${eur(RATES.KUERZUNG_MITTAG)} pro Stück.`,
+      'f_abend': `Anzahl gestellter Abendessen (unentgeltlich oder in erstatteten Kosten enthalten). Kürzt um ${eur(RATES.KUERZUNG_ABEND)} pro Stück.`,
       'f_tage_modus': 'Ordnet die Mahlzeiten den Kalendertagen zu. Dann wird die Kürzung je Tag höchstens auf das Tagegeld dieses Tages begrenzt (§ 7 Abs. 3 NRKVO) — sonst nur insgesamt.',
       'f_naechte_pauschal': `Nächte ohne Hotelbeleg → pauschal ${eur(RATES.UEBERNACHTUNG_PAUSCHAL)}/Nacht (max. ${RATES.UEBERNACHTUNG_MAX_NAECHTE} Nächte). Bei Hotelrechnung die Felder daneben nutzen.`,
       'f_naechte_unentgeltlich': 'Nächte, die das Amt direkt gestellt hat (z.B. Schullandheim) — kein Übernachtungsgeld.',
@@ -1809,7 +1820,7 @@
       'f_sonst_fahrt': 'Taxi, ÖPNV im Zielort, Fähre, Mietwagen — nicht das Hauptverkehrsmittel.',
       'f_sonst_fahrt_erl': 'Was und wofür. Bsp.: „BVG Tageskarte Berlin", „Fähre Wangerooge", „Taxi Bahnhof->Tagungsort"',
       'f_sonst_kosten': 'Kongressgebühr, Parkhaus, Garderobe, sonstige unmittelbar reisebedingte Kosten.',
-      'f_sonst_kosten_erl': 'Pflicht bei Betrag > 0. Bsp.: „Tagungsgebühr 80 €, Parkhaus Flughafen 25 €"',
+      'f_sonst_kosten_erl': 'Pflicht bei Betrag > 0. Bsp.: „Tagungsgebühr 80 €, Parkhaus Flughafen 25 €". Enthält ein Tagungsbeitrag Essen, hier nennen und die Mahlzeit in Schritt 4 eintragen.',
 
       // Step 6 — Wegstrecke
       'f_km_hin': 'Gefahrene Kilometer von Wohnung zum Dienstgeschäftsort (Hinfahrt). Online-Routenplaner ist üblich.',

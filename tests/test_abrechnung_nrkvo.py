@@ -264,3 +264,24 @@ def test_befoerderung_hin_und_rueck_angekreuzt(base_data):
 def test_amtsspalte_auszahlen_bleibt_leer(base_data):
     cb = _build_button_fields(_calc(base_data))
     assert "OBJ56" not in cb and "OBJ57" not in cb
+
+
+@pytest.mark.parametrize("enthalten", [True, False])
+def test_verpflegung_in_erstatteten_kosten_wird_ausgewiesen(base_data, enthalten):
+    """§ 7 Abs. 3 Satz 3 NRKVO: Kürzung wie bei unentgeltlich, aber im PDF kenntlich."""
+    _reise(base_data, "10.03.2026 07:00", "10.03.2026 18:00")
+    base_data["verpflegung"] = {"mittag_anzahl": 1, "in_kosten_enthalten": enthalten}
+    data = _calc(base_data)
+    assert data.berechnet.tagegeld_netto_eur == 2.8
+    assert "OBJ36" in _build_button_fields(data)
+    felder = _build_text_fields(data)
+    assert ("enthalten" in felder["Verpflegung"]) is enthalten
+    assert ("nicht unentgeltlich" in felder["Erlaeuterungen"]) is enthalten
+    assert "Kürzung Verpflegung (§ 7 Abs. 3 NRKVO) 11,20 €" in felder["Erlaeuterungen"]
+
+
+def test_in_kosten_enthalten_api_roundtrip(base_data):
+    from api_models import abrechnung_from_internal
+
+    base_data["verpflegung"] = {"mittag_anzahl": 1, "in_kosten_enthalten": True}
+    assert abrechnung_from_internal(_calc(base_data).model_dump())["verpflegung"]["in_kosten_enthalten"] is True

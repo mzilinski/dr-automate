@@ -298,6 +298,10 @@ class VerpflegungTag(BaseModel):
 class Verpflegung(BaseModel):
     """Unentgeltlich bereitgestellte Mahlzeiten — treibt die Tagegeld-Kürzung.
 
+    Dazu zählen auch Mahlzeiten, deren Entgelt in erstatteten Kosten (z. B.
+    Tagungsbeitrag) enthalten ist (§ 7 Abs. 3 Satz 3 NRKVO). Selbst bezahlte,
+    nicht erstattete Mahlzeiten gehören nicht hierher.
+
     Mit ``tage`` (Zuordnung je Kalendertag) wird die Kürzung pro Tag auf das
     Tagegeld dieses Tages gedeckelt; die Anzahl-Felder werden dann daraus
     abgeleitet. Ohne ``tage`` gelten die Anzahlen (nur Gesamt-Deckel).
@@ -307,6 +311,9 @@ class Verpflegung(BaseModel):
     mittag_anzahl: int = Field(default=0, ge=0, le=99)
     abend_anzahl: int = Field(default=0, ge=0, le=99)
     tage: list[VerpflegungTag] = Field(default_factory=list, max_length=400)
+    in_kosten_enthalten: bool = Field(
+        default=False, description="Mahlzeiten bezahlt, Entgelt steckt in erstatteten Kosten (§ 7 Abs. 3 Satz 3)"
+    )
 
     @model_validator(mode="after")
     def counts_from_tage(self) -> "Verpflegung":

@@ -206,9 +206,12 @@ def abrechnung_vorlage(reise_id: int) -> dict:
     }
     offen = [
         "tatsächliche Reisezeiten (falls abweichend vom Antrag)",
-        "unentgeltliche Verpflegung (am besten je Tag)",
+        "Verpflegung (am besten je Tag): unentgeltlich gestellt oder im erstatteten Tagungsbeitrag "
+        "enthalten → eintragen (kürzt das Tagegeld; im zweiten Fall verpflegung.in_kosten_enthalten=true); selbst bezahlt und nicht erstattet → nicht eintragen",
         "Übernachtungen (pauschal, mit Beleg + Betrag, unentgeltlich)",
-        "Belege (Fahrkarten, Zuschläge, Sonstiges)",
+        "Belege (Fahrkarten, Zuschläge, Sonstiges); bei einem Tagungsbeitrag: Teilnahmevoraussetzung "
+        "oder reines Essensgeld? Reines Essensgeld ist mit dem Tagegeld abgegolten; "
+        "im Zweifel in der Erläuterung offen benennen, die Abrechnungsstelle entscheidet",
         "Abzüge (Zuwendungen, Abschlag, Eigenanteile)",
     ]
     strecken = (antrag["befoerderung"]["hinreise"], antrag["befoerderung"]["rueckreise"])
