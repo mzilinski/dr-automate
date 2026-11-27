@@ -1,4 +1,4 @@
-"""REST-API v1 (plan-api-v1.md).
+"""REST-API v1 (docs/dev/plan-api-v1.md).
 
 Authentifizierung ausschließlich per persönlichem API-Key
 (``Authorization: Bearer dra_…``). Authelia-Header und Browser-Sessions
@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 PREFIX = "/api/v1"
 bp = Blueprint("api_v1", __name__, url_prefix=PREFIX)
 
-# Rate-Limits je Key (plan-api-v1.md, Abschnitt 5)
+# Rate-Limits je Key (docs/dev/plan-api-v1.md, Abschnitt 5)
 LIMIT_LESEN = "120 per minute"
 LIMIT_SCHREIBEN = "30 per minute"
 LIMIT_PDF = "20 per minute"

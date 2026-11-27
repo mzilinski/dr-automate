@@ -129,7 +129,7 @@ class UserProfile(Base):
     # PDFs + JSON im Account. User kann es ausschalten, wenn sie eine Reise
     # nur lokal abwickeln wollen (z.B. private Probefahrt).
     auto_save_dienstreisen: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    # Paperless-Anbindung (plan-api-v1.md, Abschnitt 11): Token des Users für die
+    # Paperless-Anbindung (docs/dev/plan-api-v1.md, Abschnitt 11): Token des Users für die
     # Paperless-REST-API (verschlüsselt) und ob PDFs automatisch abgelegt werden.
     paperless_api_token: Mapped[str | None] = mapped_column(EncryptedString(512))
     paperless_auto: Mapped[bool] = mapped_column(Boolean, default=False, server_default=sql_false(), nullable=False)
@@ -226,7 +226,7 @@ UniqueConstraint("user_id", name="uq_user_profiles_user")
 
 
 class ApiKey(Base):
-    """Persönlicher API-Key für /api/v1 (siehe plan-api-v1.md, Abschnitt 3).
+    """Persönlicher API-Key für /api/v1 (siehe docs/dev/plan-api-v1.md, Abschnitt 3).
 
     Token-Format ``dra_<prefix>_<secret>``; gespeichert wird nur das Präfix
     (zum Nachschlagen) und der SHA-256 des vollständigen Tokens.

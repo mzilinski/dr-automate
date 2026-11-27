@@ -1,4 +1,4 @@
-"""Persönliche API-Keys für /api/v1 (plan-api-v1.md, Abschnitt 3).
+"""Persönliche API-Keys für /api/v1 (docs/dev/plan-api-v1.md, Abschnitt 3).
 
 Token-Format ``dra_<prefix>_<secret>``: ``prefix`` (12 Hex-Zeichen) dient zum
 Nachschlagen und steht im Klartext in der DB, gespeichert wird sonst nur der

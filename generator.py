@@ -239,7 +239,7 @@ def _checkbox_konfiguration(config: dict, befoerderung: dict | None = None) -> d
     Großkundenrabatt-Frage („Bitte immer beantworten!") werden **unabhängig
     vom Verkehrsmittel** beantwortet — auch bei reinen PKW-/Mitfahrt-/Flug-/
     Dienstwagen-Reisen. Bis 2026-09 blieb die Sektion bei Reisen ohne
-    Bahn/Bus leer (issues.md #3) und der Antrag kam von der Schulleitung
+    Bahn/Bus leer (docs/dev/issues.md #3) und der Antrag kam von der Schulleitung
     als „unvollständig" zurück. Die Werte kommen aus dem Nutzerprofil
     (``apply_profile_authoritative``), Default ist überall „Nein".
 

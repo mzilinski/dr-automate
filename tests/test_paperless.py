@@ -1,4 +1,4 @@
-"""Paperless-Anbindung: Einreihen, Upload, Task-Status, Wiederholung (plan-api-v1.md §11)."""
+"""Paperless-Anbindung: Einreihen, Upload, Task-Status, Wiederholung (docs/dev/plan-api-v1.md §11)."""
 
 from __future__ import annotations
 
