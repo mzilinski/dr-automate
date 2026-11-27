@@ -5,6 +5,7 @@ import re
 import secrets
 import shutil
 import tempfile
+from urllib.parse import urlsplit
 from datetime import datetime
 from pathlib import Path
 
@@ -156,6 +157,22 @@ mail = Mail(app)
 csrf = CSRFProtect(app)
 
 
+def _eigene_url(url: str | None) -> str | None:
+    """Nur Pfade auf diesem Host zurückgeben (Referer ist vom Client steuerbar,
+    sonst Open Redirect auf fremde Seiten)."""
+    if not url:
+        return None
+    teile = urlsplit(url)
+    if teile.netloc and teile.netloc != request.host:
+        return None
+    if teile.scheme not in ("", "http", "https"):
+        return None
+    pfad = teile.path or "/"
+    if not pfad.startswith("/") or pfad[1:2] in ("/", "\\"):  # "//x", "/\\x" = fremder Host
+        return None
+    return pfad + (f"?{teile.query}" if teile.query else "")
+
+
 @app.errorhandler(CSRFError)
 def _csrf_error(e):
     """Wizard-Requests laufen per fetch und erwarten JSON — ohne diesen
@@ -163,7 +180,7 @@ def _csrf_error(e):
     msg = "Sitzung abgelaufen — bitte Seite neu laden (vorher ggf. JSON exportieren)."
     if request.accept_mimetypes.accept_html and not request.accept_mimetypes.accept_json:
         flash(msg, "error")
-        return redirect(request.referrer or url_for("index"))
+        return redirect(_eigene_url(request.referrer) or url_for("index"))
     return jsonify({"error": msg}), 400
 
 

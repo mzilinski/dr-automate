@@ -94,8 +94,12 @@ def _ki_kontext(reise_antworten_raw: str, wohnort: str) -> str:
     return "--- Kontext (nur für Datumsbezug und Zeitschätzung, NICHT ausgeben) ---\n" + "\n".join(zeilen)
 
 
-_CITATION_RE = re.compile(r"\s*\[cite:[^\]]+\]", re.IGNORECASE)
-_CITATION_RAW_RE = re.compile(r"\[cite_start\]|\[cite_end\]|\s*\[cite:[^\]]+\]", re.IGNORECASE)
+# `(?<!\s)` lässt den Whitespace-Teil nur am Anfang eines Leerraum-Blocks
+# ansetzen. Ohne den Anker probierte die Engine `\s*` ab jeder Position
+# eines langen Leerraums neu → quadratische Laufzeit (ReDoS, CodeQL
+# py/polynomial-redos) auf öffentlichen Endpunkten wie /generate.
+_CITATION_RE = re.compile(r"(?:(?<!\s)\s+)?\[cite:[^\]]+\]", re.IGNORECASE)
+_CITATION_RAW_RE = re.compile(r"\[cite_start\]|\[cite_end\]|(?:(?<!\s)\s+)?\[cite:[^\]]+\]", re.IGNORECASE)
 
 
 def _strip_citations_raw(text: str) -> str:
