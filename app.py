@@ -5,9 +5,9 @@ import re
 import secrets
 import shutil
 import tempfile
-from urllib.parse import urlsplit
 from datetime import datetime
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import bleach
 import markdown as md
