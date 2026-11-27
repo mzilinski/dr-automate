@@ -5,6 +5,8 @@ Web-Tool für den kompletten Reisekosten-Workflow nach **NRKVO** (niedersächsis
 - **Antrag** (Formular `035_001`) — aus unstrukturierten Reiseinfos (E-Mails, Notizen) per LLM zu fertigem PDF.
 - **Abrechnung** (Formular `035_002`) — Wizard-basierte Eingabe mit automatischer NRKVO-Berechnung (Tagegeld, Kürzungen, Wegstrecke, Übernachtung), Antrags-JSON wird übernommen.
 
+**Ausprobieren:** <https://dr-automate.zilinski.eu> — ohne Anmeldung im Gast-Modus nutzbar (Profil bleibt im Browser). Selbst betreiben: [Installation](#installation--start-lokal) bzw. [Docker](#nutzung-mit-docker).
+
 > **Hinweis:** Dieses Tool ersetzt keine rechtliche Prüfung. Erzeugte Anträge und Abrechnungen vor Einreichung selbst gegenchecken. Das verwendete Formular ist niedersachsenspezifisch.
 
 [![CI/CD](https://github.com/mzilinski/dr-automate/actions/workflows/ci.yml/badge.svg)](https://github.com/mzilinski/dr-automate/actions/workflows/ci.yml)
@@ -22,7 +24,7 @@ Web-Tool für den kompletten Reisekosten-Workflow nach **NRKVO** (niedersächsis
 *   **9-stufiger Wizard** mit Stepper-Navigation, Live-Berechnung und Pflichtfeld-Validierung.
 *   **Antrag-Import**: Antrags-JSON wird in das Abrechnungs-Schema überführt — alle übernehmbaren Felder (Antragsteller, Reise, Beförderung, Konfiguration) sind vorbefüllt.
 *   **NRKVO-Berechnung** (Stand 1.1.2025) ausschließlich serverseitig (`abrechnung_calc.py`) — die Wizard-Vorschau holt dieselben Werte über `/abrechnung/calc`: Tagegeld je Kalendertag nach § 7 NRKVO i. V. m. § 9 Abs. 4a EStG (> 8 h bzw. An-/Abreisetag 14 €, voller Tag 28 €, ab dem 15. Aufenthaltstag −50 %), Kürzungen für unentgeltliche Verpflegung (Frühstück 5,60 €, Mittag/Abend je 11,20 €, optional pro Tag gedeckelt), Wegstreckenentschädigung (§ 5 II: 0,25 €/km, max. 125 € je Dienstreise; § 5 III: 0,38 €/km; nur selbst gefahrener PKW), Übernachtungsgeld pauschal (20 €/Nacht, max. 14) und Begründungspflicht über 100 €/Belegnacht, 2-km-Regel.
-*   **Export/Import**: Kompletter Wizard-State als JSON downloadbar mit sprechendem Dateinamen `YYYYMMDD_DR-Abrechnung_<Stadt>_<Thema>.json`. Wieder einlesen → Wiedereinstieg in beliebigem Schritt. Wichtig, da Daten nicht serverseitig gespeichert werden und Browser/Geräte-Wechsel sonst zum Datenverlust führen würde.
+*   **Export/Import**: Kompletter Wizard-State als JSON downloadbar mit sprechendem Dateinamen `YYYYMMDD_DR-Abrechnung_<Stadt>_<Thema>.json`. Wieder einlesen → Wiedereinstieg in beliebigem Schritt. Wichtig im Gast-Modus, da die Daten dort nicht serverseitig gespeichert werden und ein Browser-/Gerätewechsel sonst zum Datenverlust führen würde (mit Account liegen die Reisen im Dashboard).
 *   **PDF-Befüllung** des offiziellen Formulars `035_002` inkl. char-für-char-IBAN, Tagegeld-Aufteilung in volle/Teiltage und Wegstrecken-Zeilen für Hin- und Rückreise.
 
 ### Geteilt
@@ -74,13 +76,13 @@ Web-Tool für den kompletten Reisekosten-Workflow nach **NRKVO** (niedersächsis
 
 > **Sicherheit in Produktion:** `SECRET_KEY` und `DR_AUTOMATE_ENCRYPTION_KEY` müssen gesetzt sein. Ohne `SECRET_KEY` sind Sessions fälschbar; ohne Encryption-Key kann der Account-Modus keine sensiblen Felder speichern. `TRUST_REMOTE_USER_HEADER=true` darf nur gesetzt sein, wenn die App ausschließlich hinter einem Reverse-Proxy (Traefik+Authelia) erreichbar ist.
 
-Eine Beispiel-Konfiguration findest du in [.env.example](.env.example).
+Eine Beispiel-Konfiguration findest du in [.env.example](.env.example). Die App liest die Datei **nicht** selbst ein — sie ist für `docker run --env-file .env` bzw. Docker Compose gedacht; lokal die Variablen exportieren.
 
 ## Installation & Start (Lokal)
 
 1.  **Repository klonen:**
     ```bash
-    git clone <repo-url>
+    git clone https://github.com/mzilinski/dr-automate.git
     cd dr-automate
     ```
 
@@ -96,7 +98,11 @@ Eine Beispiel-Konfiguration findest du in [.env.example](.env.example).
 
 3.  **Anwendung starten:**
     ```bash
-    uv run app.py
+    # Entwicklung: Debug-Modus erzeugt ephemere Schlüssel (Sessions/Account-Daten überleben keinen Neustart)
+    FLASK_DEBUG=true uv run app.py
+
+    # Ohne Debug-Modus ist SECRET_KEY Pflicht (für den Account-Modus zusätzlich DR_AUTOMATE_ENCRYPTION_KEY):
+    SECRET_KEY=$(python -c "import secrets; print(secrets.token_hex(32))") uv run app.py
     ```
 
 4.  **Öffnen:**
@@ -121,14 +127,15 @@ Das Tool ist vollständig containerisiert und kann leicht deployed werden. Der C
     docker build -t dr-automate .
     ```
 
-2.  **Container starten:**
+2.  **Container starten** (`SECRET_KEY` ist Pflicht, sonst bricht der Start ab):
     ```bash
-    docker run -p 5000:5000 dr-automate
+    docker run -p 5000:5000 -e SECRET_KEY=$(python -c "import secrets; print(secrets.token_hex(32))") dr-automate
     ```
-    
-    Mit Umgebungsvariablen:
+
+    Mit eigener Konfiguration und persistenter Datenbank (Account-Modus):
     ```bash
-    docker run -p 5000:5000 -e FLASK_DEBUG=true dr-automate
+    cp .env.example .env   # SECRET_KEY und DR_AUTOMATE_ENCRYPTION_KEY eintragen
+    docker run -p 5000:5000 --env-file .env -e PORT=5000 -v dr-automate-data:/app/data dr-automate
     ```
 
 3.  **Öffnen:**
@@ -153,41 +160,32 @@ Das Tool ist vollständig containerisiert und kann leicht deployed werden. Der C
 
 ```
 dr-automate/
-├── app.py                 # Flask-Webserver mit CSRF, Rate Limiting
-├── generator.py           # Antrags-PDF-Generierung
-├── generator_abrechnung.py# Abrechnungs-PDF-Generierung (Formular 035_002)
-├── abrechnung_calc.py     # Server-autoritative NRKVO-Berechnung
-├── nrkvo_rates.py         # Single Source of Truth für NRKVO-Sätze
-├── models.py              # Pydantic-Modelle (Antrag + Abrechnung)
-├── system_prompt.md       # KI-Prompt (Vorlage, nur für Antrag)
-├── example_input.json     # Beispiel-JSON für Tests
-├── requirements_abrechnung.md # Anforderungs-Doku für die Abrechnungs-Erweiterung
-├── .env.example           # Umgebungsvariablen-Vorlage
-├── forms/                 # PDF-Vorlagen (Antrag + Abrechnung)
-├── static/                # Geteilte Assets
-│   └── shared.css         # CSS für beide Templates
-├── templates/             # HTML-Templates
-│   ├── index.html         # Antrag-Interface (Profil-Wizard, JSON-Editor)
-│   ├── abrechnung.html    # Abrechnungs-Wizard (9 Schritte, Live-Berechnung)
-│   ├── base.html          # Layout für Dashboard/Landing/Profil/Docs
-│   ├── landing.html       # Startseite mit Account/Gast-Auswahl
-│   ├── dashboard.html     # Reise-Übersicht (Auth-only)
-│   ├── dienstreise_genehmigung.html  # Genehmigungs-Datum vermerken
-│   ├── profil.html        # Server-seitiges Profil (Auth-only)
-│   ├── account_request.html  # Public: Account anfragen
-│   └── docs.html          # Markdown-Doku-Renderer
-├── tests/                 # Unit-Tests
-│   └── test_app.py
-├── .github/
-│   ├── workflows/ci.yml   # CI/CD Pipeline
-│   └── dependabot.yml     # Dependency-Updates
-├── Dockerfile             # Container-Konfiguration
-├── pyproject.toml         # Python-Projektdefinition
-├── ruff.toml              # Linter-Konfiguration
-├── pytest.ini             # Test-Konfiguration
-├── CONTRIBUTING.md        # Mitarbeit
-├── SECURITY.md            # Sicherheitsmeldungen
-└── handoff.md             # Offene Punkte aus Code-Review
+├── app.py                  # Flask-App: Routen, CSRF, Rate Limiting, Doku-Renderer
+├── auth.py                 # Authelia-ForwardAuth (Remote-User-Header, Gruppen)
+├── services.py             # Gemeinsame Logik für Web-UI und API (PDF, Speichern)
+├── generator.py            # Antrags-PDF (Formular 035_001)
+├── generator_abrechnung.py # Abrechnungs-PDF (Formular 035_002)
+├── abrechnung_calc.py      # Server-autoritative NRKVO-Berechnung
+├── nrkvo_rates.py          # Single Source of Truth für NRKVO-Sätze
+├── models.py               # Pydantic-Modelle (Antrag + Abrechnung)
+├── models_db.py, db.py     # SQLAlchemy-Modelle und DB-Setup (SQLite)
+├── crypto.py, rotate_keys.py # Fernet-Verschlüsselung sensibler Felder, Key-Rotation
+├── ai_extract.py, ki_kontext.py, pdf_text.py # DeepSeek-Extraktion (BYOK), KI-Kontext, PDF-Text
+├── routing.py              # Entfernung über OpenStreetMap/OSRM
+├── paperless_sync.py       # Ablage in Paperless-ngx (optional)
+├── api_v1.py, api_models.py, api_openapi.py, api_keys.py # REST-API v1
+├── system_prompt.md        # KI-Prompt (nur Antrag)
+├── example_input.json      # Beispiel-JSON
+├── alembic/                # DB-Migrationen (laufen beim Container-Start)
+├── forms/                  # Offizielle PDF-Vorlagen
+├── templates/, static/     # HTML-Templates, CSS
+├── docs/                   # In-App-Doku (/docs/<slug>)
+│   └── dev/                # Entwicklungsnotizen (nicht öffentlich gerendert)
+├── mcp/                    # MCP-Server für Claude Desktop (nutzt die API v1)
+├── tests/                  # pytest-Suite
+├── .github/                # CI, Dependabot, Issue-Vorlagen
+├── Dockerfile, pyproject.toml, uv.lock, ruff.toml, pytest.ini
+└── CONTRIBUTING.md, SECURITY.md, LICENSE
 ```
 
 ## API-Endpunkte
@@ -211,7 +209,7 @@ dr-automate/
 
 **REST-API v1** (`/api/v1/…`, Bearer-Key statt Login, nur `admins`): Reisen anlegen/lesen/ändern,
 Berechnung, PDFs, Extraktion — Beschreibung in [docs/api.md](docs/api.md), OpenAPI unter
-`/api/v1/openapi.json`, Entwurf und Entscheidungen in `plan-api-v1.md`.
+`/api/v1/openapi.json`, Entwurf und Entscheidungen in [`docs/dev/plan-api-v1.md`](docs/dev/plan-api-v1.md).
 
 **Auth-only (Authelia-Header `Remote-User` erforderlich):**
 

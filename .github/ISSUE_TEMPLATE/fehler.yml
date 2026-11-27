@@ -1,0 +1,46 @@
+name: Fehler melden
+description: Etwas funktioniert nicht oder ein PDF wird falsch ausgefüllt.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Danke für die Meldung! **Bitte keine echten personenbezogenen Daten** (Name, Adresse, IBAN, Aktenzeichen) einfügen — Beispielwerte reichen.
+  - type: textarea
+    id: was
+    attributes:
+      label: Was ist passiert?
+      description: Was hast du gemacht, was hast du erwartet, was kam stattdessen?
+    validations:
+      required: true
+  - type: dropdown
+    id: bereich
+    attributes:
+      label: Bereich
+      options:
+        - Antrag (035_001)
+        - Abrechnung (035_002) / NRKVO-Berechnung
+        - KI-Extraktion
+        - Account / Dashboard
+        - REST-API / MCP
+        - Sonstiges
+    validations:
+      required: true
+  - type: dropdown
+    id: modus
+    attributes:
+      label: Wo genutzt?
+      options:
+        - dr-automate.zilinski.eu (Gast)
+        - dr-automate.zilinski.eu (Account)
+        - Selbst betrieben
+  - type: textarea
+    id: json
+    attributes:
+      label: Reise-JSON (anonymisiert, optional)
+      render: json
+  - type: textarea
+    id: rechtsgrundlage
+    attributes:
+      label: "Bei Berechnungsfehlern: erwarteter Betrag und Rechtsgrundlage"
+      description: z. B. „§ 7 Abs. 3 NRKVO, Kürzung Frühstück“

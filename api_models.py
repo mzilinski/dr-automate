@@ -1,4 +1,4 @@
-"""Schema der REST-API v1 (plan-api-v1.md, Abschnitt 4).
+"""Schema der REST-API v1 (docs/dev/plan-api-v1.md, Abschnitt 4).
 
 Eigene, eingefrorene Modelle mit ``extra="forbid"`` (Tippfehler → 422) und
 ein Mapping auf die internen Wizard-Modelle (``models.py``). Antragsteller,

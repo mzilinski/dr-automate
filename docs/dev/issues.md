@@ -1,7 +1,7 @@
 # Bekannte Issues
 
 (Stand 2026-05-14 — alle aufgeführten Punkte sind aktuell **erledigt**. Das Review vom
-2026-10-26 mit Abhakliste steht in `review-2026-10-26.md`.)
+2026-10-26 mit Abhakliste steht in `review-2026-10-26.md` (gleicher Ordner).)
 
 ## Erledigt
 

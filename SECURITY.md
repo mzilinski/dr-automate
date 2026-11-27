@@ -2,7 +2,7 @@
 
 ## Scope
 
-Dieses Tool füllt deutsche Verwaltungsformulare anhand von Nutzereingaben. Es enthält Authentifizierung (Single-Passphrase), CSRF-Schutz, Rate-Limiting und Pydantic-Validierung an der Eingabegrenze. Sicherheitslücken in diesen Komponenten sowie in der PDF-Pipeline sind willkommen-zu-melden.
+Dieses Tool füllt deutsche Verwaltungsformulare anhand von Nutzereingaben. Es enthält eine Header-basierte Anmeldung hinter Authelia/Traefik (`TRUST_REMOTE_USER_HEADER`), persönliche API-Keys für `/api/v1`, Verschlüsselung sensibler Felder (Fernet), CSRF-Schutz, Rate-Limiting und Pydantic-Validierung an der Eingabegrenze. Sicherheitslücken in diesen Komponenten sowie in der PDF-Pipeline sind willkommen-zu-melden.
 
 ## Lücken melden
 
@@ -15,7 +15,8 @@ Eine Antwort kommt in der Regel innerhalb einer Woche. Da dies ein freizeitlich 
 
 ## Was als Lücke zählt
 
-- Auth-Bypass (Sessions ohne `DR_PASSPHRASE` aufmachen, Token-Leaks etc.)
+- Auth-Bypass (fremde Identität annehmen, Zugriff auf Reisen anderer Nutzer, API-Key-Leaks etc.)
+- Klartext-Abfluss verschlüsselter Felder (Adresse, IBAN, BIC, API-Keys)
 - CSRF-Bypass auf state-changing Endpoints
 - Fälschbare Sessions (Probleme mit `SECRET_KEY`-Handling)
 - Path Traversal / unbeabsichtigtes File-Read-/Write
@@ -25,16 +26,9 @@ Eine Antwort kommt in der Regel innerhalb einer Woche. Da dies ein freizeitlich 
 
 ## Was nicht als Lücke zählt
 
-- Nutzung des Tools ohne `DR_PASSPHRASE` und `SECRET_KEY` in Produktion (das ist eine Fehlkonfiguration, kein Bug — siehe README).
-- "Auto-Login via URL-Token landet in Logs" — das ist dokumentiert, kein Bug. Wenn dir das Risiko zu groß ist, das Feature nicht nutzen.
-- DoS durch sehr große Eingaben am `/generate`-Endpoint (Rate-Limit existiert, größenbasierte Limits werden bei Bedarf nachgezogen).
+- Betrieb mit `TRUST_REMOTE_USER_HEADER=true` ohne vorgeschalteten Proxy, der die `Remote-*`-Header setzt bzw. überschreibt (Fehlkonfiguration, siehe README).
+- DoS durch viele oder große Anfragen innerhalb der konfigurierten Grenzen (Rate-Limits, `DR_AUTOMATE_MAX_UPLOAD_BYTES`, `DR_AUTOMATE_MAX_PDF_PAGES`).
 
-## Bekannte offene Punkte
+## Hinweis
 
-Diese sind dokumentiert in [`handoff.md`](handoff.md) und werden bearbeitet:
-
-- `SECRET_KEY`-Default sollte ohne Env-Var hart abbrechen (Block 1, Schritt 1).
-- Passphrase-Vergleich nicht konstantzeitig (Block 1, Schritt 1).
-- Datums-Validator akzeptiert ungültige Daten wie `32.13.2026` (Block 1, Schritt 3).
-
-Wenn dir hier ein konkreter Exploit-Pfad einfällt, der über die Doku hinausgeht, bitte trotzdem melden.
+Wenn dir bei einem der oben ausgenommenen Punkte ein konkreter Exploit-Pfad einfällt, der über die Doku hinausgeht, bitte trotzdem melden.
