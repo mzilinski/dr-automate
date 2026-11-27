@@ -7,6 +7,7 @@ import shutil
 import tempfile
 from datetime import datetime
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import bleach
 import markdown as md
@@ -27,6 +28,7 @@ from flask_mail import Mail, Message
 from flask_wtf import CSRFProtect
 from flask_wtf.csrf import CSRFError
 from sqlalchemy import select
+from werkzeug.exceptions import HTTPException
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 import ai_extract
@@ -156,6 +158,25 @@ mail = Mail(app)
 csrf = CSRFProtect(app)
 
 
+def _eigene_url(url: str | None) -> str | None:
+    """Ziel für die Rückleitung nach einem CSRF-Fehler aus dem Referer.
+
+    Der Referer ist vom Client steuerbar (sonst Open Redirect). Deshalb nur,
+    wenn er auf diesen Host zeigt und der Pfad eine bekannte GET-Route ist;
+    das Ziel wird per ``url_for`` neu gebaut, nie aus dem Header übernommen.
+    """
+    if not url:
+        return None
+    teile = urlsplit(url)
+    if teile.netloc != request.host or teile.scheme not in ("http", "https"):
+        return None
+    try:
+        endpoint, args = app.url_map.bind(request.host).match(teile.path, method="GET")
+    except HTTPException:
+        return None
+    return url_for(endpoint, **args)
+
+
 @app.errorhandler(CSRFError)
 def _csrf_error(e):
     """Wizard-Requests laufen per fetch und erwarten JSON — ohne diesen
@@ -163,7 +184,7 @@ def _csrf_error(e):
     msg = "Sitzung abgelaufen — bitte Seite neu laden (vorher ggf. JSON exportieren)."
     if request.accept_mimetypes.accept_html and not request.accept_mimetypes.accept_json:
         flash(msg, "error")
-        return redirect(request.referrer or url_for("index"))
+        return redirect(_eigene_url(request.referrer) or url_for("index"))
     return jsonify({"error": msg}), 400
 
 
