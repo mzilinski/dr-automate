@@ -94,12 +94,13 @@ def _ki_kontext(reise_antworten_raw: str, wohnort: str) -> str:
     return "--- Kontext (nur für Datumsbezug und Zeitschätzung, NICHT ausgeben) ---\n" + "\n".join(zeilen)
 
 
-# `(?<!\s)` lässt den Whitespace-Teil nur am Anfang eines Leerraum-Blocks
-# ansetzen. Ohne den Anker probierte die Engine `\s*` ab jeder Position
-# eines langen Leerraums neu → quadratische Laufzeit (ReDoS, CodeQL
-# py/polynomial-redos) auf öffentlichen Endpunkten wie /generate.
-_CITATION_RE = re.compile(r"(?:(?<!\s)\s+)?\[cite:[^\]]+\]", re.IGNORECASE)
-_CITATION_RAW_RE = re.compile(r"\[cite_start\]|\[cite_end\]|(?:(?<!\s)\s+)?\[cite:[^\]]+\]", re.IGNORECASE)
+# Begrenzte Quantoren statt `\s*`/`[^\]]+`: Sonst setzt die Engine in langem
+# Leerraum bzw. bei vielen `[cite:` ohne `]` an jeder Position neu an und läuft
+# bis zum Textende → quadratische Laufzeit (ReDoS, CodeQL py/polynomial-redos)
+# auf öffentlichen Endpunkten wie /generate. Echte Marker sind kurz
+# (`[cite: 1, 2, 15]`); Leerraum davor wird bis 50 Zeichen mit entfernt.
+_CITATION_RE = re.compile(r"\s{0,50}\[cite:[^\]]{1,200}\]", re.IGNORECASE)
+_CITATION_RAW_RE = re.compile(r"\[cite_start\]|\[cite_end\]|\s{0,50}\[cite:[^\]]{1,200}\]", re.IGNORECASE)
 
 
 def _strip_citations_raw(text: str) -> str:

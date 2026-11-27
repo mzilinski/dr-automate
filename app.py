@@ -28,6 +28,7 @@ from flask_mail import Mail, Message
 from flask_wtf import CSRFProtect
 from flask_wtf.csrf import CSRFError
 from sqlalchemy import select
+from werkzeug.exceptions import HTTPException
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 import ai_extract
@@ -158,19 +159,22 @@ csrf = CSRFProtect(app)
 
 
 def _eigene_url(url: str | None) -> str | None:
-    """Nur Pfade auf diesem Host zurückgeben (Referer ist vom Client steuerbar,
-    sonst Open Redirect auf fremde Seiten)."""
+    """Ziel für die Rückleitung nach einem CSRF-Fehler aus dem Referer.
+
+    Der Referer ist vom Client steuerbar (sonst Open Redirect). Deshalb nur,
+    wenn er auf diesen Host zeigt und der Pfad eine bekannte GET-Route ist;
+    das Ziel wird per ``url_for`` neu gebaut, nie aus dem Header übernommen.
+    """
     if not url:
         return None
     teile = urlsplit(url)
-    if teile.netloc and teile.netloc != request.host:
+    if teile.netloc != request.host or teile.scheme not in ("http", "https"):
         return None
-    if teile.scheme not in ("", "http", "https"):
+    try:
+        endpoint, args = app.url_map.bind(request.host).match(teile.path, method="GET")
+    except HTTPException:
         return None
-    pfad = teile.path or "/"
-    if not pfad.startswith("/") or pfad[1:2] in ("/", "\\"):  # "//x", "/\\x" = fremder Host
-        return None
-    return pfad + (f"?{teile.query}" if teile.query else "")
+    return url_for(endpoint, **args)
 
 
 @app.errorhandler(CSRFError)

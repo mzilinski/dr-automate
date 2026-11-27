@@ -10,11 +10,11 @@ import ki_kontext
 
 
 @pytest.mark.parametrize("fn", [ki_kontext._strip_citations, ki_kontext._strip_citations_raw])
-def test_zitat_regex_linear_bei_langem_leerraum(fn):
-    text = " " * 200_000 + "x"
+@pytest.mark.parametrize("text", [" " * 200_000 + "x", "[cite:" * 50_000], ids=["leerraum", "offene_marker"])
+def test_zitat_regex_linear(fn, text):
     start = time.perf_counter()
     fn(text)
-    # Vorher quadratisch: 40 000 Leerzeichen ≈ 1 s, 200 000 ≈ 25 s.
+    # Vorher quadratisch: 40 000 Leerzeichen ≈ 1 s, 200 000 ≈ 25 s; 48 000 Zeichen `[cite:` ≈ 0,1 s.
     assert time.perf_counter() - start < 1.0
 
 
@@ -39,7 +39,9 @@ def test_rohtext_entfernt_start_end_marker():
 @pytest.mark.parametrize(
     ("referer", "ziel"),
     [
-        ("http://localhost/abrechnung?x=1", "/abrechnung?x=1"),
+        ("http://localhost/abrechnung?x=1", "/abrechnung"),
+        ("http://localhost/gibt-es-nicht", "/"),
+        ("http://localhost.evil.example/abrechnung", "/"),
         ("https://evil.example/phish", "/"),
         ("//evil.example/phish", "/"),
         ("/\\evil.example", "/"),
