@@ -2,7 +2,7 @@
 # requires-python = ">=3.12"
 # dependencies = ["mcp==2.3.0", "httpx>=0.27"]
 # ///
-"""MCP-Server für dr-automate (plan-api-v1.md, Abschnitt 9).
+"""MCP-Server für dr-automate (docs/dev/plan-api-v1.md, Abschnitt 9).
 
 Spricht die REST-API v1 mit einem persönlichen API-Key an. Der Assistent
 extrahiert Reisedaten selbst (Regeln + Schema über ``antrag_regeln``), zeigt

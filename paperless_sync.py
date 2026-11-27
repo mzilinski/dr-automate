@@ -1,4 +1,4 @@
-"""PDFs nach Paperless-ngx ablegen (plan-api-v1.md, Abschnitt 11).
+"""PDFs nach Paperless-ngx ablegen (docs/dev/plan-api-v1.md, Abschnitt 11).
 
 Ablauf: ``einreihen()`` legt pro Reise und Art (antrag/abrechnung) eine Zeile in
 ``paperless_uploads`` an. Ein Hintergrund-Thread ruft jede Minute

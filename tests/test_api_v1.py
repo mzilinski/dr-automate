@@ -1,4 +1,4 @@
-"""REST-API v1: Keys, Authentifizierung, Fehlerformat (plan-api-v1.md)."""
+"""REST-API v1: Keys, Authentifizierung, Fehlerformat (docs/dev/plan-api-v1.md)."""
 
 from __future__ import annotations
 

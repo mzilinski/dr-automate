@@ -269,7 +269,7 @@ class TestCheckboxBefoerderungHin:
         assert "OBJ43" not in cb
 
     def test_mitfahrer_name_lands_in_dedicated_pdf_field(self):
-        """Regressions-Test fuer issues.md #1: bei MITFAHRT muss der Fahrer-
+        """Regressions-Test fuer docs/dev/issues.md #1: bei MITFAHRT muss der Fahrer-
         Name ins Form-Feld 'Mitfahrt_bei'/'_bei1' und NICHT in Bemerkungen."""
         import generator
         from models import Befoerderungsart
@@ -365,7 +365,7 @@ class TestCheckboxKonfiguration:
         assert "Obj6" not in cb
 
     def test_kosten_durch_andere_stelle_sets_Obj55(self):
-        """Regressions-Test fuer issues.md #2. Obj55 = "Reisekosten werden von
+        """Regressions-Test fuer docs/dev/issues.md #2. Obj55 = "Reisekosten werden von
         anderer Person/Stelle uebernommen" — Obj53 waere "unentgeltliche
         Unterkunft des Amtes wegen" (Feld-Tooltips im Vordruck)."""
         cb = apply_checkbox_logic(_make_data(config={"kosten_durch_andere_stelle": True}))

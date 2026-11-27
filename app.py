@@ -170,7 +170,7 @@ def _csrf_error(e):
 # Rate Limiting (Instanz in extensions.py, damit api_v1 sie ohne Zyklus nutzt)
 limiter.init_app(app)
 
-# REST-API v1 (Bearer-Keys, ohne CSRF/Session) — plan-api-v1.md
+# REST-API v1 (Bearer-Keys, ohne CSRF/Session) — docs/dev/plan-api-v1.md
 api_v1.init_app(app, csrf)
 
 
