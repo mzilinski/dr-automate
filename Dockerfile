@@ -52,4 +52,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
 # 1 Worker: flask-limiter mit storage_uri=memory:// arbeitet pro-Worker.
 # Bei mehreren Workern wuerden Rate-Limits multipliziert — solange kein
 # Redis im Stack ist, ist 1 Worker die saubere Loesung.
-CMD ["sh", "-c", "alembic upgrade head && exec gunicorn --bind 0.0.0.0:${PORT} --workers 1 --threads 4 --access-logfile - app:app"]
+CMD ["sh", "-c", "alembic upgrade head && exec gunicorn --no-control-socket --bind 0.0.0.0:${PORT} --workers 1 --threads 4 --access-logfile - app:app"]
